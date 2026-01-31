@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>2&nbsp; Network Segregation Fundamentals – Network Segregation Analysis Course</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./02_CIFTI_Files_and_Parcellations.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-54ac47856a4c6775c8d4b61fb994e574.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Network_Segregation_Fundamentals.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Network Segregation Fundamentals</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Network Segregation Analysis Course</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Network Segregation Analysis Course</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_Network_Segregation_Fundamentals.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Network Segregation Fundamentals</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_CIFTI_Files_and_Parcellations.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">CIFTI Files and Brain Parcellations</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_Preprocessing_Pipeline.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">The Preprocessing Pipeline</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_Computing_Network_Metrics.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Computing Network Metrics</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_Motion_Confounds_and_Group_Comparisons.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Motion Confounds and Group Comparisons</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">2.1</span> Learning Objectives</a></li>
+  <li><a href="#functional-connectivity-the-foundation" id="toc-functional-connectivity-the-foundation" class="nav-link" data-scroll-target="#functional-connectivity-the-foundation"><span class="header-section-number">2.2</span> 1.1 Functional Connectivity: The Foundation</a>
+  <ul class="collapse">
+  <li><a href="#what-is-functional-connectivity" id="toc-what-is-functional-connectivity" class="nav-link" data-scroll-target="#what-is-functional-connectivity"><span class="header-section-number">2.2.1</span> What is Functional Connectivity?</a></li>
+  <li><a href="#why-correlation" id="toc-why-correlation" class="nav-link" data-scroll-target="#why-correlation"><span class="header-section-number">2.2.2</span> Why Correlation?</a></li>
+  </ul></li>
+  <li><a href="#from-connections-to-networks" id="toc-from-connections-to-networks" class="nav-link" data-scroll-target="#from-connections-to-networks"><span class="header-section-number">2.3</span> 1.2 From Connections to Networks</a>
+  <ul class="collapse">
+  <li><a href="#the-brains-network-organization" id="toc-the-brains-network-organization" class="nav-link" data-scroll-target="#the-brains-network-organization"><span class="header-section-number">2.3.1</span> The Brain’s Network Organization</a></li>
+  <li><a href="#major-brain-networks-cole-anticevic-parcellation" id="toc-major-brain-networks-cole-anticevic-parcellation" class="nav-link" data-scroll-target="#major-brain-networks-cole-anticevic-parcellation"><span class="header-section-number">2.3.2</span> Major Brain Networks (Cole-Anticevic Parcellation)</a></li>
+  </ul></li>
+  <li><a href="#the-segregation-formula" id="toc-the-segregation-formula" class="nav-link" data-scroll-target="#the-segregation-formula"><span class="header-section-number">2.4</span> 1.3 The Segregation Formula</a>
+  <ul class="collapse">
+  <li><a href="#what-is-network-segregation" id="toc-what-is-network-segregation" class="nav-link" data-scroll-target="#what-is-network-segregation"><span class="header-section-number">2.4.1</span> What is Network Segregation?</a></li>
+  <li><a href="#the-formula-chan-et-al.-2014" id="toc-the-formula-chan-et-al.-2014" class="nav-link" data-scroll-target="#the-formula-chan-et-al.-2014"><span class="header-section-number">2.4.2</span> The Formula (Chan et al., 2014)</a></li>
+  <li><a href="#interpretation" id="toc-interpretation" class="nav-link" data-scroll-target="#interpretation"><span class="header-section-number">2.4.3</span> Interpretation</a></li>
+  <li><a href="#why-this-formula" id="toc-why-this-formula" class="nav-link" data-scroll-target="#why-this-formula"><span class="header-section-number">2.4.4</span> Why This Formula?</a></li>
+  </ul></li>
+  <li><a href="#why-segregation-matters" id="toc-why-segregation-matters" class="nav-link" data-scroll-target="#why-segregation-matters"><span class="header-section-number">2.5</span> 1.4 Why Segregation Matters</a>
+  <ul class="collapse">
+  <li><a href="#cognitive-implications" id="toc-cognitive-implications" class="nav-link" data-scroll-target="#cognitive-implications"><span class="header-section-number">2.5.1</span> Cognitive Implications</a></li>
+  <li><a href="#segregation-and-aging" id="toc-segregation-and-aging" class="nav-link" data-scroll-target="#segregation-and-aging"><span class="header-section-number">2.5.2</span> Segregation and Aging</a></li>
+  <li><a href="#the-dedifferentiation-hypothesis" id="toc-the-dedifferentiation-hypothesis" class="nav-link" data-scroll-target="#the-dedifferentiation-hypothesis"><span class="header-section-number">2.5.3</span> The Dedifferentiation Hypothesis</a></li>
+  </ul></li>
+  <li><a href="#the-fisher-z-transform" id="toc-the-fisher-z-transform" class="nav-link" data-scroll-target="#the-fisher-z-transform"><span class="header-section-number">2.6</span> 1.5 The Fisher Z-Transform</a>
+  <ul class="collapse">
+  <li><a href="#why-transform-correlations" id="toc-why-transform-correlations" class="nav-link" data-scroll-target="#why-transform-correlations"><span class="header-section-number">2.6.1</span> Why Transform Correlations?</a></li>
+  <li><a href="#the-problem-with-averaging-correlations-directly" id="toc-the-problem-with-averaging-correlations-directly" class="nav-link" data-scroll-target="#the-problem-with-averaging-correlations-directly"><span class="header-section-number">2.6.2</span> The Problem with Averaging Correlations Directly</a></li>
+  <li><a href="#the-solution-fisher-z-transform" id="toc-the-solution-fisher-z-transform" class="nav-link" data-scroll-target="#the-solution-fisher-z-transform"><span class="header-section-number">2.6.3</span> The Solution: Fisher Z-Transform</a></li>
+  </ul></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways"><span class="header-section-number">2.7</span> 1.6 Key Takeaways</a>
+  <ul class="collapse">
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">2.7.1</span> Summary</a></li>
+  <li><a href="#connection-to-the-pipeline" id="toc-connection-to-the-pipeline" class="nav-link" data-scroll-target="#connection-to-the-pipeline"><span class="header-section-number">2.7.2</span> Connection to the Pipeline</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">2.8</span> Exercises</a>
+  <ul class="collapse">
+  <li><a href="#exercise-1.1-manual-segregation-calculation" id="toc-exercise-1.1-manual-segregation-calculation" class="nav-link" data-scroll-target="#exercise-1.1-manual-segregation-calculation"><span class="header-section-number">2.8.1</span> Exercise 1.1: Manual Segregation Calculation</a></li>
+  <li><a href="#exercise-1.2-explore-parameter-effects" id="toc-exercise-1.2-explore-parameter-effects" class="nav-link" data-scroll-target="#exercise-1.2-explore-parameter-effects"><span class="header-section-number">2.8.2</span> Exercise 1.2: Explore Parameter Effects</a></li>
+  </ul></li>
+  <li><a href="#next-lesson" id="toc-next-lesson" class="nav-link" data-scroll-target="#next-lesson"><span class="header-section-number">2.9</span> Next Lesson</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Network Segregation Fundamentals</span></h1><button type="button" class="btn code-tools-button" id="quarto-code-tools-source"><i class="bi"></i> Code</button></div></div>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">2.1</span> Learning Objectives</h2>
+<p>By the end of this lesson, you will:</p>
+<ol type="1">
+<li>Understand what functional connectivity means</li>
+<li>Know the mathematical definition of network segregation</li>
+<li>Understand why segregation matters for brain function</li>
+<li>Be able to compute segregation from a correlation matrix</li>
+</ol>
+</section>
+<section id="functional-connectivity-the-foundation" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="functional-connectivity-the-foundation"><span class="header-section-number">2.2</span> 1.1 Functional Connectivity: The Foundation</h2>
+<section id="what-is-functional-connectivity" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="what-is-functional-connectivity"><span class="header-section-number">2.2.1</span> What is Functional Connectivity?</h3>
+<p>Functional connectivity (FC) measures the <strong>statistical dependence</strong> between brain regions’ activity over time. If two regions show correlated BOLD signals, they are considered “functionally connected.”</p>
+<pre><code>Region A: ~~~\/\/\/~~~\/\/\/~~~
+Region B: ~~~\/\/\/~~~\/\/\/~~~  → High correlation (connected)
+Region C: \/\/\/~~~\/\/\/~~~\/\  → Low correlation (not connected)</code></pre>
+</section>
+<section id="why-correlation" class="level3" data-number="2.2.2">
+<h3 data-number="2.2.2" class="anchored" data-anchor-id="why-correlation"><span class="header-section-number">2.2.2</span> Why Correlation?</h3>
+<p>We use <strong>Pearson correlation</strong> because:</p>
+<ul>
+<li>It’s scale-invariant (doesn’t matter if signal is stronger in one region)</li>
+<li>Values range from -1 to +1 (easy to interpret)</li>
+<li>Well-understood statistical properties</li>
+</ul>
+<div id="cell-fig-timeseries" class="cell" data-execution_count="1">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate timeseries from 3 brain regions</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>n_timepoints <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Region A: base signal</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>region_a <span class="op">=</span> np.sin(np.linspace(<span class="dv">0</span>, <span class="dv">8</span><span class="op">*</span>np.pi, n_timepoints)) <span class="op">+</span> np.random.randn(n_timepoints) <span class="op">*</span> <span class="fl">0.3</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Region B: correlated with A (same network)</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>region_b <span class="op">=</span> region_a <span class="op">+</span> np.random.randn(n_timepoints) <span class="op">*</span> <span class="fl">0.5</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Region C: uncorrelated (different network)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>region_c <span class="op">=</span> np.sin(np.linspace(<span class="dv">0</span>, <span class="dv">12</span><span class="op">*</span>np.pi, n_timepoints) <span class="op">+</span> <span class="dv">2</span>) <span class="op">+</span> np.random.randn(n_timepoints) <span class="op">*</span> <span class="fl">0.5</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(region_a, <span class="st">'b-'</span>, label<span class="op">=</span><span class="st">'Region A'</span>)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'BOLD Signal'</span>)</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(region_b, <span class="st">'g-'</span>, label<span class="op">=</span><span class="st">'Region B (same network as A)'</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'BOLD Signal'</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].plot(region_c, <span class="st">'r-'</span>, label<span class="op">=</span><span class="st">'Region C (different network)'</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_ylabel(<span class="st">'BOLD Signal'</span>)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xlabel(<span class="st">'Time (volumes)'</span>)</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].legend()</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute correlations</span></span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Correlation A-B (same network):      r = </span><span class="sc">{</span>np<span class="sc">.</span>corrcoef(region_a, region_b)[<span class="dv">0</span>,<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Correlation A-C (different network): r = </span><span class="sc">{</span>np<span class="sc">.</span>corrcoef(region_a, region_c)[<span class="dv">0</span>,<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-timeseries" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-timeseries-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_Network_Segregation_Fundamentals_files/figure-html/fig-timeseries-output-1.png" width="1142" height="566" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-timeseries-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.1: Simulated BOLD Timeseries from 3 Brain Regions
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Correlation A-B (same network):      r = 0.865
+Correlation A-C (different network): r = -0.012</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="from-connections-to-networks" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="from-connections-to-networks"><span class="header-section-number">2.3</span> 1.2 From Connections to Networks</h2>
+<section id="the-brains-network-organization" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="the-brains-network-organization"><span class="header-section-number">2.3.1</span> The Brain’s Network Organization</h3>
+<p>The brain isn’t a homogeneous blob - it’s organized into <strong>functional networks</strong>. Regions within the same network:</p>
+<ul>
+<li>Process related information</li>
+<li>Show correlated activity</li>
+<li>Work together for specific functions</li>
+</ul>
+</section>
+<section id="major-brain-networks-cole-anticevic-parcellation" class="level3" data-number="2.3.2">
+<h3 data-number="2.3.2" class="anchored" data-anchor-id="major-brain-networks-cole-anticevic-parcellation"><span class="header-section-number">2.3.2</span> Major Brain Networks (Cole-Anticevic Parcellation)</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Network</th>
+<th>Function</th>
+<th>Example Regions</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Visual1/2</td>
+<td>Visual processing</td>
+<td>Occipital cortex</td>
+</tr>
+<tr class="even">
+<td>Somatomotor</td>
+<td>Movement, touch</td>
+<td>Pre/postcentral gyrus</td>
+</tr>
+<tr class="odd">
+<td>Default Mode</td>
+<td>Self-reflection, memory</td>
+<td>PCC, mPFC, angular gyrus</td>
+</tr>
+<tr class="even">
+<td>Frontoparietal</td>
+<td>Executive control</td>
+<td>dlPFC, posterior parietal</td>
+</tr>
+<tr class="odd">
+<td>Dorsal Attention</td>
+<td>Top-down attention</td>
+<td>FEF, IPS</td>
+</tr>
+<tr class="even">
+<td>Cingulo-Opercular</td>
+<td>Task maintenance</td>
+<td>dACC, insula</td>
+</tr>
+</tbody>
+</table>
+<div id="cell-fig-network-matrix" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate a correlation matrix with network structure</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 12 regions, 3 networks (4 regions each)</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>n_regions <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>n_networks <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>regions_per_network <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Network assignments</span></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>network_labels <span class="op">=</span> np.repeat(np.arange(<span class="dv">1</span>, n_networks <span class="op">+</span> <span class="dv">1</span>), regions_per_network)</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>network_names <span class="op">=</span> [<span class="st">'Visual'</span>, <span class="st">'Default'</span>, <span class="st">'Frontoparietal'</span>]</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Create correlation matrix with structure</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>corr_matrix <span class="op">=</span> np.zeros((n_regions, n_regions))</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> j:</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>            corr_matrix[i, j] <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> network_labels[i] <span class="op">==</span> network_labels[j]:</span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Within-network: high correlation</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>            corr_matrix[i, j] <span class="op">=</span> <span class="fl">0.6</span> <span class="op">+</span> np.random.randn() <span class="op">*</span> <span class="fl">0.1</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Between-network: lower correlation</span></span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>            corr_matrix[i, j] <span class="op">=</span> <span class="fl">0.2</span> <span class="op">+</span> np.random.randn() <span class="op">*</span> <span class="fl">0.1</span></span>
+<span id="cb4-26"><a href="#cb4-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-27"><a href="#cb4-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Make symmetric</span></span>
+<span id="cb4-28"><a href="#cb4-28" aria-hidden="true" tabindex="-1"></a>corr_matrix <span class="op">=</span> (corr_matrix <span class="op">+</span> corr_matrix.T) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb4-29"><a href="#cb4-29" aria-hidden="true" tabindex="-1"></a>np.fill_diagonal(corr_matrix, <span class="fl">1.0</span>)</span>
+<span id="cb4-30"><a href="#cb4-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-31"><a href="#cb4-31" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb4-32"><a href="#cb4-32" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb4-33"><a href="#cb4-33" aria-hidden="true" tabindex="-1"></a>sns.heatmap(corr_matrix, cmap<span class="op">=</span><span class="st">'RdBu_r'</span>, center<span class="op">=</span><span class="dv">0</span>, vmin<span class="op">=-</span><span class="fl">0.2</span>, vmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb4-34"><a href="#cb4-34" aria-hidden="true" tabindex="-1"></a>            square<span class="op">=</span><span class="va">True</span>, ax<span class="op">=</span>ax, cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Correlation'</span>})</span>
+<span id="cb4-35"><a href="#cb4-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-36"><a href="#cb4-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Add network boundaries</span></span>
+<span id="cb4-37"><a href="#cb4-37" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, n_networks):</span>
+<span id="cb4-38"><a href="#cb4-38" aria-hidden="true" tabindex="-1"></a>    ax.axhline(i <span class="op">*</span> regions_per_network, color<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-39"><a href="#cb4-39" aria-hidden="true" tabindex="-1"></a>    ax.axvline(i <span class="op">*</span> regions_per_network, color<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb4-40"><a href="#cb4-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-41"><a href="#cb4-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Label networks</span></span>
+<span id="cb4-42"><a href="#cb4-42" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, name <span class="kw">in</span> <span class="bu">enumerate</span>(network_names):</span>
+<span id="cb4-43"><a href="#cb4-43" aria-hidden="true" tabindex="-1"></a>    mid <span class="op">=</span> i <span class="op">*</span> regions_per_network <span class="op">+</span> regions_per_network <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="op">-</span><span class="fl">0.5</span>, mid, name, ha<span class="op">=</span><span class="st">'right'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">10</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Correlation Matrix with Network Structure</span><span class="ch">\n</span><span class="st">(Blocks = Networks)'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-network-matrix" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-network-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_Network_Segregation_Fundamentals_files/figure-html/fig-network-matrix-output-1.png" width="929" height="728" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-network-matrix-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.2: Correlation Matrix with Network Structure
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="the-segregation-formula" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="the-segregation-formula"><span class="header-section-number">2.4</span> 1.3 The Segregation Formula</h2>
+<section id="what-is-network-segregation" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="what-is-network-segregation"><span class="header-section-number">2.4.1</span> What is Network Segregation?</h3>
+<p><strong>Segregation</strong> quantifies how much a network’s internal connectivity exceeds its connectivity to other networks.</p>
+</section>
+<section id="the-formula-chan-et-al.-2014" class="level3" data-number="2.4.2">
+<h3 data-number="2.4.2" class="anchored" data-anchor-id="the-formula-chan-et-al.-2014"><span class="header-section-number">2.4.2</span> The Formula (Chan et al., 2014)</h3>
+<p><span class="math display">\[S = \frac{W - B}{W}\]</span></p>
+<p>Where:</p>
+<ul>
+<li><strong>W</strong> = Mean <strong>W</strong>ithin-network correlation</li>
+<li><strong>B</strong> = Mean <strong>B</strong>etween-network correlation</li>
+<li><strong>S</strong> = <strong>S</strong>egregation index</li>
+</ul>
+</section>
+<section id="interpretation" class="level3" data-number="2.4.3">
+<h3 data-number="2.4.3" class="anchored" data-anchor-id="interpretation"><span class="header-section-number">2.4.3</span> Interpretation</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>S Value</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>S ≈ 1</td>
+<td>Perfect segregation (W &gt;&gt; B)</td>
+</tr>
+<tr class="even">
+<td>S ≈ 0.5</td>
+<td>Moderate segregation (W = 2B)</td>
+</tr>
+<tr class="odd">
+<td>S ≈ 0</td>
+<td>No segregation (W = B)</td>
+</tr>
+<tr class="even">
+<td>S &lt; 0</td>
+<td>Anti-segregation (B &gt; W) - rare</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="why-this-formula" class="level3" data-number="2.4.4">
+<h3 data-number="2.4.4" class="anchored" data-anchor-id="why-this-formula"><span class="header-section-number">2.4.4</span> Why This Formula?</h3>
+<ul>
+<li>Normalizes by within-network connectivity</li>
+<li>Comparable across networks of different sizes</li>
+<li>Intuitive: “What fraction of within-network connectivity is unique?”</li>
+</ul>
+<div id="segregation-calculation" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calculate_segregation(corr_matrix, network_assignments):</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate network segregation from a correlation matrix.</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co">    This is the CORE function - understand this and you understand segregation!</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make a copy and prepare the matrix</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    M <span class="op">=</span> corr_matrix.copy()</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    np.fill_diagonal(M, <span class="dv">0</span>)  <span class="co"># Remove self-connections</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    M[M <span class="op">&lt;</span> <span class="dv">0</span>] <span class="op">=</span> <span class="dv">0</span>  <span class="co"># Use only positive correlations</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fisher z-transform for proper averaging of correlations</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># arctanh(r) transforms correlations to a scale where averaging is valid</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    M_z <span class="op">=</span> np.arctanh(np.clip(M, <span class="op">-</span><span class="fl">0.999</span>, <span class="fl">0.999</span>))</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    networks <span class="op">=</span> np.unique(network_assignments)</span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    networks <span class="op">=</span> networks[networks <span class="op">&gt;</span> <span class="dv">0</span>]  <span class="co"># Exclude background (0)</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    within_edges <span class="op">=</span> []</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    between_edges <span class="op">=</span> []</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> net <span class="kw">in</span> networks:</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Find indices of regions in this network</span></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>        net_idx <span class="op">=</span> np.where(network_assignments <span class="op">==</span> net)[<span class="dv">0</span>]</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>        other_idx <span class="op">=</span> np.where((network_assignments <span class="op">!=</span> net) <span class="op">&amp;</span> (network_assignments <span class="op">&gt;</span> <span class="dv">0</span>))[<span class="dv">0</span>]</span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Collect within-network correlations (upper triangle only to avoid duplicates)</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(net_idx)):</span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, <span class="bu">len</span>(net_idx)):</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>                within_edges.append(M_z[net_idx[i], net_idx[j]])</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Collect between-network correlations</span></span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> net_idx:</span>
+<span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> other_idx:</span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> i <span class="op">&lt;</span> j:  <span class="co"># Upper triangle only</span></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>                    between_edges.append(M_z[i, j])</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate means (back-transform from z)</span></span>
+<span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> np.tanh(np.mean(within_edges)) <span class="cf">if</span> within_edges <span class="cf">else</span> np.nan</span>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>    B <span class="op">=</span> np.tanh(np.mean(between_edges)) <span class="cf">if</span> between_edges <span class="cf">else</span> np.nan</span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Segregation</span></span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> (W <span class="op">-</span> B) <span class="op">/</span> W <span class="cf">if</span> W <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> np.nan</span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="st">'W'</span>: W, <span class="st">'B'</span>: B, <span class="st">'S'</span>: S}</span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate segregation for our simulated matrix</span></span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> calculate_segregation(corr_matrix, network_labels)</span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Segregation Analysis Results"</span>)</span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Within-network connectivity (W):  </span><span class="sc">{</span>result[<span class="st">'W'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Between-network connectivity (B): </span><span class="sc">{</span>result[<span class="st">'B'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Segregation index (S):            </span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Interpretation: </span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="op">*</span><span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">% of within-network"</span>)</span>
+<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"connectivity is 'unique' to the network"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Segregation Analysis Results
+========================================
+Within-network connectivity (W):  0.6013
+Between-network connectivity (B): 0.1907
+Segregation index (S):            0.6828
+
+Interpretation: 68.3% of within-network
+connectivity is 'unique' to the network</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="why-segregation-matters" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="why-segregation-matters"><span class="header-section-number">2.5</span> 1.4 Why Segregation Matters</h2>
+<section id="cognitive-implications" class="level3" data-number="2.5.1">
+<h3 data-number="2.5.1" class="anchored" data-anchor-id="cognitive-implications"><span class="header-section-number">2.5.1</span> Cognitive Implications</h3>
+<p>Network segregation reflects the brain’s ability to maintain <strong>specialized processing</strong>:</p>
+<ul>
+<li><strong>High segregation</strong> → Networks work independently → Specialized processing</li>
+<li><strong>Low segregation</strong> → Networks blur together → Less specialized</li>
+</ul>
+</section>
+<section id="segregation-and-aging" class="level3" data-number="2.5.2">
+<h3 data-number="2.5.2" class="anchored" data-anchor-id="segregation-and-aging"><span class="header-section-number">2.5.2</span> Segregation and Aging</h3>
+<p>This is particularly relevant for your older vs.&nbsp;younger adult study:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 42%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Finding</th>
+<th>Implication</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Older adults show <strong>lower</strong> segregation</td>
+<td>Networks become less distinct with age</td>
+</tr>
+<tr class="even">
+<td>This correlates with cognitive decline</td>
+<td>Dedifferentiation hypothesis</td>
+</tr>
+<tr class="odd">
+<td>Effect varies by network</td>
+<td>Association networks most affected</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="the-dedifferentiation-hypothesis" class="level3" data-number="2.5.3">
+<h3 data-number="2.5.3" class="anchored" data-anchor-id="the-dedifferentiation-hypothesis"><span class="header-section-number">2.5.3</span> The Dedifferentiation Hypothesis</h3>
+<p>With aging, brain networks become less distinct (“dedifferentiated”):</p>
+<ul>
+<li>Within-network connectivity may decrease</li>
+<li>Between-network connectivity may increase</li>
+<li>Result: Lower segregation</li>
+</ul>
+<div class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_network_matrix(within_corr, between_corr, n_regions<span class="op">=</span><span class="dv">12</span>, n_networks<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create a correlation matrix with specified within/between correlations."""</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    regions_per_net <span class="op">=</span> n_regions <span class="op">//</span> n_networks</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    network_labels <span class="op">=</span> np.repeat(np.arange(<span class="dv">1</span>, n_networks <span class="op">+</span> <span class="dv">1</span>), regions_per_net)</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    M <span class="op">=</span> np.zeros((n_regions, n_regions))</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> i <span class="op">==</span> j:</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>                M[i, j] <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> network_labels[i] <span class="op">==</span> network_labels[j]:</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>                M[i, j] <span class="op">=</span> within_corr</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>                M[i, j] <span class="op">=</span> between_corr</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> M, network_labels</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare "young" vs "old" brain patterns</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>scenarios <span class="op">=</span> [</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Young Adult'</span>, <span class="fl">0.6</span>, <span class="fl">0.15</span>),</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Middle Aged'</span>, <span class="fl">0.5</span>, <span class="fl">0.25</span>),</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Older Adult'</span>, <span class="fl">0.4</span>, <span class="fl">0.30</span>),</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>segregation_values <span class="op">=</span> []</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, (label, w_corr, b_corr) <span class="kw">in</span> <span class="bu">zip</span>(axes, scenarios):</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    M, labels <span class="op">=</span> create_network_matrix(w_corr, b_corr)</span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> calculate_segregation(M, labels)</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    segregation_values.append((label, result[<span class="st">'S'</span>]))</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>    sns.heatmap(M, cmap<span class="op">=</span><span class="st">'RdBu_r'</span>, center<span class="op">=</span><span class="dv">0</span>, vmin<span class="op">=</span><span class="dv">0</span>, vmax<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>                square<span class="op">=</span><span class="va">True</span>, ax<span class="op">=</span>ax, cbar<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>label<span class="sc">}</span><span class="ch">\n</span><span class="ss">W=</span><span class="sc">{</span>w_corr<span class="sc">:.2f}</span><span class="ss">, B=</span><span class="sc">{</span>b_corr<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">S=</span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.3f}</span><span class="ss">"</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Network Dedifferentiation with Aging'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, y<span class="op">=</span><span class="fl">1.02</span>)</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot segregation decline</span></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>labels_plot <span class="op">=</span> [s[<span class="dv">0</span>] <span class="cf">for</span> s <span class="kw">in</span> segregation_values]</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>values_plot <span class="op">=</span> [s[<span class="dv">1</span>] <span class="cf">for</span> s <span class="kw">in</span> segregation_values]</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'green'</span>, <span class="st">'orange'</span>, <span class="st">'red'</span>]</span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>ax.bar(labels_plot, values_plot, color<span class="op">=</span>colors, alpha<span class="op">=</span><span class="fl">0.7</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Segregation Index (S)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Segregation Decreases with Age</span><span class="ch">\n</span><span class="st">(Simulated Data)'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, v <span class="kw">in</span> <span class="bu">enumerate</span>(values_plot):</span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    ax.text(i, v <span class="op">+</span> <span class="fl">0.02</span>, <span class="ss">f'</span><span class="sc">{</span>v<span class="sc">:.3f}</span><span class="ss">'</span>, ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div id="fig-aging-simulation" class="cell quarto-float quarto-figure quarto-figure-center anchored" data-execution_count="4">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-aging-simulation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div class="cell-output cell-output-display">
+<div id="fig-aging-simulation-1" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-aging-simulation-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_Network_Segregation_Fundamentals_files/figure-html/fig-aging-simulation-output-1.png" data-ref-parent="fig-aging-simulation" width="1226" height="396" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-aging-simulation-1-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(a) Network Dedifferentiation with Aging
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-display">
+<div id="fig-aging-simulation-2" class="quarto-float quarto-figure quarto-figure-center anchored" height="469" width="759">
+<figure class="quarto-float quarto-subfloat-fig figure">
+<div aria-describedby="fig-aging-simulation-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_Network_Segregation_Fundamentals_files/figure-html/fig-aging-simulation-output-2.png" id="fig-aging-simulation-2" data-ref-parent="fig-aging-simulation" width="759" height="469" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-subfloat-caption quarto-subfloat-fig" id="fig-aging-simulation-2-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+(b)
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig quarto-uncaptioned" id="fig-aging-simulation-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.3
+</figcaption>
+</figure>
+</div>
+</div>
+</section>
+</section>
+<section id="the-fisher-z-transform" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="the-fisher-z-transform"><span class="header-section-number">2.6</span> 1.5 The Fisher Z-Transform</h2>
+<section id="why-transform-correlations" class="level3" data-number="2.6.1">
+<h3 data-number="2.6.1" class="anchored" data-anchor-id="why-transform-correlations"><span class="header-section-number">2.6.1</span> Why Transform Correlations?</h3>
+<p>You may have noticed we used <code>np.arctanh()</code> (Fisher z-transform) before averaging correlations. Here’s why:</p>
+</section>
+<section id="the-problem-with-averaging-correlations-directly" class="level3" data-number="2.6.2">
+<h3 data-number="2.6.2" class="anchored" data-anchor-id="the-problem-with-averaging-correlations-directly"><span class="header-section-number">2.6.2</span> The Problem with Averaging Correlations Directly</h3>
+<p>Correlation values are <strong>bounded</strong> (-1 to +1), which creates problems:</p>
+<ul>
+<li>The distribution is skewed near the bounds</li>
+<li>A correlation of 0.9 is not “twice as strong” as 0.45</li>
+<li>Averaging doesn’t work properly</li>
+</ul>
+</section>
+<section id="the-solution-fisher-z-transform" class="level3" data-number="2.6.3">
+<h3 data-number="2.6.3" class="anchored" data-anchor-id="the-solution-fisher-z-transform"><span class="header-section-number">2.6.3</span> The Solution: Fisher Z-Transform</h3>
+<p><span class="math display">\[z = \text{arctanh}(r) = \frac{1}{2} \ln\left(\frac{1+r}{1-r}\right)\]</span></p>
+<p>This transforms correlations to an <strong>unbounded, normally distributed</strong> scale where:</p>
+<ul>
+<li>Averaging is statistically valid</li>
+<li>Standard errors are well-defined</li>
+</ul>
+<div id="cell-fig-fisher-transform" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the Fisher z-transform</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>r_values <span class="op">=</span> np.linspace(<span class="op">-</span><span class="fl">0.99</span>, <span class="fl">0.99</span>, <span class="dv">100</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>z_values <span class="op">=</span> np.arctanh(r_values)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot transform</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(r_values, z_values, <span class="st">'b-'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Correlation (r)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Fisher z'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Fisher Z-Transform: r → z'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Show why it matters for averaging</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>correlations <span class="op">=</span> [<span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">0.9</span>]</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Wrong way: average correlations directly</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>wrong_avg <span class="op">=</span> np.mean(correlations)</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Right way: transform, average, back-transform</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>z_transformed <span class="op">=</span> np.arctanh(correlations)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>z_avg <span class="op">=</span> np.mean(z_transformed)</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>right_avg <span class="op">=</span> np.tanh(z_avg)</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.arange(<span class="bu">len</span>(correlations) <span class="op">+</span> <span class="dv">2</span>)</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> correlations <span class="op">+</span> [wrong_avg, right_avg]</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> [<span class="ss">f'r=</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> c <span class="kw">in</span> correlations] <span class="op">+</span> [<span class="st">'Wrong</span><span class="ch">\n</span><span class="st">Avg'</span>, <span class="st">'Fisher</span><span class="ch">\n</span><span class="st">Avg'</span>]</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'steelblue'</span>]<span class="op">*</span><span class="dv">4</span> <span class="op">+</span> [<span class="st">'red'</span>, <span class="st">'green'</span>]</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(x, values, color<span class="op">=</span>colors, alpha<span class="op">=</span><span class="fl">0.7</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticks(x)</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticklabels(labels)</span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Correlation'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="ss">f'Averaging Correlations</span><span class="ch">\n</span><span class="ss">Wrong=</span><span class="sc">{</span>wrong_avg<span class="sc">:.3f}</span><span class="ss">, Fisher=</span><span class="sc">{</span>right_avg<span class="sc">:.3f}</span><span class="ss">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axhline(wrong_avg, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axhline(right_avg, color<span class="op">=</span><span class="st">'green'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"The difference matters especially when correlations are high!"</span>)</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Direct average: </span><span class="sc">{</span>wrong_avg<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Fisher average: </span><span class="sc">{</span>right_avg<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Difference: </span><span class="sc">{</span><span class="bu">abs</span>(wrong_avg <span class="op">-</span> right_avg)<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="fig-fisher-transform" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-fisher-transform-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<img src="01_Network_Segregation_Fundamentals_files/figure-html/fig-fisher-transform-output-1.png" width="1143" height="374" class="figure-img">
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-fisher-transform-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figure&nbsp;2.4: Fisher Z-Transform and Its Effect on Averaging
+</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>The difference matters especially when correlations are high!
+Direct average: 0.6250
+Fisher average: 0.6949
+Difference: 0.0699</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="key-takeaways" class="level2" data-number="2.7">
+<h2 data-number="2.7" class="anchored" data-anchor-id="key-takeaways"><span class="header-section-number">2.7</span> 1.6 Key Takeaways</h2>
+<section id="summary" class="level3" data-number="2.7.1">
+<h3 data-number="2.7.1" class="anchored" data-anchor-id="summary"><span class="header-section-number">2.7.1</span> Summary</h3>
+<ol type="1">
+<li><p><strong>Functional connectivity</strong> = correlation between brain regions’ timeseries</p></li>
+<li><p><strong>Network segregation</strong> measures how distinct networks are: <span class="math display">\[S = \frac{W - B}{W}\]</span></p></li>
+<li><p><strong>Higher segregation</strong> → More specialized processing</p></li>
+<li><p><strong>Aging</strong> is associated with <strong>decreased segregation</strong> (dedifferentiation)</p></li>
+<li><p><strong>Fisher z-transform</strong> is essential for properly averaging correlations</p></li>
+</ol>
+</section>
+<section id="connection-to-the-pipeline" class="level3" data-number="2.7.2">
+<h3 data-number="2.7.2" class="anchored" data-anchor-id="connection-to-the-pipeline"><span class="header-section-number">2.7.2</span> Connection to the Pipeline</h3>
+<p>In <code>segregation_utils.py</code>, the <code>calculate_segregation()</code> function implements exactly what we covered:</p>
+<ul>
+<li>Zeroing the diagonal (no self-connections)</li>
+<li>Zeroing negative correlations (controversial but common)</li>
+<li>Fisher z-transform before averaging</li>
+<li>Back-transform to get final W, B, S values</li>
+</ul>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="2.8">
+<h2 data-number="2.8" class="anchored" data-anchor-id="exercises"><span class="header-section-number">2.8</span> Exercises</h2>
+<section id="exercise-1.1-manual-segregation-calculation" class="level3" data-number="2.8.1">
+<h3 data-number="2.8.1" class="anchored" data-anchor-id="exercise-1.1-manual-segregation-calculation"><span class="header-section-number">2.8.1</span> Exercise 1.1: Manual Segregation Calculation</h3>
+<p>Given the following small correlation matrix with 2 networks (regions 0-1 = Network A, regions 2-3 = Network B), calculate W, B, and S by hand, then verify with code.</p>
+<div id="exercise-1-1" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 1.1 - Calculate segregation</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>exercise_matrix <span class="op">=</span> np.array([</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">1.0</span>, <span class="fl">0.7</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span>],  <span class="co"># Region 0 (Network A)</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">0.7</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>],  <span class="co"># Region 1 (Network A)</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">0.2</span>, <span class="fl">0.1</span>, <span class="fl">1.0</span>, <span class="fl">0.6</span>],  <span class="co"># Region 2 (Network B)</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">0.3</span>, <span class="fl">0.2</span>, <span class="fl">0.6</span>, <span class="fl">1.0</span>],  <span class="co"># Region 3 (Network B)</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>exercise_labels <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>])</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># YOUR CALCULATION:</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Within-network edges: (0,1)=0.7, (2,3)=0.6  → W = mean = ?</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Between-network edges: (0,2)=0.2, (0,3)=0.3, (1,2)=0.1, (1,3)=0.2 → B = mean = ?</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># S = (W - B) / W = ?</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify with code:</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> calculate_segregation(exercise_matrix, exercise_labels)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"W = </span><span class="sc">{</span>result[<span class="st">'W'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"B = </span><span class="sc">{</span>result[<span class="st">'B'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"S = </span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>W = 0.6528
+B = 0.2011
+S = 0.6920</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-1.2-explore-parameter-effects" class="level3" data-number="2.8.2">
+<h3 data-number="2.8.2" class="anchored" data-anchor-id="exercise-1.2-explore-parameter-effects"><span class="header-section-number">2.8.2</span> Exercise 1.2: Explore Parameter Effects</h3>
+<p>What happens to segregation if:</p>
+<ol type="1">
+<li>Within-network correlations increase?</li>
+<li>Between-network correlations increase?</li>
+<li>Both change proportionally?</li>
+</ol>
+<div id="exercise-1-2" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 1.2 - Explore how W and B affect S</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Try different combinations</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>test_cases <span class="op">=</span> [</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.6</span>, <span class="fl">0.2</span>, <span class="st">"Baseline"</span>),</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.8</span>, <span class="fl">0.2</span>, <span class="st">"Higher W"</span>),</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.6</span>, <span class="fl">0.4</span>, <span class="st">"Higher B"</span>),</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.8</span>, <span class="fl">0.4</span>, <span class="st">"Both higher (proportional)"</span>),</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"W</span><span class="ch">\t</span><span class="st">B</span><span class="ch">\t</span><span class="st">S</span><span class="ch">\t</span><span class="st">Description"</span>)</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">50</span>)</span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, b, desc <span class="kw">in</span> test_cases:</span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    M, labels <span class="op">=</span> create_network_matrix(w, b)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> calculate_segregation(M, labels)</span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>w<span class="sc">:.2f}</span><span class="ch">\t</span><span class="sc">{</span>b<span class="sc">:.2f}</span><span class="ch">\t</span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.3f}</span><span class="ch">\t</span><span class="sc">{</span>desc<span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>W   B   S   Description
+--------------------------------------------------
+0.60    0.20    0.667   Baseline
+0.80    0.20    0.750   Higher W
+0.60    0.40    0.333   Higher B
+0.80    0.40    0.500   Both higher (proportional)</code></pre>
+</div>
+</div>
+<hr>
+</section>
+</section>
+<section id="next-lesson" class="level2" data-number="2.9">
+<h2 data-number="2.9" class="anchored" data-anchor-id="next-lesson"><span class="header-section-number">2.9</span> Next Lesson</h2>
+<p>In <strong>Lesson 2</strong>, we’ll learn about:</p>
+<ul>
+<li>CIFTI file format and grayordinates</li>
+<li>The Cole-Anticevic brain parcellation</li>
+<li>How to load and work with real brain data</li>
+</ul>
+<p>→ Continue to <a href="./02_CIFTI_Files_and_Parcellations.html">CIFTI Files and Parcellations</a></p>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Network Segregation Analysis Course">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Network Segregation Analysis Course</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./02_CIFTI_Files_and_Parcellations.html" class="pagination-link" aria-label="CIFTI Files and Brain Parcellations">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">CIFTI Files and Brain Parcellations</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Network Segregation Fundamentals"</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">## Learning Objectives</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>By the end of this lesson, you will:</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Understand what functional connectivity means</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Know the mathematical definition of network segregation</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Understand why segregation matters for brain function</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Be able to compute segregation from a correlation matrix</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1.1 Functional Connectivity: The Foundation</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is Functional Connectivity?</span></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>Functional connectivity (FC) measures the **statistical dependence** between brain regions' activity over time. If two regions show correlated BOLD signals, they are considered "functionally connected."</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="in">Region A: ~~~\/\/\/~~~\/\/\/~~~</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="in">Region B: ~~~\/\/\/~~~\/\/\/~~~  → High correlation (connected)</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="in">Region C: \/\/\/~~~\/\/\/~~~\/\  → Low correlation (not connected)</span></span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a><span class="fu">### Why Correlation?</span></span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>We use **Pearson correlation** because:</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>It's scale-invariant (doesn't matter if signal is stronger in one region)</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Values range from -1 to +1 (easy to interpret)</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Well-understood statistical properties</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-timeseries</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Simulated BOLD Timeseries from 3 Brain Regions"</span></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate timeseries from 3 brain regions</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a>n_timepoints <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Region A: base signal</span></span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a>region_a <span class="op">=</span> np.sin(np.linspace(<span class="dv">0</span>, <span class="dv">8</span><span class="op">*</span>np.pi, n_timepoints)) <span class="op">+</span> np.random.randn(n_timepoints) <span class="op">*</span> <span class="fl">0.3</span></span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Region B: correlated with A (same network)</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a>region_b <span class="op">=</span> region_a <span class="op">+</span> np.random.randn(n_timepoints) <span class="op">*</span> <span class="fl">0.5</span></span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Region C: uncorrelated (different network)</span></span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a>region_c <span class="op">=</span> np.sin(np.linspace(<span class="dv">0</span>, <span class="dv">12</span><span class="op">*</span>np.pi, n_timepoints) <span class="op">+</span> <span class="dv">2</span>) <span class="op">+</span> np.random.randn(n_timepoints) <span class="op">*</span> <span class="fl">0.5</span></span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">3</span>, <span class="dv">1</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>), sharex<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(region_a, <span class="st">'b-'</span>, label<span class="op">=</span><span class="st">'Region A'</span>)</span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'BOLD Signal'</span>)</span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].plot(region_b, <span class="st">'g-'</span>, label<span class="op">=</span><span class="st">'Region B (same network as A)'</span>)</span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'BOLD Signal'</span>)</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].plot(region_c, <span class="st">'r-'</span>, label<span class="op">=</span><span class="st">'Region C (different network)'</span>)</span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_ylabel(<span class="st">'BOLD Signal'</span>)</span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xlabel(<span class="st">'Time (volumes)'</span>)</span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].legend()</span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute correlations</span></span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Correlation A-B (same network):      r = </span><span class="sc">{</span>np<span class="sc">.</span>corrcoef(region_a, region_b)[<span class="dv">0</span>,<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Correlation A-C (different network): r = </span><span class="sc">{</span>np<span class="sc">.</span>corrcoef(region_a, region_c)[<span class="dv">0</span>,<span class="dv">1</span>]<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1.2 From Connections to Networks</span></span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Brain's Network Organization</span></span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a>The brain isn't a homogeneous blob - it's organized into **functional networks**. Regions within the same network:</span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Process related information</span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Show correlated activity</span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Work together for specific functions</span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a><span class="fu">### Major Brain Networks (Cole-Anticevic Parcellation)</span></span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Network <span class="pp">|</span> Function <span class="pp">|</span> Example Regions <span class="pp">|</span></span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------|----------|-----------------|</span></span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Visual1/2 <span class="pp">|</span> Visual processing <span class="pp">|</span> Occipital cortex <span class="pp">|</span></span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Somatomotor <span class="pp">|</span> Movement, touch <span class="pp">|</span> Pre/postcentral gyrus <span class="pp">|</span></span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Default Mode <span class="pp">|</span> Self-reflection, memory <span class="pp">|</span> PCC, mPFC, angular gyrus <span class="pp">|</span></span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Frontoparietal <span class="pp">|</span> Executive control <span class="pp">|</span> dlPFC, posterior parietal <span class="pp">|</span></span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Dorsal Attention <span class="pp">|</span> Top-down attention <span class="pp">|</span> FEF, IPS <span class="pp">|</span></span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Cingulo-Opercular <span class="pp">|</span> Task maintenance <span class="pp">|</span> dACC, insula <span class="pp">|</span></span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-network-matrix</span></span>
+<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Correlation Matrix with Network Structure"</span></span>
+<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate a correlation matrix with network structure</span></span>
+<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a><span class="co"># 12 regions, 3 networks (4 regions each)</span></span>
+<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a>n_regions <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a>n_networks <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a>regions_per_network <span class="op">=</span> <span class="dv">4</span></span>
+<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a><span class="co"># Network assignments</span></span>
+<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a>network_labels <span class="op">=</span> np.repeat(np.arange(<span class="dv">1</span>, n_networks <span class="op">+</span> <span class="dv">1</span>), regions_per_network)</span>
+<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a>network_names <span class="op">=</span> [<span class="st">'Visual'</span>, <span class="st">'Default'</span>, <span class="st">'Frontoparietal'</span>]</span>
+<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a><span class="co"># Create correlation matrix with structure</span></span>
+<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a>corr_matrix <span class="op">=</span> np.zeros((n_regions, n_regions))</span>
+<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> i <span class="op">==</span> j:</span>
+<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a>            corr_matrix[i, j] <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a>        <span class="cf">elif</span> network_labels[i] <span class="op">==</span> network_labels[j]:</span>
+<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Within-network: high correlation</span></span>
+<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a>            corr_matrix[i, j] <span class="op">=</span> <span class="fl">0.6</span> <span class="op">+</span> np.random.randn() <span class="op">*</span> <span class="fl">0.1</span></span>
+<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Between-network: lower correlation</span></span>
+<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a>            corr_matrix[i, j] <span class="op">=</span> <span class="fl">0.2</span> <span class="op">+</span> np.random.randn() <span class="op">*</span> <span class="fl">0.1</span></span>
+<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-130"><a href="#cb14-130" aria-hidden="true" tabindex="-1"></a><span class="co"># Make symmetric</span></span>
+<span id="cb14-131"><a href="#cb14-131" aria-hidden="true" tabindex="-1"></a>corr_matrix <span class="op">=</span> (corr_matrix <span class="op">+</span> corr_matrix.T) <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb14-132"><a href="#cb14-132" aria-hidden="true" tabindex="-1"></a>np.fill_diagonal(corr_matrix, <span class="fl">1.0</span>)</span>
+<span id="cb14-133"><a href="#cb14-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-134"><a href="#cb14-134" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot</span></span>
+<span id="cb14-135"><a href="#cb14-135" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb14-136"><a href="#cb14-136" aria-hidden="true" tabindex="-1"></a>sns.heatmap(corr_matrix, cmap<span class="op">=</span><span class="st">'RdBu_r'</span>, center<span class="op">=</span><span class="dv">0</span>, vmin<span class="op">=-</span><span class="fl">0.2</span>, vmax<span class="op">=</span><span class="dv">1</span>,</span>
+<span id="cb14-137"><a href="#cb14-137" aria-hidden="true" tabindex="-1"></a>            square<span class="op">=</span><span class="va">True</span>, ax<span class="op">=</span>ax, cbar_kws<span class="op">=</span>{<span class="st">'label'</span>: <span class="st">'Correlation'</span>})</span>
+<span id="cb14-138"><a href="#cb14-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-139"><a href="#cb14-139" aria-hidden="true" tabindex="-1"></a><span class="co"># Add network boundaries</span></span>
+<span id="cb14-140"><a href="#cb14-140" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">1</span>, n_networks):</span>
+<span id="cb14-141"><a href="#cb14-141" aria-hidden="true" tabindex="-1"></a>    ax.axhline(i <span class="op">*</span> regions_per_network, color<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb14-142"><a href="#cb14-142" aria-hidden="true" tabindex="-1"></a>    ax.axvline(i <span class="op">*</span> regions_per_network, color<span class="op">=</span><span class="st">'black'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb14-143"><a href="#cb14-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-144"><a href="#cb14-144" aria-hidden="true" tabindex="-1"></a><span class="co"># Label networks</span></span>
+<span id="cb14-145"><a href="#cb14-145" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, name <span class="kw">in</span> <span class="bu">enumerate</span>(network_names):</span>
+<span id="cb14-146"><a href="#cb14-146" aria-hidden="true" tabindex="-1"></a>    mid <span class="op">=</span> i <span class="op">*</span> regions_per_network <span class="op">+</span> regions_per_network <span class="op">/</span> <span class="dv">2</span></span>
+<span id="cb14-147"><a href="#cb14-147" aria-hidden="true" tabindex="-1"></a>    ax.text(<span class="op">-</span><span class="fl">0.5</span>, mid, name, ha<span class="op">=</span><span class="st">'right'</span>, va<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">10</span>, fontweight<span class="op">=</span><span class="st">'bold'</span>)</span>
+<span id="cb14-148"><a href="#cb14-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-149"><a href="#cb14-149" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Correlation Matrix with Network Structure</span><span class="ch">\n</span><span class="st">(Blocks = Networks)'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb14-150"><a href="#cb14-150" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-151"><a href="#cb14-151" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-152"><a href="#cb14-152" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-153"><a href="#cb14-153" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-154"><a href="#cb14-154" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1.3 The Segregation Formula</span></span>
+<span id="cb14-155"><a href="#cb14-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-156"><a href="#cb14-156" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is Network Segregation?</span></span>
+<span id="cb14-157"><a href="#cb14-157" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-158"><a href="#cb14-158" aria-hidden="true" tabindex="-1"></a>**Segregation** quantifies how much a network's internal connectivity exceeds its connectivity to other networks.</span>
+<span id="cb14-159"><a href="#cb14-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-160"><a href="#cb14-160" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Formula (Chan et al., 2014)</span></span>
+<span id="cb14-161"><a href="#cb14-161" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-162"><a href="#cb14-162" aria-hidden="true" tabindex="-1"></a>$$S = \frac{W - B}{W}$$</span>
+<span id="cb14-163"><a href="#cb14-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-164"><a href="#cb14-164" aria-hidden="true" tabindex="-1"></a>Where:</span>
+<span id="cb14-165"><a href="#cb14-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-166"><a href="#cb14-166" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**W** = Mean **W**ithin-network correlation</span>
+<span id="cb14-167"><a href="#cb14-167" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**B** = Mean **B**etween-network correlation</span>
+<span id="cb14-168"><a href="#cb14-168" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**S** = **S**egregation index</span>
+<span id="cb14-169"><a href="#cb14-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-170"><a href="#cb14-170" aria-hidden="true" tabindex="-1"></a><span class="fu">### Interpretation</span></span>
+<span id="cb14-171"><a href="#cb14-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-172"><a href="#cb14-172" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> S Value <span class="pp">|</span> Interpretation <span class="pp">|</span></span>
+<span id="cb14-173"><a href="#cb14-173" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------|---------------|</span></span>
+<span id="cb14-174"><a href="#cb14-174" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> S ≈ 1 <span class="pp">|</span> Perfect segregation (W &gt;&gt; B) <span class="pp">|</span></span>
+<span id="cb14-175"><a href="#cb14-175" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> S ≈ 0.5 <span class="pp">|</span> Moderate segregation (W = 2B) <span class="pp">|</span></span>
+<span id="cb14-176"><a href="#cb14-176" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> S ≈ 0 <span class="pp">|</span> No segregation (W = B) <span class="pp">|</span></span>
+<span id="cb14-177"><a href="#cb14-177" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> S &lt; 0 <span class="pp">|</span> Anti-segregation (B &gt; W) - rare <span class="pp">|</span></span>
+<span id="cb14-178"><a href="#cb14-178" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-179"><a href="#cb14-179" aria-hidden="true" tabindex="-1"></a><span class="fu">### Why This Formula?</span></span>
+<span id="cb14-180"><a href="#cb14-180" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-181"><a href="#cb14-181" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Normalizes by within-network connectivity</span>
+<span id="cb14-182"><a href="#cb14-182" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Comparable across networks of different sizes</span>
+<span id="cb14-183"><a href="#cb14-183" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Intuitive: "What fraction of within-network connectivity is unique?"</span>
+<span id="cb14-184"><a href="#cb14-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-187"><a href="#cb14-187" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-188"><a href="#cb14-188" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: segregation-calculation</span></span>
+<span id="cb14-189"><a href="#cb14-189" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-190"><a href="#cb14-190" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> calculate_segregation(corr_matrix, network_assignments):</span>
+<span id="cb14-191"><a href="#cb14-191" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb14-192"><a href="#cb14-192" aria-hidden="true" tabindex="-1"></a><span class="co">    Calculate network segregation from a correlation matrix.</span></span>
+<span id="cb14-193"><a href="#cb14-193" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-194"><a href="#cb14-194" aria-hidden="true" tabindex="-1"></a><span class="co">    This is the CORE function - understand this and you understand segregation!</span></span>
+<span id="cb14-195"><a href="#cb14-195" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb14-196"><a href="#cb14-196" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Make a copy and prepare the matrix</span></span>
+<span id="cb14-197"><a href="#cb14-197" aria-hidden="true" tabindex="-1"></a>    M <span class="op">=</span> corr_matrix.copy()</span>
+<span id="cb14-198"><a href="#cb14-198" aria-hidden="true" tabindex="-1"></a>    np.fill_diagonal(M, <span class="dv">0</span>)  <span class="co"># Remove self-connections</span></span>
+<span id="cb14-199"><a href="#cb14-199" aria-hidden="true" tabindex="-1"></a>    M[M <span class="op">&lt;</span> <span class="dv">0</span>] <span class="op">=</span> <span class="dv">0</span>  <span class="co"># Use only positive correlations</span></span>
+<span id="cb14-200"><a href="#cb14-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-201"><a href="#cb14-201" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Fisher z-transform for proper averaging of correlations</span></span>
+<span id="cb14-202"><a href="#cb14-202" aria-hidden="true" tabindex="-1"></a>    <span class="co"># arctanh(r) transforms correlations to a scale where averaging is valid</span></span>
+<span id="cb14-203"><a href="#cb14-203" aria-hidden="true" tabindex="-1"></a>    M_z <span class="op">=</span> np.arctanh(np.clip(M, <span class="op">-</span><span class="fl">0.999</span>, <span class="fl">0.999</span>))</span>
+<span id="cb14-204"><a href="#cb14-204" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-205"><a href="#cb14-205" aria-hidden="true" tabindex="-1"></a>    networks <span class="op">=</span> np.unique(network_assignments)</span>
+<span id="cb14-206"><a href="#cb14-206" aria-hidden="true" tabindex="-1"></a>    networks <span class="op">=</span> networks[networks <span class="op">&gt;</span> <span class="dv">0</span>]  <span class="co"># Exclude background (0)</span></span>
+<span id="cb14-207"><a href="#cb14-207" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-208"><a href="#cb14-208" aria-hidden="true" tabindex="-1"></a>    within_edges <span class="op">=</span> []</span>
+<span id="cb14-209"><a href="#cb14-209" aria-hidden="true" tabindex="-1"></a>    between_edges <span class="op">=</span> []</span>
+<span id="cb14-210"><a href="#cb14-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-211"><a href="#cb14-211" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> net <span class="kw">in</span> networks:</span>
+<span id="cb14-212"><a href="#cb14-212" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Find indices of regions in this network</span></span>
+<span id="cb14-213"><a href="#cb14-213" aria-hidden="true" tabindex="-1"></a>        net_idx <span class="op">=</span> np.where(network_assignments <span class="op">==</span> net)[<span class="dv">0</span>]</span>
+<span id="cb14-214"><a href="#cb14-214" aria-hidden="true" tabindex="-1"></a>        other_idx <span class="op">=</span> np.where((network_assignments <span class="op">!=</span> net) <span class="op">&amp;</span> (network_assignments <span class="op">&gt;</span> <span class="dv">0</span>))[<span class="dv">0</span>]</span>
+<span id="cb14-215"><a href="#cb14-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-216"><a href="#cb14-216" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Collect within-network correlations (upper triangle only to avoid duplicates)</span></span>
+<span id="cb14-217"><a href="#cb14-217" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(net_idx)):</span>
+<span id="cb14-218"><a href="#cb14-218" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(i <span class="op">+</span> <span class="dv">1</span>, <span class="bu">len</span>(net_idx)):</span>
+<span id="cb14-219"><a href="#cb14-219" aria-hidden="true" tabindex="-1"></a>                within_edges.append(M_z[net_idx[i], net_idx[j]])</span>
+<span id="cb14-220"><a href="#cb14-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-221"><a href="#cb14-221" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Collect between-network correlations</span></span>
+<span id="cb14-222"><a href="#cb14-222" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> net_idx:</span>
+<span id="cb14-223"><a href="#cb14-223" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> j <span class="kw">in</span> other_idx:</span>
+<span id="cb14-224"><a href="#cb14-224" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> i <span class="op">&lt;</span> j:  <span class="co"># Upper triangle only</span></span>
+<span id="cb14-225"><a href="#cb14-225" aria-hidden="true" tabindex="-1"></a>                    between_edges.append(M_z[i, j])</span>
+<span id="cb14-226"><a href="#cb14-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-227"><a href="#cb14-227" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calculate means (back-transform from z)</span></span>
+<span id="cb14-228"><a href="#cb14-228" aria-hidden="true" tabindex="-1"></a>    W <span class="op">=</span> np.tanh(np.mean(within_edges)) <span class="cf">if</span> within_edges <span class="cf">else</span> np.nan</span>
+<span id="cb14-229"><a href="#cb14-229" aria-hidden="true" tabindex="-1"></a>    B <span class="op">=</span> np.tanh(np.mean(between_edges)) <span class="cf">if</span> between_edges <span class="cf">else</span> np.nan</span>
+<span id="cb14-230"><a href="#cb14-230" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-231"><a href="#cb14-231" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Segregation</span></span>
+<span id="cb14-232"><a href="#cb14-232" aria-hidden="true" tabindex="-1"></a>    S <span class="op">=</span> (W <span class="op">-</span> B) <span class="op">/</span> W <span class="cf">if</span> W <span class="op">&gt;</span> <span class="dv">0</span> <span class="cf">else</span> np.nan</span>
+<span id="cb14-233"><a href="#cb14-233" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-234"><a href="#cb14-234" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> {<span class="st">'W'</span>: W, <span class="st">'B'</span>: B, <span class="st">'S'</span>: S}</span>
+<span id="cb14-235"><a href="#cb14-235" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-236"><a href="#cb14-236" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate segregation for our simulated matrix</span></span>
+<span id="cb14-237"><a href="#cb14-237" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> calculate_segregation(corr_matrix, network_labels)</span>
+<span id="cb14-238"><a href="#cb14-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-239"><a href="#cb14-239" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Segregation Analysis Results"</span>)</span>
+<span id="cb14-240"><a href="#cb14-240" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">40</span>)</span>
+<span id="cb14-241"><a href="#cb14-241" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Within-network connectivity (W):  </span><span class="sc">{</span>result[<span class="st">'W'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-242"><a href="#cb14-242" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Between-network connectivity (B): </span><span class="sc">{</span>result[<span class="st">'B'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-243"><a href="#cb14-243" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Segregation index (S):            </span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-244"><a href="#cb14-244" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>()</span>
+<span id="cb14-245"><a href="#cb14-245" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Interpretation: </span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="op">*</span><span class="dv">100</span><span class="sc">:.1f}</span><span class="ss">% of within-network"</span>)</span>
+<span id="cb14-246"><a href="#cb14-246" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"connectivity is 'unique' to the network"</span>)</span>
+<span id="cb14-247"><a href="#cb14-247" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-248"><a href="#cb14-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-249"><a href="#cb14-249" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1.4 Why Segregation Matters</span></span>
+<span id="cb14-250"><a href="#cb14-250" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-251"><a href="#cb14-251" aria-hidden="true" tabindex="-1"></a><span class="fu">### Cognitive Implications</span></span>
+<span id="cb14-252"><a href="#cb14-252" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-253"><a href="#cb14-253" aria-hidden="true" tabindex="-1"></a>Network segregation reflects the brain's ability to maintain **specialized processing**:</span>
+<span id="cb14-254"><a href="#cb14-254" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-255"><a href="#cb14-255" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**High segregation** → Networks work independently → Specialized processing</span>
+<span id="cb14-256"><a href="#cb14-256" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>**Low segregation** → Networks blur together → Less specialized</span>
+<span id="cb14-257"><a href="#cb14-257" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-258"><a href="#cb14-258" aria-hidden="true" tabindex="-1"></a><span class="fu">### Segregation and Aging</span></span>
+<span id="cb14-259"><a href="#cb14-259" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-260"><a href="#cb14-260" aria-hidden="true" tabindex="-1"></a>This is particularly relevant for your older vs. younger adult study:</span>
+<span id="cb14-261"><a href="#cb14-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-262"><a href="#cb14-262" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Finding <span class="pp">|</span> Implication <span class="pp">|</span></span>
+<span id="cb14-263"><a href="#cb14-263" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------|------------|</span></span>
+<span id="cb14-264"><a href="#cb14-264" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Older adults show **lower** segregation <span class="pp">|</span> Networks become less distinct with age <span class="pp">|</span></span>
+<span id="cb14-265"><a href="#cb14-265" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> This correlates with cognitive decline <span class="pp">|</span> Dedifferentiation hypothesis <span class="pp">|</span></span>
+<span id="cb14-266"><a href="#cb14-266" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Effect varies by network <span class="pp">|</span> Association networks most affected <span class="pp">|</span></span>
+<span id="cb14-267"><a href="#cb14-267" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-268"><a href="#cb14-268" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Dedifferentiation Hypothesis</span></span>
+<span id="cb14-269"><a href="#cb14-269" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-270"><a href="#cb14-270" aria-hidden="true" tabindex="-1"></a>With aging, brain networks become less distinct ("dedifferentiated"):</span>
+<span id="cb14-271"><a href="#cb14-271" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-272"><a href="#cb14-272" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Within-network connectivity may decrease</span>
+<span id="cb14-273"><a href="#cb14-273" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Between-network connectivity may increase</span>
+<span id="cb14-274"><a href="#cb14-274" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Result: Lower segregation</span>
+<span id="cb14-275"><a href="#cb14-275" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-278"><a href="#cb14-278" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-279"><a href="#cb14-279" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-aging-simulation</span></span>
+<span id="cb14-280"><a href="#cb14-280" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Network Dedifferentiation with Aging"</span></span>
+<span id="cb14-281"><a href="#cb14-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-282"><a href="#cb14-282" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_network_matrix(within_corr, between_corr, n_regions<span class="op">=</span><span class="dv">12</span>, n_networks<span class="op">=</span><span class="dv">3</span>):</span>
+<span id="cb14-283"><a href="#cb14-283" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create a correlation matrix with specified within/between correlations."""</span></span>
+<span id="cb14-284"><a href="#cb14-284" aria-hidden="true" tabindex="-1"></a>    regions_per_net <span class="op">=</span> n_regions <span class="op">//</span> n_networks</span>
+<span id="cb14-285"><a href="#cb14-285" aria-hidden="true" tabindex="-1"></a>    network_labels <span class="op">=</span> np.repeat(np.arange(<span class="dv">1</span>, n_networks <span class="op">+</span> <span class="dv">1</span>), regions_per_net)</span>
+<span id="cb14-286"><a href="#cb14-286" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-287"><a href="#cb14-287" aria-hidden="true" tabindex="-1"></a>    M <span class="op">=</span> np.zeros((n_regions, n_regions))</span>
+<span id="cb14-288"><a href="#cb14-288" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb14-289"><a href="#cb14-289" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(n_regions):</span>
+<span id="cb14-290"><a href="#cb14-290" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> i <span class="op">==</span> j:</span>
+<span id="cb14-291"><a href="#cb14-291" aria-hidden="true" tabindex="-1"></a>                M[i, j] <span class="op">=</span> <span class="fl">1.0</span></span>
+<span id="cb14-292"><a href="#cb14-292" aria-hidden="true" tabindex="-1"></a>            <span class="cf">elif</span> network_labels[i] <span class="op">==</span> network_labels[j]:</span>
+<span id="cb14-293"><a href="#cb14-293" aria-hidden="true" tabindex="-1"></a>                M[i, j] <span class="op">=</span> within_corr</span>
+<span id="cb14-294"><a href="#cb14-294" aria-hidden="true" tabindex="-1"></a>            <span class="cf">else</span>:</span>
+<span id="cb14-295"><a href="#cb14-295" aria-hidden="true" tabindex="-1"></a>                M[i, j] <span class="op">=</span> between_corr</span>
+<span id="cb14-296"><a href="#cb14-296" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> M, network_labels</span>
+<span id="cb14-297"><a href="#cb14-297" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-298"><a href="#cb14-298" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare "young" vs "old" brain patterns</span></span>
+<span id="cb14-299"><a href="#cb14-299" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb14-300"><a href="#cb14-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-301"><a href="#cb14-301" aria-hidden="true" tabindex="-1"></a>scenarios <span class="op">=</span> [</span>
+<span id="cb14-302"><a href="#cb14-302" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Young Adult'</span>, <span class="fl">0.6</span>, <span class="fl">0.15</span>),</span>
+<span id="cb14-303"><a href="#cb14-303" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Middle Aged'</span>, <span class="fl">0.5</span>, <span class="fl">0.25</span>),</span>
+<span id="cb14-304"><a href="#cb14-304" aria-hidden="true" tabindex="-1"></a>    (<span class="st">'Older Adult'</span>, <span class="fl">0.4</span>, <span class="fl">0.30</span>),</span>
+<span id="cb14-305"><a href="#cb14-305" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb14-306"><a href="#cb14-306" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-307"><a href="#cb14-307" aria-hidden="true" tabindex="-1"></a>segregation_values <span class="op">=</span> []</span>
+<span id="cb14-308"><a href="#cb14-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-309"><a href="#cb14-309" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ax, (label, w_corr, b_corr) <span class="kw">in</span> <span class="bu">zip</span>(axes, scenarios):</span>
+<span id="cb14-310"><a href="#cb14-310" aria-hidden="true" tabindex="-1"></a>    M, labels <span class="op">=</span> create_network_matrix(w_corr, b_corr)</span>
+<span id="cb14-311"><a href="#cb14-311" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> calculate_segregation(M, labels)</span>
+<span id="cb14-312"><a href="#cb14-312" aria-hidden="true" tabindex="-1"></a>    segregation_values.append((label, result[<span class="st">'S'</span>]))</span>
+<span id="cb14-313"><a href="#cb14-313" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-314"><a href="#cb14-314" aria-hidden="true" tabindex="-1"></a>    sns.heatmap(M, cmap<span class="op">=</span><span class="st">'RdBu_r'</span>, center<span class="op">=</span><span class="dv">0</span>, vmin<span class="op">=</span><span class="dv">0</span>, vmax<span class="op">=</span><span class="fl">0.8</span>,</span>
+<span id="cb14-315"><a href="#cb14-315" aria-hidden="true" tabindex="-1"></a>                square<span class="op">=</span><span class="va">True</span>, ax<span class="op">=</span>ax, cbar<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-316"><a href="#cb14-316" aria-hidden="true" tabindex="-1"></a>    ax.set_title(<span class="ss">f"</span><span class="sc">{</span>label<span class="sc">}</span><span class="ch">\n</span><span class="ss">W=</span><span class="sc">{</span>w_corr<span class="sc">:.2f}</span><span class="ss">, B=</span><span class="sc">{</span>b_corr<span class="sc">:.2f}</span><span class="ch">\n</span><span class="ss">S=</span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.3f}</span><span class="ss">"</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-317"><a href="#cb14-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-318"><a href="#cb14-318" aria-hidden="true" tabindex="-1"></a>plt.suptitle(<span class="st">'Network Dedifferentiation with Aging'</span>, fontsize<span class="op">=</span><span class="dv">14</span>, y<span class="op">=</span><span class="fl">1.02</span>)</span>
+<span id="cb14-319"><a href="#cb14-319" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-320"><a href="#cb14-320" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-321"><a href="#cb14-321" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-322"><a href="#cb14-322" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot segregation decline</span></span>
+<span id="cb14-323"><a href="#cb14-323" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">8</span>, <span class="dv">5</span>))</span>
+<span id="cb14-324"><a href="#cb14-324" aria-hidden="true" tabindex="-1"></a>labels_plot <span class="op">=</span> [s[<span class="dv">0</span>] <span class="cf">for</span> s <span class="kw">in</span> segregation_values]</span>
+<span id="cb14-325"><a href="#cb14-325" aria-hidden="true" tabindex="-1"></a>values_plot <span class="op">=</span> [s[<span class="dv">1</span>] <span class="cf">for</span> s <span class="kw">in</span> segregation_values]</span>
+<span id="cb14-326"><a href="#cb14-326" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'green'</span>, <span class="st">'orange'</span>, <span class="st">'red'</span>]</span>
+<span id="cb14-327"><a href="#cb14-327" aria-hidden="true" tabindex="-1"></a>ax.bar(labels_plot, values_plot, color<span class="op">=</span>colors, alpha<span class="op">=</span><span class="fl">0.7</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb14-328"><a href="#cb14-328" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Segregation Index (S)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-329"><a href="#cb14-329" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Segregation Decreases with Age</span><span class="ch">\n</span><span class="st">(Simulated Data)'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb14-330"><a href="#cb14-330" aria-hidden="true" tabindex="-1"></a>ax.set_ylim(<span class="dv">0</span>, <span class="dv">1</span>)</span>
+<span id="cb14-331"><a href="#cb14-331" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, v <span class="kw">in</span> <span class="bu">enumerate</span>(values_plot):</span>
+<span id="cb14-332"><a href="#cb14-332" aria-hidden="true" tabindex="-1"></a>    ax.text(i, v <span class="op">+</span> <span class="fl">0.02</span>, <span class="ss">f'</span><span class="sc">{</span>v<span class="sc">:.3f}</span><span class="ss">'</span>, ha<span class="op">=</span><span class="st">'center'</span>, fontsize<span class="op">=</span><span class="dv">11</span>)</span>
+<span id="cb14-333"><a href="#cb14-333" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-334"><a href="#cb14-334" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-335"><a href="#cb14-335" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-336"><a href="#cb14-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-337"><a href="#cb14-337" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1.5 The Fisher Z-Transform</span></span>
+<span id="cb14-338"><a href="#cb14-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-339"><a href="#cb14-339" aria-hidden="true" tabindex="-1"></a><span class="fu">### Why Transform Correlations?</span></span>
+<span id="cb14-340"><a href="#cb14-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-341"><a href="#cb14-341" aria-hidden="true" tabindex="-1"></a>You may have noticed we used <span class="in">`np.arctanh()`</span> (Fisher z-transform) before averaging correlations. Here's why:</span>
+<span id="cb14-342"><a href="#cb14-342" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-343"><a href="#cb14-343" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem with Averaging Correlations Directly</span></span>
+<span id="cb14-344"><a href="#cb14-344" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-345"><a href="#cb14-345" aria-hidden="true" tabindex="-1"></a>Correlation values are **bounded** (-1 to +1), which creates problems:</span>
+<span id="cb14-346"><a href="#cb14-346" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-347"><a href="#cb14-347" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The distribution is skewed near the bounds</span>
+<span id="cb14-348"><a href="#cb14-348" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>A correlation of 0.9 is not "twice as strong" as 0.45</span>
+<span id="cb14-349"><a href="#cb14-349" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Averaging doesn't work properly</span>
+<span id="cb14-350"><a href="#cb14-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-351"><a href="#cb14-351" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Solution: Fisher Z-Transform</span></span>
+<span id="cb14-352"><a href="#cb14-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-353"><a href="#cb14-353" aria-hidden="true" tabindex="-1"></a>$$z = \text{arctanh}(r) = \frac{1}{2} \ln\left(\frac{1+r}{1-r}\right)$$</span>
+<span id="cb14-354"><a href="#cb14-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-355"><a href="#cb14-355" aria-hidden="true" tabindex="-1"></a>This transforms correlations to an **unbounded, normally distributed** scale where:</span>
+<span id="cb14-356"><a href="#cb14-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-357"><a href="#cb14-357" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Averaging is statistically valid</span>
+<span id="cb14-358"><a href="#cb14-358" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Standard errors are well-defined</span>
+<span id="cb14-359"><a href="#cb14-359" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-362"><a href="#cb14-362" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-363"><a href="#cb14-363" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: fig-fisher-transform</span></span>
+<span id="cb14-364"><a href="#cb14-364" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Fisher Z-Transform and Its Effect on Averaging"</span></span>
+<span id="cb14-365"><a href="#cb14-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-366"><a href="#cb14-366" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize the Fisher z-transform</span></span>
+<span id="cb14-367"><a href="#cb14-367" aria-hidden="true" tabindex="-1"></a>r_values <span class="op">=</span> np.linspace(<span class="op">-</span><span class="fl">0.99</span>, <span class="fl">0.99</span>, <span class="dv">100</span>)</span>
+<span id="cb14-368"><a href="#cb14-368" aria-hidden="true" tabindex="-1"></a>z_values <span class="op">=</span> np.arctanh(r_values)</span>
+<span id="cb14-369"><a href="#cb14-369" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-370"><a href="#cb14-370" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">4</span>))</span>
+<span id="cb14-371"><a href="#cb14-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-372"><a href="#cb14-372" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot transform</span></span>
+<span id="cb14-373"><a href="#cb14-373" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].plot(r_values, z_values, <span class="st">'b-'</span>, linewidth<span class="op">=</span><span class="dv">2</span>)</span>
+<span id="cb14-374"><a href="#cb14-374" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axhline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb14-375"><a href="#cb14-375" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'gray'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb14-376"><a href="#cb14-376" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Correlation (r)'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-377"><a href="#cb14-377" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Fisher z'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-378"><a href="#cb14-378" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Fisher Z-Transform: r → z'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb14-379"><a href="#cb14-379" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].grid(<span class="va">True</span>, alpha<span class="op">=</span><span class="fl">0.3</span>)</span>
+<span id="cb14-380"><a href="#cb14-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-381"><a href="#cb14-381" aria-hidden="true" tabindex="-1"></a><span class="co"># Show why it matters for averaging</span></span>
+<span id="cb14-382"><a href="#cb14-382" aria-hidden="true" tabindex="-1"></a>correlations <span class="op">=</span> [<span class="fl">0.3</span>, <span class="fl">0.5</span>, <span class="fl">0.8</span>, <span class="fl">0.9</span>]</span>
+<span id="cb14-383"><a href="#cb14-383" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-384"><a href="#cb14-384" aria-hidden="true" tabindex="-1"></a><span class="co"># Wrong way: average correlations directly</span></span>
+<span id="cb14-385"><a href="#cb14-385" aria-hidden="true" tabindex="-1"></a>wrong_avg <span class="op">=</span> np.mean(correlations)</span>
+<span id="cb14-386"><a href="#cb14-386" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-387"><a href="#cb14-387" aria-hidden="true" tabindex="-1"></a><span class="co"># Right way: transform, average, back-transform</span></span>
+<span id="cb14-388"><a href="#cb14-388" aria-hidden="true" tabindex="-1"></a>z_transformed <span class="op">=</span> np.arctanh(correlations)</span>
+<span id="cb14-389"><a href="#cb14-389" aria-hidden="true" tabindex="-1"></a>z_avg <span class="op">=</span> np.mean(z_transformed)</span>
+<span id="cb14-390"><a href="#cb14-390" aria-hidden="true" tabindex="-1"></a>right_avg <span class="op">=</span> np.tanh(z_avg)</span>
+<span id="cb14-391"><a href="#cb14-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-392"><a href="#cb14-392" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.arange(<span class="bu">len</span>(correlations) <span class="op">+</span> <span class="dv">2</span>)</span>
+<span id="cb14-393"><a href="#cb14-393" aria-hidden="true" tabindex="-1"></a>values <span class="op">=</span> correlations <span class="op">+</span> [wrong_avg, right_avg]</span>
+<span id="cb14-394"><a href="#cb14-394" aria-hidden="true" tabindex="-1"></a>labels <span class="op">=</span> [<span class="ss">f'r=</span><span class="sc">{</span>c<span class="sc">}</span><span class="ss">'</span> <span class="cf">for</span> c <span class="kw">in</span> correlations] <span class="op">+</span> [<span class="st">'Wrong</span><span class="ch">\n</span><span class="st">Avg'</span>, <span class="st">'Fisher</span><span class="ch">\n</span><span class="st">Avg'</span>]</span>
+<span id="cb14-395"><a href="#cb14-395" aria-hidden="true" tabindex="-1"></a>colors <span class="op">=</span> [<span class="st">'steelblue'</span>]<span class="op">*</span><span class="dv">4</span> <span class="op">+</span> [<span class="st">'red'</span>, <span class="st">'green'</span>]</span>
+<span id="cb14-396"><a href="#cb14-396" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-397"><a href="#cb14-397" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].bar(x, values, color<span class="op">=</span>colors, alpha<span class="op">=</span><span class="fl">0.7</span>, edgecolor<span class="op">=</span><span class="st">'black'</span>)</span>
+<span id="cb14-398"><a href="#cb14-398" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticks(x)</span>
+<span id="cb14-399"><a href="#cb14-399" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticklabels(labels)</span>
+<span id="cb14-400"><a href="#cb14-400" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Correlation'</span>, fontsize<span class="op">=</span><span class="dv">12</span>)</span>
+<span id="cb14-401"><a href="#cb14-401" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="ss">f'Averaging Correlations</span><span class="ch">\n</span><span class="ss">Wrong=</span><span class="sc">{</span>wrong_avg<span class="sc">:.3f}</span><span class="ss">, Fisher=</span><span class="sc">{</span>right_avg<span class="sc">:.3f}</span><span class="ss">'</span>, fontsize<span class="op">=</span><span class="dv">14</span>)</span>
+<span id="cb14-402"><a href="#cb14-402" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axhline(wrong_avg, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb14-403"><a href="#cb14-403" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axhline(right_avg, color<span class="op">=</span><span class="st">'green'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb14-404"><a href="#cb14-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-405"><a href="#cb14-405" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb14-406"><a href="#cb14-406" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb14-407"><a href="#cb14-407" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-408"><a href="#cb14-408" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"The difference matters especially when correlations are high!"</span>)</span>
+<span id="cb14-409"><a href="#cb14-409" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Direct average: </span><span class="sc">{</span>wrong_avg<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-410"><a href="#cb14-410" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Fisher average: </span><span class="sc">{</span>right_avg<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-411"><a href="#cb14-411" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Difference: </span><span class="sc">{</span><span class="bu">abs</span>(wrong_avg <span class="op">-</span> right_avg)<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-412"><a href="#cb14-412" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-413"><a href="#cb14-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-414"><a href="#cb14-414" aria-hidden="true" tabindex="-1"></a><span class="fu">## 1.6 Key Takeaways</span></span>
+<span id="cb14-415"><a href="#cb14-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-416"><a href="#cb14-416" aria-hidden="true" tabindex="-1"></a><span class="fu">### Summary</span></span>
+<span id="cb14-417"><a href="#cb14-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-418"><a href="#cb14-418" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Functional connectivity** = correlation between brain regions' timeseries</span>
+<span id="cb14-419"><a href="#cb14-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-420"><a href="#cb14-420" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Network segregation** measures how distinct networks are:</span>
+<span id="cb14-421"><a href="#cb14-421" aria-hidden="true" tabindex="-1"></a>   $$S = \frac{W - B}{W}$$</span>
+<span id="cb14-422"><a href="#cb14-422" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-423"><a href="#cb14-423" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Higher segregation** → More specialized processing</span>
+<span id="cb14-424"><a href="#cb14-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-425"><a href="#cb14-425" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Aging** is associated with **decreased segregation** (dedifferentiation)</span>
+<span id="cb14-426"><a href="#cb14-426" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-427"><a href="#cb14-427" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Fisher z-transform** is essential for properly averaging correlations</span>
+<span id="cb14-428"><a href="#cb14-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-429"><a href="#cb14-429" aria-hidden="true" tabindex="-1"></a><span class="fu">### Connection to the Pipeline</span></span>
+<span id="cb14-430"><a href="#cb14-430" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-431"><a href="#cb14-431" aria-hidden="true" tabindex="-1"></a>In <span class="in">`segregation_utils.py`</span>, the <span class="in">`calculate_segregation()`</span> function implements exactly what we covered:</span>
+<span id="cb14-432"><a href="#cb14-432" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-433"><a href="#cb14-433" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Zeroing the diagonal (no self-connections)</span>
+<span id="cb14-434"><a href="#cb14-434" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Zeroing negative correlations (controversial but common)</span>
+<span id="cb14-435"><a href="#cb14-435" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Fisher z-transform before averaging</span>
+<span id="cb14-436"><a href="#cb14-436" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Back-transform to get final W, B, S values</span>
+<span id="cb14-437"><a href="#cb14-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-438"><a href="#cb14-438" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exercises</span></span>
+<span id="cb14-439"><a href="#cb14-439" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-440"><a href="#cb14-440" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 1.1: Manual Segregation Calculation</span></span>
+<span id="cb14-441"><a href="#cb14-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-442"><a href="#cb14-442" aria-hidden="true" tabindex="-1"></a>Given the following small correlation matrix with 2 networks (regions 0-1 = Network A, regions 2-3 = Network B), calculate W, B, and S by hand, then verify with code.</span>
+<span id="cb14-443"><a href="#cb14-443" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-446"><a href="#cb14-446" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-447"><a href="#cb14-447" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: exercise-1-1</span></span>
+<span id="cb14-448"><a href="#cb14-448" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-449"><a href="#cb14-449" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 1.1 - Calculate segregation</span></span>
+<span id="cb14-450"><a href="#cb14-450" aria-hidden="true" tabindex="-1"></a>exercise_matrix <span class="op">=</span> np.array([</span>
+<span id="cb14-451"><a href="#cb14-451" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">1.0</span>, <span class="fl">0.7</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span>],  <span class="co"># Region 0 (Network A)</span></span>
+<span id="cb14-452"><a href="#cb14-452" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">0.7</span>, <span class="fl">1.0</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>],  <span class="co"># Region 1 (Network A)</span></span>
+<span id="cb14-453"><a href="#cb14-453" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">0.2</span>, <span class="fl">0.1</span>, <span class="fl">1.0</span>, <span class="fl">0.6</span>],  <span class="co"># Region 2 (Network B)</span></span>
+<span id="cb14-454"><a href="#cb14-454" aria-hidden="true" tabindex="-1"></a>    [<span class="fl">0.3</span>, <span class="fl">0.2</span>, <span class="fl">0.6</span>, <span class="fl">1.0</span>],  <span class="co"># Region 3 (Network B)</span></span>
+<span id="cb14-455"><a href="#cb14-455" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb14-456"><a href="#cb14-456" aria-hidden="true" tabindex="-1"></a>exercise_labels <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">2</span>])</span>
+<span id="cb14-457"><a href="#cb14-457" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-458"><a href="#cb14-458" aria-hidden="true" tabindex="-1"></a><span class="co"># YOUR CALCULATION:</span></span>
+<span id="cb14-459"><a href="#cb14-459" aria-hidden="true" tabindex="-1"></a><span class="co"># Within-network edges: (0,1)=0.7, (2,3)=0.6  → W = mean = ?</span></span>
+<span id="cb14-460"><a href="#cb14-460" aria-hidden="true" tabindex="-1"></a><span class="co"># Between-network edges: (0,2)=0.2, (0,3)=0.3, (1,2)=0.1, (1,3)=0.2 → B = mean = ?</span></span>
+<span id="cb14-461"><a href="#cb14-461" aria-hidden="true" tabindex="-1"></a><span class="co"># S = (W - B) / W = ?</span></span>
+<span id="cb14-462"><a href="#cb14-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-463"><a href="#cb14-463" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify with code:</span></span>
+<span id="cb14-464"><a href="#cb14-464" aria-hidden="true" tabindex="-1"></a>result <span class="op">=</span> calculate_segregation(exercise_matrix, exercise_labels)</span>
+<span id="cb14-465"><a href="#cb14-465" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"W = </span><span class="sc">{</span>result[<span class="st">'W'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-466"><a href="#cb14-466" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"B = </span><span class="sc">{</span>result[<span class="st">'B'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-467"><a href="#cb14-467" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"S = </span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb14-468"><a href="#cb14-468" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-469"><a href="#cb14-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-470"><a href="#cb14-470" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 1.2: Explore Parameter Effects</span></span>
+<span id="cb14-471"><a href="#cb14-471" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-472"><a href="#cb14-472" aria-hidden="true" tabindex="-1"></a>What happens to segregation if:</span>
+<span id="cb14-473"><a href="#cb14-473" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-474"><a href="#cb14-474" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Within-network correlations increase?</span>
+<span id="cb14-475"><a href="#cb14-475" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Between-network correlations increase?</span>
+<span id="cb14-476"><a href="#cb14-476" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Both change proportionally?</span>
+<span id="cb14-477"><a href="#cb14-477" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-480"><a href="#cb14-480" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb14-481"><a href="#cb14-481" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: exercise-1-2</span></span>
+<span id="cb14-482"><a href="#cb14-482" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-483"><a href="#cb14-483" aria-hidden="true" tabindex="-1"></a><span class="co"># Exercise 1.2 - Explore how W and B affect S</span></span>
+<span id="cb14-484"><a href="#cb14-484" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-485"><a href="#cb14-485" aria-hidden="true" tabindex="-1"></a><span class="co"># Try different combinations</span></span>
+<span id="cb14-486"><a href="#cb14-486" aria-hidden="true" tabindex="-1"></a>test_cases <span class="op">=</span> [</span>
+<span id="cb14-487"><a href="#cb14-487" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.6</span>, <span class="fl">0.2</span>, <span class="st">"Baseline"</span>),</span>
+<span id="cb14-488"><a href="#cb14-488" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.8</span>, <span class="fl">0.2</span>, <span class="st">"Higher W"</span>),</span>
+<span id="cb14-489"><a href="#cb14-489" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.6</span>, <span class="fl">0.4</span>, <span class="st">"Higher B"</span>),</span>
+<span id="cb14-490"><a href="#cb14-490" aria-hidden="true" tabindex="-1"></a>    (<span class="fl">0.8</span>, <span class="fl">0.4</span>, <span class="st">"Both higher (proportional)"</span>),</span>
+<span id="cb14-491"><a href="#cb14-491" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb14-492"><a href="#cb14-492" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-493"><a href="#cb14-493" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"W</span><span class="ch">\t</span><span class="st">B</span><span class="ch">\t</span><span class="st">S</span><span class="ch">\t</span><span class="st">Description"</span>)</span>
+<span id="cb14-494"><a href="#cb14-494" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-"</span> <span class="op">*</span> <span class="dv">50</span>)</span>
+<span id="cb14-495"><a href="#cb14-495" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> w, b, desc <span class="kw">in</span> test_cases:</span>
+<span id="cb14-496"><a href="#cb14-496" aria-hidden="true" tabindex="-1"></a>    M, labels <span class="op">=</span> create_network_matrix(w, b)</span>
+<span id="cb14-497"><a href="#cb14-497" aria-hidden="true" tabindex="-1"></a>    result <span class="op">=</span> calculate_segregation(M, labels)</span>
+<span id="cb14-498"><a href="#cb14-498" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>w<span class="sc">:.2f}</span><span class="ch">\t</span><span class="sc">{</span>b<span class="sc">:.2f}</span><span class="ch">\t</span><span class="sc">{</span>result[<span class="st">'S'</span>]<span class="sc">:.3f}</span><span class="ch">\t</span><span class="sc">{</span>desc<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-499"><a href="#cb14-499" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb14-500"><a href="#cb14-500" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-501"><a href="#cb14-501" aria-hidden="true" tabindex="-1"></a>---</span>
+<span id="cb14-502"><a href="#cb14-502" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-503"><a href="#cb14-503" aria-hidden="true" tabindex="-1"></a><span class="fu">## Next Lesson</span></span>
+<span id="cb14-504"><a href="#cb14-504" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-505"><a href="#cb14-505" aria-hidden="true" tabindex="-1"></a>In **Lesson 2**, we'll learn about:</span>
+<span id="cb14-506"><a href="#cb14-506" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-507"><a href="#cb14-507" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>CIFTI file format and grayordinates</span>
+<span id="cb14-508"><a href="#cb14-508" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>The Cole-Anticevic brain parcellation</span>
+<span id="cb14-509"><a href="#cb14-509" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>How to load and work with real brain data</span>
+<span id="cb14-510"><a href="#cb14-510" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-511"><a href="#cb14-511" aria-hidden="true" tabindex="-1"></a>→ Continue to <span class="co">[</span><span class="ot">CIFTI Files and Parcellations</span><span class="co">](02_CIFTI_Files_and_Parcellations.qmd)</span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
