@@ -1,0 +1,506 @@
+[
+  {
+    "objectID": "lesson-05-advanced.html",
+    "href": "lesson-05-advanced.html",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nUse robust correlation methods for outlier-resistant analyses\nUnderstand the internal architecture of plscmd\nBuild custom analysis workflows\nApply PLS to real research scenarios"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#learning-objectives",
+    "href": "lesson-05-advanced.html#learning-objectives",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nUse robust correlation methods for outlier-resistant analyses\nUnderstand the internal architecture of plscmd\nBuild custom analysis workflows\nApply PLS to real research scenarios"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#setup",
+    "href": "lesson-05-advanced.html#setup",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Setup",
+    "text": "Setup\n\n# Source the plscmd package (all files)\nsource(\"setup.R\")\n\nplscmd package loaded successfully!\n\nlibrary(ggplot2)\nset.seed(42)"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#robust-correlation-methods",
+    "href": "lesson-05-advanced.html#robust-correlation-methods",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Robust Correlation Methods",
+    "text": "Robust Correlation Methods\n\nThe Problem with Outliers\nStandard Pearson correlation is sensitive to outliers. A single extreme value can dramatically affect results:\n\n# Create data with an outlier\nset.seed(42)\nx &lt;- rnorm(50)\ny &lt;- 0.6 * x + rnorm(50, sd = 0.5)\n\n# Add an outlier\nx_outlier &lt;- c(x, 4)\ny_outlier &lt;- c(y, -3)\n\n# Compare correlations\nr_clean &lt;- cor(x, y)\nr_outlier &lt;- cor(x_outlier, y_outlier)\n\n# Visualize\npar(mfrow = c(1, 2))\nplot(x, y, pch = 19, main = sprintf(\"Clean Data\\nr = %.3f\", r_clean))\nabline(lm(y ~ x), col = \"blue\", lwd = 2)\n\nplot(x_outlier, y_outlier, pch = 19,\n     main = sprintf(\"With Outlier\\nr = %.3f\", r_outlier))\npoints(4, -3, col = \"red\", pch = 19, cex = 2)\nabline(lm(y_outlier ~ x_outlier), col = \"blue\", lwd = 2)\n\n\n\n\n\n\n\n\n\n\nAvailable Robust Methods\nThe plscmd package provides several robust correlation methods:\n\n\n\nMethod\nFunction\nDescription\n\n\n\n\nWinsorized\nwinsorized_cor()\nTrims extreme values\n\n\nBiweight\nbiweight_midcor()\nDownweights outliers\n\n\nPercentage Bend\npercentage_bend_cor()\nRobust to outliers\n\n\nWrapper\nrobust_cor()\nUnified interface\n\n\n\n\n\nWinsorized Correlation\nWinsorization replaces extreme values with less extreme ones:\n\n# Winsorized correlation (default: trim 10% from each tail)\nr_wins &lt;- winsorized_cor(x_outlier, y_outlier, trim = 0.1)\n\ncat(\"Pearson correlation:\", round(r_outlier, 3), \"\\n\")\n\nPearson correlation: 0.388 \n\ncat(\"Winsorized correlation:\", round(r_wins, 3), \"\\n\")\n\nWinsorized correlation: 0.725 \n\ncat(\"True correlation (clean):\", round(r_clean, 3), \"\\n\")\n\nTrue correlation (clean): 0.791 \n\n\n\n\nBiweight Midcorrelation\nUses a weighting function that downweights outliers:\n\n# Biweight midcorrelation\nr_biweight &lt;- biweight_midcor(x_outlier, y_outlier)\n\ncat(\"Biweight midcorrelation:\", round(r_biweight, 3), \"\\n\")\n\nBiweight midcorrelation: 0.681 \n\n\n\n\nPercentage Bend Correlation\nA robust method based on the percentage bend:\n\n# Percentage bend correlation\nr_pbend &lt;- percentage_bend_cor(x_outlier, y_outlier, beta = 0.2)\n\ncat(\"Percentage bend correlation:\", round(r_pbend, 3), \"\\n\")\n\nPercentage bend correlation: 0.721 \n\n\n\n\nUnified Interface\nUse robust_cor() for a consistent interface:\n\n# Compare all methods\nmethods &lt;- c(\"pearson\", \"winsorized\", \"biweight\", \"percentage_bend\")\n\nresults &lt;- sapply(methods, function(m) {\n  robust_cor(x_outlier, y_outlier, method = m)\n})\n\ncomparison &lt;- data.frame(\n  Method = methods,\n  Correlation = round(results, 3)\n)\n\nknitr::kable(comparison, caption = \"Correlation Method Comparison\")\n\n\nCorrelation Method Comparison\n\n\n\nMethod\nCorrelation\n\n\n\n\npearson\npearson\n0.388\n\n\nwinsorized\nwinsorized\n0.725\n\n\nbiweight\nbiweight\n0.681\n\n\npercentage_bend\npercentage_bend\n0.721\n\n\n\n\n\n\n\nMatrix Correlations\nAll robust methods work with matrices:\n\n# For within-matrix correlations\nset.seed(42)\nX &lt;- matrix(rnorm(100), nrow = 20, ncol = 5)\n\n# Add some outliers\nX[1, 1] &lt;- 10\nX[1, 2] &lt;- -8\n\n# Compute correlation matrices\ncor_pearson &lt;- cor(X)\ncor_robust &lt;- robust_cor(X, method = \"biweight\")\n\ncat(\"Pearson X1-X2 correlation:\", round(cor_pearson[1, 2], 3), \"\\n\")\n\nPearson X1-X2 correlation: -0.606 \n\ncat(\"Biweight X1-X2 correlation:\", round(cor_robust[1, 2], 3), \"\\n\")\n\nBiweight X1-X2 correlation: 0.443 \n\n# For cross-matrix correlations, use individual pairs\nx1 &lt;- X[, 1]\ny1 &lt;- rnorm(20)\ny1[1] &lt;- 10  # Add outlier\n\ncat(\"\\nCross-matrix correlations:\\n\")\n\n\nCross-matrix correlations:\n\ncat(\"Pearson:\", round(cor(x1, y1), 3), \"\\n\")\n\nPearson: 0.767 \n\ncat(\"Biweight:\", round(robust_cor(x1, y1, method = \"biweight\"), 3), \"\\n\")\n\nBiweight: 0.165"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#understanding-package-internals",
+    "href": "lesson-05-advanced.html#understanding-package-internals",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Understanding Package Internals",
+    "text": "Understanding Package Internals\n\nThe PLS Algorithm\nThe core PLS computation involves these steps:\n\n# Pseudocode for PLS\n# 1. Compute cross-covariance matrix\nR &lt;- t(X) %*% Y  # or correlation matrix\n\n# 2. Singular Value Decomposition\nsvd_result &lt;- svd(R)\n\n# 3. Extract components\nu &lt;- svd_result$u  # Brain saliences\nv &lt;- svd_result$v  # Behavior saliences\ns &lt;- svd_result$d  # Singular values\n\n# 4. Compute scores\nusc &lt;- X %*% u     # Brain scores\nvsc &lt;- Y %*% v     # Behavior scores\n\n\n\nKey Internal Functions\nExplore the internal functions to understand the computation:\n\n# rri_xcor: Compute cross-correlation/covariance matrix\n?rri_xcor\n\nNo documentation for 'rri_xcor' in specified packages and libraries:\nyou could try '??rri_xcor'\n\n# Example usage\nX &lt;- matrix(rnorm(50), nrow = 10, ncol = 5)\nY &lt;- matrix(rnorm(30), nrow = 10, ncol = 3)\n\n# Correlation mode\nR_cor &lt;- rri_xcor(X, Y, cormode = 0)\ncat(\"Correlation matrix dimensions:\", dim(R_cor), \"\\n\")\n\nCorrelation matrix dimensions: 5 3 \n\n# Covariance mode\nR_cov &lt;- rri_xcor(X, Y, cormode = 2)\ncat(\"Covariance matrix dimensions:\", dim(R_cov), \"\\n\")\n\nCovariance matrix dimensions: 5 3 \n\n\n\n\nBootstrap Resampling\nUnderstanding how bootstrap samples are created:\n\n# rri_boot_order: Generate bootstrap sample indices\n# Arguments: num_subj_lst (subjects per group), num_cond, num_boot\nn_subj &lt;- 10\nn_cond &lt;- 3\nnum_boot &lt;- 5\n\n# Generate bootstrap sample orders\nboot_result &lt;- rri_boot_order(num_subj_lst = c(n_subj), num_cond = n_cond,\n                               num_boot = num_boot)\nboot_orders &lt;- boot_result$boot_order\ncat(\"Generated\", boot_result$new_num_boot, \"bootstrap samples\\n\")\n\nGenerated 5 bootstrap samples\n\ncat(\"Each sample has\", n_subj * n_cond, \"indices\\n\")\n\nEach sample has 30 indices\n\ncat(\"First bootstrap order:\", head(boot_orders[, 1], 15), \"...\\n\")\n\nFirst bootstrap order: 1 6 7 5 9 2 10 3 1 4 11 16 17 15 19 ...\n\n\n\n\nPermutation Testing\nHow permutation orders are generated:\n\n# rri_perm_order: Generate permutation orders\n# Arguments: num_subj_lst, num_cond, num_perm\nnum_perm &lt;- 5\nperm_orders &lt;- rri_perm_order(num_subj_lst = c(n_subj), num_cond = n_cond,\n                               num_perm = num_perm)\ncat(\"Generated\", num_perm, \"permutation orders\\n\")\n\nGenerated 5 permutation orders\n\ncat(\"First permutation:\", head(perm_orders[, 1], 15), \"...\\n\")\n\nFirst permutation: 4 12 27 18 20 16 11 23 15 9 14 22 17 8 10 ...\n\n# Permutation shuffles condition labels within subjects"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#building-custom-workflows",
+    "href": "lesson-05-advanced.html#building-custom-workflows",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Building Custom Workflows",
+    "text": "Building Custom Workflows\n\nCustom Analysis Pipeline\nHere’s a complete workflow for a research project:\n\n# Step 1: Load and prepare data\nprepare_pls_data &lt;- function(brain_file, behav_file, groups) {\n  # This would load your actual data\n  # For demo, we simulate\n  n_subj &lt;- 25\n  n_regions &lt;- 50\n  n_behav &lt;- 4\n  n_cond &lt;- 2\n\n  brain &lt;- matrix(rnorm(n_subj * n_cond * n_regions),\n                   nrow = n_subj * n_cond, ncol = n_regions)\n  behav &lt;- matrix(rnorm(n_subj * n_behav), nrow = n_subj, ncol = n_behav)\n\n  list(brain = brain, behav = behav, n_subj = n_subj, n_cond = n_cond)\n}\n\n# Step 2: Quality control\nquality_control &lt;- function(data) {\n  # Check for missing data\n  report &lt;- pls_check_missing(list(data$brain), verbose = FALSE)\n\n  # Check for outliers (simple z-score method)\n  z_scores &lt;- scale(data$brain)\n  n_outliers &lt;- sum(abs(z_scores) &gt; 3, na.rm = TRUE)\n\n  list(\n    missing_pct = report$overall_pct * 100,  # Convert to percentage\n    n_outliers = n_outliers,\n    passed = report$overall_pct &lt; 0.20 && n_outliers &lt; 0.01 * length(data$brain)\n  )\n}\n\n# Step 3: Run analysis with options\nrun_pls_pipeline &lt;- function(data, n_perm = 1000, n_boot = 1000) {\n  # Stack behavioral data\n  stacked_behav &lt;- do.call(rbind,\n                            replicate(data$n_cond, data$behav, simplify = FALSE))\n\n  # Run analysis\n  result &lt;- pls_analysis(\n    datamat_lst = list(data$brain),\n    num_subj_lst = c(data$n_subj),\n    num_cond = data$n_cond,\n    option = list(\n      method = 3,\n      num_perm = n_perm,\n      num_boot = n_boot,\n      stacked_behavdata = stacked_behav,\n      impute_method = \"mean\",\n      verbose = FALSE\n    )\n  )\n\n  result\n}\n\n# Step 4: Generate report\ngenerate_report &lt;- function(result, output_dir = \"results\") {\n  if (!dir.exists(output_dir)) dir.create(output_dir)\n\n  # Summary table\n  summary &lt;- pls_summary_table(result)\n  write.csv(summary, file.path(output_dir, \"summary_table.csv\"))\n\n  # Significant LVs\n  sig_lvs &lt;- which(result$perm_result$sprob &lt; 0.05)\n\n  if (length(sig_lvs) &gt; 0) {\n    cat(\"Significant LVs found:\", paste(sig_lvs, collapse = \", \"), \"\\n\")\n\n    # Save results for each significant LV\n    for (lv in sig_lvs) {\n      # Brain saliences\n      brain_df &lt;- data.frame(\n        Region = 1:nrow(result$u),\n        Salience = result$u[, lv],\n        BSR = result$boot_result$compare_u[, lv],\n        SE = result$boot_result$u_se[, lv]\n      )\n      write.csv(brain_df,\n                file.path(output_dir, sprintf(\"LV%d_brain_saliences.csv\", lv)))\n    }\n  }\n\n  cat(\"Report saved to:\", output_dir, \"\\n\")\n}\n\n# Execute the pipeline\ndata &lt;- prepare_pls_data(\"brain.csv\", \"behav.csv\", groups = 1)\nqc &lt;- quality_control(data)\ncat(\"QC passed:\", qc$passed, \"\\n\")\n\nQC passed: TRUE \n\nif (qc$passed) {\n  result &lt;- run_pls_pipeline(data, n_perm = 500, n_boot = 500)\n  generate_report(result)\n}\n\nSignificant LVs found: 1 \nReport saved to: results \n\n\n\n\nBatch Processing Multiple Datasets\n\n# Process multiple datasets\ndatasets &lt;- list(\n  study1 = list(brain = brain1, behav = behav1),\n  study2 = list(brain = brain2, behav = behav2),\n  study3 = list(brain = brain3, behav = behav3)\n)\n\nresults &lt;- lapply(names(datasets), function(name) {\n  cat(\"Processing:\", name, \"\\n\")\n\n  data &lt;- datasets[[name]]\n  stacked_behav &lt;- do.call(rbind, replicate(n_cond, data$behav, simplify = FALSE))\n\n  result &lt;- pls_analysis(\n    datamat_lst = list(data$brain),\n    num_subj_lst = c(nrow(data$behav)),\n    num_cond = n_cond,\n    option = list(\n      method = 3,\n      num_perm = 1000,\n      num_boot = 1000,\n      stacked_behavdata = stacked_behav,\n      verbose = FALSE\n    )\n  )\n\n  # Save individual results\n  saveRDS(result, sprintf(\"%s_pls_result.rds\", name))\n\n  result\n})\n\nnames(results) &lt;- names(datasets)"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#real-world-example-multi-group-analysis",
+    "href": "lesson-05-advanced.html#real-world-example-multi-group-analysis",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Real-World Example: Multi-Group Analysis",
+    "text": "Real-World Example: Multi-Group Analysis\n\n# Simulate a two-group study (e.g., patients vs controls)\nset.seed(42)\n\nn_controls &lt;- 20\nn_patients &lt;- 18\nn_regions &lt;- 40\nn_behav &lt;- 3\nn_cond &lt;- 2\n\n# Control group data\nbrain_controls &lt;- matrix(rnorm(n_controls * n_cond * n_regions),\n                          nrow = n_controls * n_cond, ncol = n_regions)\n\n# Patient group data (with altered brain-behavior relationship)\nbrain_patients &lt;- matrix(rnorm(n_patients * n_cond * n_regions),\n                          nrow = n_patients * n_cond, ncol = n_regions)\n\n# Behavioral data\nbehav_controls &lt;- matrix(rnorm(n_controls * n_behav), nrow = n_controls, ncol = n_behav)\nbehav_patients &lt;- matrix(rnorm(n_patients * n_behav), nrow = n_patients, ncol = n_behav)\n\n# Add signal (different patterns for each group)\nstacked_behav_controls &lt;- do.call(rbind, replicate(n_cond, behav_controls, simplify = FALSE))\nstacked_behav_patients &lt;- do.call(rbind, replicate(n_cond, behav_patients, simplify = FALSE))\n\n# Controls: regions 1-10 positively correlate with behavior 1\nfor (r in 1:10) {\n  brain_controls[, r] &lt;- brain_controls[, r] + 0.5 * stacked_behav_controls[, 1]\n}\n\n# Patients: weaker relationship\nfor (r in 1:10) {\n  brain_patients[, r] &lt;- brain_patients[, r] + 0.2 * stacked_behav_patients[, 1]\n}\n\n# Stack data for multi-group analysis\ndatamat_lst &lt;- list(brain_controls, brain_patients)\nstacked_behavdata &lt;- rbind(stacked_behav_controls, stacked_behav_patients)\n\n# Run multi-group PLS\nresult_multigroup &lt;- pls_analysis(\n  datamat_lst = datamat_lst,\n  num_subj_lst = c(n_controls, n_patients),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = stacked_behavdata,\n    verbose = FALSE\n  )\n)\n\n# Summary\ncat(\"Multi-group PLS Results\\n\")\n\nMulti-group PLS Results\n\ncat(\"=======================\\n\")\n\n=======================\n\nsummary_table &lt;- pls_summary_table(result_multigroup)\nprint(summary_table)\n\n   LV Singular_Value Variance_Explained_Pct Cumulative_Pct P_Value Significant\n1   1         3.0719                  32.03          32.03  0.0000           *\n2   2         2.1442                  15.60          47.63  0.0259           *\n3   3         1.9125                  12.41          60.04  0.0140           *\n4   4         1.7229                  10.07          70.12  0.0918            \n5   5         1.4898                   7.53          77.65  0.6287            \n6   6         1.2721                   5.49          83.14  0.9860            \n7   7         1.1944                   4.84          87.98  0.9042            \n8   8         1.0664                   3.86          91.84  0.9681            \n9   9         0.9887                   3.32          95.16  0.9840            \n10 10         0.8769                   2.61          97.77  0.9980            \n11 11         0.6615                   1.49          99.25  0.9980            \n12 12         0.4688                   0.75         100.00  0.9980"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#performance-optimization",
+    "href": "lesson-05-advanced.html#performance-optimization",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Performance Optimization",
+    "text": "Performance Optimization\n\nTips for Large Datasets\n\n# 1. Reduce permutations for initial exploration\nresult_quick &lt;- pls_analysis(...,\n  option = list(num_perm = 100, num_boot = 100, ...))\n\n# 2. Increase for final analysis\nresult_final &lt;- pls_analysis(...,\n  option = list(num_perm = 5000, num_boot = 5000, ...))\n\n# 3. Use parallel processing (if implemented)\n# Currently plscmd is single-threaded\n\n# 4. Subset variables if needed\n# e.g., use only top variance regions\nvar_per_region &lt;- apply(brain_data, 2, var)\ntop_regions &lt;- order(var_per_region, decreasing = TRUE)[1:100]\nbrain_reduced &lt;- brain_data[, top_regions]"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#exercise-5-complete-analysis-workflow",
+    "href": "lesson-05-advanced.html#exercise-5-complete-analysis-workflow",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Exercise 5: Complete Analysis Workflow",
+    "text": "Exercise 5: Complete Analysis Workflow\nBuild a complete analysis workflow that:\n\nChecks data quality\nHandles missing data\nRuns PLS analysis\nCreates publication figures\nExports results\n\n\n# Your comprehensive workflow here\n\n# 1. Create or load data\n# ...\n\n# 2. Quality control\n# ...\n\n# 3. Handle missing data\n# ...\n\n# 4. Run analysis\n# ...\n\n# 5. Create figures\n# ...\n\n# 6. Export results\n# ..."
+  },
+  {
+    "objectID": "lesson-05-advanced.html#course-summary",
+    "href": "lesson-05-advanced.html#course-summary",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Course Summary",
+    "text": "Course Summary\nCongratulations! You’ve completed the plscmd course. You now know how to:\n\nLesson 1: Introduction\n\nUnderstand what PLS does and when to use it\nPrepare data in the correct format\nRun basic analyses\n\n\n\nLesson 2: Results\n\nInterpret permutation tests\nUse bootstrap ratios\nMake statistical decisions\n\n\n\nLesson 3: Visualization\n\nCreate publication-quality figures\nCustomize colors and fonts\nExport in various formats\n\n\n\nLesson 4: Missing Data\n\nDiagnose missing data patterns\nUse single and multiple imputation\nApply Rubin’s rules\n\n\n\nLesson 5: Advanced Topics\n\nUse robust correlation methods\nUnderstand package internals\nBuild custom workflows"
+  },
+  {
+    "objectID": "lesson-05-advanced.html#further-resources",
+    "href": "lesson-05-advanced.html#further-resources",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Further Resources",
+    "text": "Further Resources\n\nPLS Literature\n\nMcIntosh & Lobaugh (2004). Partial Least Squares Analysis of Neuroimaging Data. NeuroImage.\nKrishnan et al. (2011). Partial Least Squares (PLS) methods for neuroimaging.\n\n\n\nR Resources\n\nggplot2 documentation\npatchwork for combining plots\n\n\n\nStatistics\n\nRubin (1987). Multiple Imputation for Nonresponse in Surveys.\nvan Buuren (2018). Flexible Imputation of Missing Data."
+  },
+  {
+    "objectID": "lesson-05-advanced.html#getting-help",
+    "href": "lesson-05-advanced.html#getting-help",
+    "title": "Lesson 5: Advanced Topics",
+    "section": "Getting Help",
+    "text": "Getting Help\n\nCheck function documentation: ?pls_analysis\nReport issues: GitHub repository\nCommunity forums: R neuroimaging groups\n\nThank you for taking this course!"
+  },
+  {
+    "objectID": "lesson-03-visualization.html",
+    "href": "lesson-03-visualization.html",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nCreate multi-panel summary figures for PLS results\nCustomize colors, fonts, and themes\nAdd panel tags (A, B, C) for publications\nExport figures in various formats"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#learning-objectives",
+    "href": "lesson-03-visualization.html#learning-objectives",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nCreate multi-panel summary figures for PLS results\nCustomize colors, fonts, and themes\nAdd panel tags (A, B, C) for publications\nExport figures in various formats"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#setup",
+    "href": "lesson-03-visualization.html#setup",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Setup",
+    "text": "Setup\n\n# Source the plscmd package (all files)\nsource(\"setup.R\")\n\nplscmd package loaded successfully!\n\nlibrary(ggplot2)\n\nset.seed(42)\n\n# Create simulated data with clear signal\nn_subj &lt;- 40\nn_regions &lt;- 40\nn_behav &lt;- 5\nn_cond &lt;- 1  # Single condition for clearer visualization\n\n# Behavioral data\nbehavdata &lt;- matrix(rnorm(n_subj * n_behav), nrow = n_subj, ncol = n_behav)\ncolnames(behavdata) &lt;- c(\"Working_Memory\", \"Attention\", \"Processing_Speed\",\n                          \"Verbal_Fluency\", \"Executive_Function\")\n\n# Brain data with injected signal\nbrain_data &lt;- matrix(rnorm(n_subj * n_regions),\n                      nrow = n_subj, ncol = n_regions)\n\n# Inject strong signal in some regions\nfor (r in 1:8) {\n  brain_data[, r] &lt;- brain_data[, r] + 0.7 * behavdata[, 1]\n}\nfor (r in 9:14) {\n  brain_data[, r] &lt;- brain_data[, r] - 0.5 * behavdata[, 2]\n}\n\n# Create region names (simulating brain regions)\nregion_names &lt;- c(\n  paste0(\"L_\", c(\"DLPFC\", \"VLPFC\", \"ACC\", \"Insula\", \"Hippocampus\",\n                  \"Amygdala\", \"Thalamus\", \"Caudate\")),\n  paste0(\"R_\", c(\"DLPFC\", \"VLPFC\", \"ACC\", \"Insula\", \"Hippocampus\",\n                  \"Amygdala\", \"Thalamus\", \"Caudate\")),\n  paste0(\"L_\", c(\"V1\", \"V2\", \"MT\", \"FFA\", \"PPA\", \"IPS\", \"SPL\", \"IPL\",\n                  \"STS\", \"TPJ\", \"Precuneus\", \"PCC\")),\n  paste0(\"R_\", c(\"V1\", \"V2\", \"MT\", \"FFA\", \"PPA\", \"IPS\", \"SPL\", \"IPL\",\n                  \"STS\", \"TPJ\", \"Precuneus\", \"PCC\"))\n)\n\n# Run PLS\nresult &lt;- pls_analysis(\n  datamat_lst = list(brain_data),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = behavdata,\n    verbose = FALSE\n  )\n)\n\ncat(\"Analysis complete. LV1 p-value:\", result$perm_result$sprob[1], \"\\n\")\n\nAnalysis complete. LV1 p-value: 0"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#the-visualization-functions",
+    "href": "lesson-03-visualization.html#the-visualization-functions",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "The Visualization Functions",
+    "text": "The Visualization Functions\nThe plscmd package includes several visualization functions:\n\n\n\n\n\n\n\nFunction\nPurpose\n\n\n\n\nplot_bootstrap_ratios()\nBar plot of bootstrap ratios for brain regions\n\n\nplot_lv_correlations()\nBar plot of behavioral correlations\n\n\nplot_brain_behavior_scatter()\nScatter plot of brain vs behavior scores\n\n\nplot_behavior_correlations()\nCorrelations with bootstrap CIs\n\n\nplot_lv_summary()\nCombined multi-panel figure\n\n\nplot_all_significant_lvs()\nAutomatic plots for all significant LVs"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#individual-plot-components",
+    "href": "lesson-03-visualization.html#individual-plot-components",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Individual Plot Components",
+    "text": "Individual Plot Components\n\nBootstrap Ratios Plot\n\n# Basic bootstrap ratios plot\np1 &lt;- plot_bootstrap_ratios(result, lv = 1,\n                             region_names = region_names)\nprint(p1)\n\n\n\n\n\n\n\n\n\n\nShow All Regions\nUse show_all = TRUE to display all regions, with non-significant ones in gray:\n\np2 &lt;- plot_bootstrap_ratios(result, lv = 1,\n                             region_names = region_names,\n                             show_all = TRUE)\nprint(p2)\n\n\n\n\n\n\n\n\n\n\nBrain-Behavior Scatter Plot\n\np3 &lt;- plot_brain_behavior_scatter(result, lv = 1, p_digits = 3)\nprint(p3)\n\n\n\n\n\n\n\n\n\n\nBehavioral Correlations\n\np4 &lt;- plot_lv_correlations(result, lv = 1,\n                            behav_names = colnames(behavdata))\nprint(p4)"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#combined-summary-figure",
+    "href": "lesson-03-visualization.html#combined-summary-figure",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Combined Summary Figure",
+    "text": "Combined Summary Figure\nThe plot_lv_summary() function creates a multi-panel figure:\n\n# Basic summary figure\nfig &lt;- plot_lv_summary(result, lv = 1,\n                        behav_names = colnames(behavdata),\n                        region_names = region_names)\nprint(fig)\n\n\n\n\n\n\n\n\n\nAdding Panel Tags\nUse tag_levels to add letter or number tags:\n\n# With letter tags (A, B, C)\nfig_tagged &lt;- plot_lv_summary(result, lv = 1,\n                               behav_names = colnames(behavdata),\n                               region_names = region_names,\n                               tag_levels = \"A\")\nprint(fig_tagged)\n\n\n\n\n\n\n\n\n\n# With number tags (1, 2, 3)\nfig_numbers &lt;- plot_lv_summary(result, lv = 1,\n                                behav_names = colnames(behavdata),\n                                region_names = region_names,\n                                tag_levels = \"1\")\nprint(fig_numbers)\n\n\n\n\n\n\n\n\n\n\nShowing All Regions\n\nfig_all &lt;- plot_lv_summary(result, lv = 1,\n                            behav_names = colnames(behavdata),\n                            region_names = region_names,\n                            show_all_regions = TRUE,\n                            tag_levels = \"A\",\n                            p_digits = 3)\nprint(fig_all)"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#customizing-colors",
+    "href": "lesson-03-visualization.html#customizing-colors",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Customizing Colors",
+    "text": "Customizing Colors\n\nDefault Color Palette\n\n# View default colors\ncolors &lt;- pls_colors()\nprint(colors)\n\n$positive\n[1] \"#d73027\"\n\n$negative\n[1] \"#4575b4\"\n\n$significant\n[1] \"gray40\"\n\n$nonsignificant\n[1] \"gray80\"\n\n$points\n[1] \"#4575b4\"\n\n$line\n[1] \"black\"\n\n$ci_fill\n[1] \"gray80\"\n\n$bar_fill\n[1] \"gray50\"\n\n$bar_outline\n[1] \"black\"\n\n\n\n\nCustom Color Palette\n\n# Create custom colors\nmy_colors &lt;- pls_colors()\nmy_colors$positive &lt;- \"#E41A1C\"      # Bright red\nmy_colors$negative &lt;- \"#377EB8\"      # Bright blue\nmy_colors$significant &lt;- \"#4DAF4A\"   # Green\nmy_colors$nonsignificant &lt;- \"#E0E0E0\"  # Light gray\nmy_colors$bar_outline &lt;- \"#333333\"   # Dark gray\n\n# Apply to plot\np_custom &lt;- plot_bootstrap_ratios(result, lv = 1,\n                                   region_names = region_names,\n                                   colors = my_colors,\n                                   show_all = TRUE)\nprint(p_custom)\n\n\n\n\n\n\n\n\n\n\nPublication-Ready Grayscale\n\n# Grayscale palette for print\ngray_colors &lt;- pls_colors()\ngray_colors$positive &lt;- \"#404040\"\ngray_colors$negative &lt;- \"#808080\"\ngray_colors$significant &lt;- \"#505050\"\ngray_colors$nonsignificant &lt;- \"#D0D0D0\"\n\np_gray &lt;- plot_bootstrap_ratios(result, lv = 1,\n                                 region_names = region_names,\n                                 colors = gray_colors,\n                                 show_all = TRUE)\nprint(p_gray)"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#customizing-fonts",
+    "href": "lesson-03-visualization.html#customizing-fonts",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Customizing Fonts",
+    "text": "Customizing Fonts\nUse the font_sizes parameter to adjust text sizes:\n\n# Larger fonts for presentations\nlarge_fonts &lt;- list(\n  base_size = 16,\n  title_size = 20,\n  axis_title_size = 16,\n  axis_text_size = 14\n)\n\nfig_large &lt;- plot_lv_summary(result, lv = 1,\n                              behav_names = colnames(behavdata),\n                              region_names = region_names,\n                              font_sizes = large_fonts,\n                              tag_levels = \"A\")\nprint(fig_large)\n\n\n\n\n\n\n\n\n\n# Smaller fonts for dense figures\nsmall_fonts &lt;- list(\n  base_size = 10,\n  title_size = 12,\n  axis_title_size = 10,\n  axis_text_size = 8\n)\n\nfig_small &lt;- plot_lv_summary(result, lv = 1,\n                              behav_names = colnames(behavdata),\n                              region_names = region_names,\n                              font_sizes = small_fonts)\nprint(fig_small)"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#saving-figures",
+    "href": "lesson-03-visualization.html#saving-figures",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Saving Figures",
+    "text": "Saving Figures\n\nUsing plot_lv_summary with save_path\n\n# Save directly from the function\nplot_lv_summary(result, lv = 1,\n                behav_names = colnames(behavdata),\n                region_names = region_names,\n                save_path = \"LV1_summary.png\",\n                width = 12, height = 10, dpi = 300)\n\n\n\nUsing ggsave\n\n# More control with ggsave\nfig &lt;- plot_lv_summary(result, lv = 1,\n                        behav_names = colnames(behavdata),\n                        region_names = region_names,\n                        tag_levels = \"A\")\n\n# Save as PNG (for web/presentations)\nggsave(\"figure_lv1.png\", fig, width = 12, height = 10, dpi = 300)\n\n# Save as PDF (for publications)\nggsave(\"figure_lv1.pdf\", fig, width = 12, height = 10)\n\n# Save as TIFF (some journals require this)\nggsave(\"figure_lv1.tiff\", fig, width = 12, height = 10, dpi = 300,\n       compression = \"lzw\")\n\n\n\nBatch Processing All Significant LVs\n\n# Automatically create figures for all significant LVs\nfigures &lt;- plot_all_significant_lvs(\n  result,\n  behav_names = colnames(behavdata),\n  region_names = region_names,\n  output_dir = \"figures\",\n  prefix = \"LV\",\n  width = 12,\n  height = 10,\n  dpi = 300,\n  show_all_regions = TRUE,\n  tag_levels = \"A\",\n  p_digits = 3\n)"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#creating-summary-tables",
+    "href": "lesson-03-visualization.html#creating-summary-tables",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Creating Summary Tables",
+    "text": "Creating Summary Tables\n\n# Create a summary table\nsummary &lt;- pls_summary_table(result)\nprint(summary)\n\n  LV Singular_Value Variance_Explained_Pct Cumulative_Pct P_Value Significant\n1  1         2.0331                  49.58          49.58  0.0000           *\n2  2         1.3971                  23.41          72.99  0.0160           *\n3  3         0.9984                  11.96          84.95  0.5868            \n4  4         0.8291                   8.25          93.19  0.9601            \n5  5         0.7534                   6.81         100.00  0.8263            \n\n\n\nFormatted Table for Export\n\n# Create a publication-ready table\nsummary &lt;- pls_summary_table(result, digits = 3)\n\n# Add interpretation\nsummary$Interpretation &lt;- ifelse(summary$P_Value &lt; 0.001, \"***\",\n                                  ifelse(summary$P_Value &lt; 0.01, \"**\",\n                                         ifelse(summary$P_Value &lt; 0.05, \"*\", \"\")))\n\nknitr::kable(summary, caption = \"PLS Analysis Summary\")\n\n\nPLS Analysis Summary\n\n\n\n\n\n\n\n\n\n\n\nLV\nSingular_Value\nVariance_Explained_Pct\nCumulative_Pct\nP_Value\nSignificant\nInterpretation\n\n\n\n\n1\n2.033\n49.58\n49.58\n0.000\n*\n***\n\n\n2\n1.397\n23.41\n72.99\n0.016\n*\n*\n\n\n3\n0.998\n11.96\n84.95\n0.587\n\n\n\n\n4\n0.829\n8.25\n93.19\n0.960\n\n\n\n\n5\n0.753\n6.81\n100.00\n0.826"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#advanced-combining-with-other-plots",
+    "href": "lesson-03-visualization.html#advanced-combining-with-other-plots",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Advanced: Combining with Other Plots",
+    "text": "Advanced: Combining with Other Plots\nYou can combine plscmd plots with other ggplot2 figures using patchwork:\n\nlibrary(patchwork)\n\n# Create individual plots\np_bsr &lt;- plot_bootstrap_ratios(result, lv = 1,\n                                region_names = region_names,\n                                show_all = TRUE)\n\np_scatter &lt;- plot_brain_behavior_scatter(result, lv = 1, p_digits = 3)\n\n# Combine side by side\ncombined &lt;- p_bsr + p_scatter +\n  plot_annotation(\n    title = \"LV1: Brain-Behavior Relationship\",\n    tag_levels = \"A\",\n    theme = theme(plot.title = element_text(face = \"bold\", size = 16, hjust = 0.5))\n  )\n\nprint(combined)"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#exercise-3-create-your-own-figure",
+    "href": "lesson-03-visualization.html#exercise-3-create-your-own-figure",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Exercise 3: Create Your Own Figure",
+    "text": "Exercise 3: Create Your Own Figure\nCreate a publication-quality figure with:\n\nCustom colors (your choice)\nAppropriate font sizes\nLetter tags (A, B, C)\nAll regions shown\n\n\n# Your code here\nmy_colors &lt;- pls_colors()\n# Customize colors...\n\nmy_fonts &lt;- list(\n  base_size = 14,\n  title_size = 16,\n  axis_title_size = 14,\n  axis_text_size = 12\n)\n\n# Create your figure..."
+  },
+  {
+    "objectID": "lesson-03-visualization.html#tips-for-publication-quality-figures",
+    "href": "lesson-03-visualization.html#tips-for-publication-quality-figures",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Tips for Publication-Quality Figures",
+    "text": "Tips for Publication-Quality Figures\n\n\n\n\n\n\nTipBest Practices\n\n\n\n\nResolution: Use at least 300 DPI for print, 150 DPI for web\nDimensions: Match journal requirements (often 3.5” or 7” wide)\nFonts: Use consistent font sizes; 8-10pt is typical for axis labels\nColors: Ensure colorblind accessibility; test with grayscale\nTags: Use consistent panel labeling (A, B, C or a, b, c)\nFile format: PDF for vector graphics, TIFF/PNG for raster"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#summary",
+    "href": "lesson-03-visualization.html#summary",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Summary",
+    "text": "Summary\nIn this lesson, you learned:\n\nHow to create individual and combined visualization plots\nCustomize colors, fonts, and themes for your needs\nAdd panel tags for publication figures\nExport figures in various formats\nCreate summary tables"
+  },
+  {
+    "objectID": "lesson-03-visualization.html#next-steps",
+    "href": "lesson-03-visualization.html#next-steps",
+    "title": "Lesson 3: Visualization and Reporting",
+    "section": "Next Steps",
+    "text": "Next Steps\nIn Lesson 4, we’ll learn how to handle missing data:\n\nDiagnosing missing data patterns\nSingle and multiple imputation\nRunning PLS with imputed data"
+  },
+  {
+    "objectID": "lesson-01-introduction.html",
+    "href": "lesson-01-introduction.html",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nExplain what PLS does and when to use it\nPrepare data in the correct format for plscmd\nRun a basic PLS analysis\nUnderstand the structure of the results object"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#learning-objectives",
+    "href": "lesson-01-introduction.html#learning-objectives",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nExplain what PLS does and when to use it\nPrepare data in the correct format for plscmd\nRun a basic PLS analysis\nUnderstand the structure of the results object"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#setup",
+    "href": "lesson-01-introduction.html#setup",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Setup",
+    "text": "Setup\nFirst, let’s load the package and set a seed for reproducibility:\n\n# Source the plscmd package (all files)\nsource(\"setup.R\")\n\nplscmd package loaded successfully!\n\nset.seed(42)"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#what-is-pls",
+    "href": "lesson-01-introduction.html#what-is-pls",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "What is PLS?",
+    "text": "What is PLS?\nPartial Least Squares (PLS) is a multivariate statistical technique that finds linear combinations of variables from two data matrices that have maximum covariance with each other.\n\nWhen to Use PLS\nPLS is ideal when you have:\n\nTwo sets of variables you want to relate (e.g., brain measures and behaviors)\nMore variables than observations (common in neuroimaging)\nMulticollinearity in your predictors\nA desire to find patterns rather than predict specific outcomes\n\n\n\nPLS vs. Other Methods\n\n\n\nMethod\nUse Case\n\n\n\n\nPLS\nFind patterns relating two variable sets\n\n\nPCA\nReduce dimensionality of one variable set\n\n\nCCA\nFind correlations between two sets (requires n &gt; p)\n\n\nRegression\nPredict one outcome from predictors"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#data-structure",
+    "href": "lesson-01-introduction.html#data-structure",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Data Structure",
+    "text": "Data Structure\nThe plscmd package expects data in a specific format:\n\nBrain Data (datamat_lst)\nA list of matrices, where each matrix represents a group:\n\nRows = subjects\nColumns = brain variables (voxels, ROIs, connections)\n\n\n# Simulate brain data: 2 groups, 15 subjects each, 50 brain regions\nn_subj_per_group &lt;- 15\nn_regions &lt;- 50\nn_groups &lt;- 2\nn_conditions &lt;- 3  # e.g., rest, task1, task2\n\n# Create data for each group\n# Each group's data is stacked: (n_subjects * n_conditions) x n_regions\ngroup1_data &lt;- matrix(rnorm(n_subj_per_group * n_conditions * n_regions),\n                       nrow = n_subj_per_group * n_conditions,\n                       ncol = n_regions)\ngroup2_data &lt;- matrix(rnorm(n_subj_per_group * n_conditions * n_regions),\n                       nrow = n_subj_per_group * n_conditions,\n                       ncol = n_regions)\n\n# Put into a list\ndatamat_lst &lt;- list(group1_data, group2_data)\n\n# Check dimensions\ncat(\"Group 1 dimensions:\", dim(datamat_lst[[1]]), \"\\n\")\n\nGroup 1 dimensions: 45 50 \n\ncat(\"Group 2 dimensions:\", dim(datamat_lst[[2]]), \"\\n\")\n\nGroup 2 dimensions: 45 50 \n\n\n\n\n\n\n\n\nImportantData Stacking Convention\n\n\n\nWithin each group matrix, data is stacked by condition within subject:\n\nRows 1 to n_conditions: Subject 1’s data across conditions\nRows (n_conditions + 1) to (2 * n_conditions): Subject 2’s data\nAnd so on…\n\n\n\n\n\nBehavioral Data (behavdata or stacked_behavdata)\nA matrix of behavioral measures:\n\nRows = subjects (matching the brain data)\nColumns = behavioral variables\n\n\n# Simulate behavioral data: 3 measures per subject\nn_behav &lt;- 3\ntotal_subjects &lt;- n_subj_per_group * n_groups\n\n# Create behavioral matrix (one row per subject, replicated across conditions)\nbehavdata_base &lt;- matrix(rnorm(total_subjects * n_behav),\n                          nrow = total_subjects,\n                          ncol = n_behav)\ncolnames(behavdata_base) &lt;- c(\"Memory\", \"Attention\", \"Processing_Speed\")\n\n# Stack to match brain data structure (repeat for each condition)\nstacked_behavdata &lt;- do.call(rbind, lapply(1:n_conditions, function(c) behavdata_base))\n\ncat(\"Behavioral data dimensions:\", dim(stacked_behavdata), \"\\n\")\n\nBehavioral data dimensions: 90 3 \n\nhead(stacked_behavdata)\n\n          Memory   Attention Processing_Speed\n[1,] -0.20251534 -1.48539618       -0.4078070\n[2,] -1.21438244  1.10055630       -0.6022963\n[3,] -0.01952635  0.93524738       -2.4438577\n[4,] -0.75403354  0.03868377       -0.5029618\n[5,]  1.18908759 -2.39486002        0.9628704\n[6,]  1.51016674 -0.09628006       -1.6849202"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#your-first-pls-analysis",
+    "href": "lesson-01-introduction.html#your-first-pls-analysis",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Your First PLS Analysis",
+    "text": "Your First PLS Analysis\nNow let’s run a complete PLS analysis:\n\n# Define the analysis parameters\nnum_subj_lst &lt;- c(n_subj_per_group, n_subj_per_group)  # subjects per group\nnum_cond &lt;- n_conditions  # number of conditions\n\n# Set up options\noption &lt;- list(\n  method = 3,           # Behavior PLS (correlating brain with behavior)\n  num_perm = 500,       # Permutation tests (use 1000+ for publication)\n  num_boot = 500,       # Bootstrap samples (use 1000+ for publication)\n  stacked_behavdata = stacked_behavdata,\n  verbose = FALSE       # Suppress progress messages\n)\n\n# Run the analysis\nresult &lt;- pls_analysis(\n  datamat_lst = datamat_lst,\n  num_subj_lst = num_subj_lst,\n  num_cond = num_cond,\n  option = option\n)\n\ncat(\"Analysis complete!\\n\")\n\nAnalysis complete!\n\ncat(\"Number of latent variables:\", length(result$s), \"\\n\")\n\nNumber of latent variables: 18"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#understanding-the-results-object",
+    "href": "lesson-01-introduction.html#understanding-the-results-object",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Understanding the Results Object",
+    "text": "Understanding the Results Object\nThe pls_analysis function returns a list with many components:\n\n# See what's in the result\nnames(result)\n\n [1] \"method\"            \"is_struct\"         \"robust_method\"    \n [4] \"datamatcorrs_lst\"  \"u\"                 \"s\"                \n [7] \"v\"                 \"lvcorrs\"           \"usc\"              \n[10] \"vsc\"               \"num_subj_lst\"      \"num_conditions\"   \n[13] \"stacked_behavdata\" \"perm_result\"       \"boot_result\"      \n[16] \"other_input\"      \n\n\n\nKey Components\n\n\n\nComponent\nDescription\n\n\n\n\ns\nSingular values (strength of each LV)\n\n\nu\nBrain saliences (weights for brain variables)\n\n\nv\nBehavior saliences (weights for behavior variables)\n\n\nusc\nBrain scores (subjects’ expression of brain pattern)\n\n\nvsc\nBehavior scores (subjects’ expression of behavior pattern)\n\n\nperm_result\nPermutation test results\n\n\nboot_result\nBootstrap results\n\n\n\n\n\nSingular Values\nThe singular values indicate how much covariance each LV captures:\n\n# Singular values\nresult$s\n\n [1] 2.8408033 2.6483238 2.5756591 2.4211048 2.2185679 2.1610493 2.0484646\n [8] 1.9198484 1.7143756 1.5660822 1.5186653 1.4343025 1.3002137 1.1175590\n[15] 1.0246815 0.8549830 0.7809054 0.7277316\n\n# Variance explained by each LV\nvar_explained &lt;- (result$s^2) / sum(result$s^2) * 100\ncat(\"\\nVariance explained by each LV:\\n\")\n\n\nVariance explained by each LV:\n\nfor (i in seq_along(var_explained)) {\n  cat(sprintf(\"  LV%d: %.1f%%\\n\", i, var_explained[i]))\n}\n\n  LV1: 13.3%\n  LV2: 11.6%\n  LV3: 10.9%\n  LV4: 9.7%\n  LV5: 8.1%\n  LV6: 7.7%\n  LV7: 6.9%\n  LV8: 6.1%\n  LV9: 4.8%\n  LV10: 4.0%\n  LV11: 3.8%\n  LV12: 3.4%\n  LV13: 2.8%\n  LV14: 2.1%\n  LV15: 1.7%\n  LV16: 1.2%\n  LV17: 1.0%\n  LV18: 0.9%\n\n\n\n\nSaliences\nSaliences are the weights that define each latent variable:\n\n# Brain saliences (u): how each region contributes to each LV\ncat(\"Brain saliences dimensions:\", dim(result$u), \"\\n\")\n\nBrain saliences dimensions: 50 18 \n\ncat(\"(\", n_regions, \"regions x\", length(result$s), \"LVs)\\n\\n\")\n\n( 50 regions x 18 LVs)\n\n# Behavior saliences (v): how each behavior contributes to each LV\ncat(\"Behavior saliences dimensions:\", dim(result$v), \"\\n\")\n\nBehavior saliences dimensions: 18 18 \n\n# Look at behavior saliences for LV1\ncat(\"\\nBehavior saliences for LV1:\\n\")\n\n\nBehavior saliences for LV1:\n\nbehav_saliences_lv1 &lt;- result$v[, 1]\nnames(behav_saliences_lv1) &lt;- colnames(stacked_behavdata)\nprint(round(behav_saliences_lv1, 3))\n\n          Memory        Attention Processing_Speed             &lt;NA&gt; \n          -0.429            0.524           -0.210            0.020 \n            &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt; \n           0.382            0.010            0.010           -0.136 \n            &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt; \n           0.006           -0.311            0.090            0.306 \n            &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt;             &lt;NA&gt; \n          -0.109            0.013           -0.199            0.183 \n            &lt;NA&gt;             &lt;NA&gt; \n           0.108           -0.190 \n\n\n\n\nScores\nScores represent how strongly each subject expresses the pattern:\n\n# Brain scores\ncat(\"Brain scores dimensions:\", dim(result$usc), \"\\n\")\n\nBrain scores dimensions: 90 18 \n\n# Behavior scores\ncat(\"Behavior scores dimensions:\", dim(result$vsc), \"\\n\")\n\nBehavior scores dimensions: 90 18 \n\n# The correlation between brain and behavior scores\n# should equal the singular value (for each LV)\ncat(\"\\nCorrelation of brain-behavior scores vs singular value:\\n\")\n\n\nCorrelation of brain-behavior scores vs singular value:\n\nfor (lv in 1:min(3, length(result$s))) {\n  r &lt;- cor(result$usc[, lv], result$vsc[, lv])\n  cat(sprintf(\"  LV%d: r = %.3f, s = %.3f\\n\", lv, r, result$s[lv]))\n}\n\n  LV1: r = 0.727, s = 2.841\n  LV2: r = 0.723, s = 2.648\n  LV3: r = 0.690, s = 2.576"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#exercise-1-explore-the-data",
+    "href": "lesson-01-introduction.html#exercise-1-explore-the-data",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Exercise 1: Explore the Data",
+    "text": "Exercise 1: Explore the Data\nTry modifying the simulation to:\n\nAdd more subjects (change n_subj_per_group)\nAdd more behavioral variables\nRun the analysis and compare the results\n\n\n# Your code here:\n# Try creating data with 25 subjects per group and 5 behavioral measures"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#summary",
+    "href": "lesson-01-introduction.html#summary",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Summary",
+    "text": "Summary\nIn this lesson, you learned:\n\nPLS finds patterns that maximize covariance between brain and behavior\nData must be organized as lists of matrices (brain) and stacked matrices (behavior)\nThe key outputs are singular values, saliences, and scores\nSaliences show variable contributions; scores show subject expressions"
+  },
+  {
+    "objectID": "lesson-01-introduction.html#next-steps",
+    "href": "lesson-01-introduction.html#next-steps",
+    "title": "Lesson 1: Introduction to PLS and plscmd",
+    "section": "Next Steps",
+    "text": "Next Steps\nIn Lesson 2, we’ll dive deeper into:\n\nPermutation testing for statistical significance\nBootstrap ratios for reliability\nHow to interpret what the results mean"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "",
+    "text": "This course provides a comprehensive introduction to Partial Least Squares (PLS) analysis using the plscmd R package. The course is designed for researchers with some R experience who want to understand both the theory and practical implementation of PLS for brain-behavior analyses."
+  },
+  {
+    "objectID": "index.html#welcome",
+    "href": "index.html#welcome",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "",
+    "text": "This course provides a comprehensive introduction to Partial Least Squares (PLS) analysis using the plscmd R package. The course is designed for researchers with some R experience who want to understand both the theory and practical implementation of PLS for brain-behavior analyses."
+  },
+  {
+    "objectID": "index.html#course-overview",
+    "href": "index.html#course-overview",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "Course Overview",
+    "text": "Course Overview\n\n\n\nLesson\nTopic\nDescription\n\n\n\n\n1\nIntroduction to PLS\nCore concepts, data structures, and your first analysis\n\n\n2\nUnderstanding Results\nInterpreting singular values, permutation tests, and bootstrap ratios\n\n\n3\nVisualization\nCreating publication-ready figures\n\n\n4\nMissing Data\nImputation strategies and multiple imputation\n\n\n5\nAdvanced Topics\nRobust methods, internals, and real-world workflows"
+  },
+  {
+    "objectID": "index.html#prerequisites",
+    "href": "index.html#prerequisites",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "Prerequisites",
+    "text": "Prerequisites\n\nR knowledge: Comfortable with data frames, matrices, and basic plotting\nStatistics: Understanding of correlation, regression, and resampling methods\nDomain: Familiarity with neuroimaging or similar multivariate data is helpful"
+  },
+  {
+    "objectID": "index.html#setup",
+    "href": "index.html#setup",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "Setup",
+    "text": "Setup\nBefore starting, install the required packages:\n\n# Install dependencies\ninstall.packages(c(\"ggplot2\", \"patchwork\", \"missRanger\"))\n\n# Load the plscmd package (from local source)\n# Each lesson uses setup.R which sources all package files:\nsource(\"setup.R\")\n\n# Alternative: Install as package\n# devtools::install_local(\"..\")"
+  },
+  {
+    "objectID": "index.html#what-is-pls",
+    "href": "index.html#what-is-pls",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "What is PLS?",
+    "text": "What is PLS?\nPartial Least Squares (PLS) is a multivariate technique that identifies relationships between two sets of variables. In neuroimaging:\n\nBrain matrix: Voxels, ROIs, or connectivity measures (columns) x subjects (rows)\nBehavior matrix: Cognitive scores, demographics, clinical measures (columns) x subjects (rows)\n\nPLS finds latent variables (LVs) that maximize the covariance between brain and behavior patterns."
+  },
+  {
+    "objectID": "index.html#key-concepts",
+    "href": "index.html#key-concepts",
+    "title": "plscmd: Partial Least Squares Analysis in R",
+    "section": "Key Concepts",
+    "text": "Key Concepts\n\nLatent Variables (LVs): Weighted combinations of original variables that capture shared variance\nSaliences: Weights showing how much each variable contributes to an LV\nSingular Values: Strength of the relationship captured by each LV\nPermutation Testing: Non-parametric significance testing\nBootstrap Ratios: Reliability of saliences (similar to z-scores)\n\nLet’s begin with Lesson 1: Introduction to PLS."
+  },
+  {
+    "objectID": "lesson-02-results.html",
+    "href": "lesson-02-results.html",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nInterpret permutation test results to determine significant LVs\nUse bootstrap ratios to identify reliable brain regions\nUnderstand confidence intervals for behavioral correlations\nMake informed decisions about which results to report"
+  },
+  {
+    "objectID": "lesson-02-results.html#learning-objectives",
+    "href": "lesson-02-results.html#learning-objectives",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nInterpret permutation test results to determine significant LVs\nUse bootstrap ratios to identify reliable brain regions\nUnderstand confidence intervals for behavioral correlations\nMake informed decisions about which results to report"
+  },
+  {
+    "objectID": "lesson-02-results.html#setup",
+    "href": "lesson-02-results.html#setup",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Setup",
+    "text": "Setup\n\n# Source the plscmd package (all files)\nsource(\"setup.R\")\n\nplscmd package loaded successfully!\n\nset.seed(42)\n\n# Create simulated data with a known signal\nn_subj &lt;- 30\nn_regions &lt;- 50\nn_behav &lt;- 4\nn_cond &lt;- 1  # Single condition for clearer demonstration\nn_groups &lt;- 1\n\n# Create behavioral data\nbehavdata &lt;- matrix(rnorm(n_subj * n_behav), nrow = n_subj, ncol = n_behav)\ncolnames(behavdata) &lt;- c(\"Memory\", \"Attention\", \"Speed\", \"Accuracy\")\n\n# Create brain data with some regions correlated with behavior\nbrain_data &lt;- matrix(rnorm(n_subj * n_regions),\n                      nrow = n_subj, ncol = n_regions)\n\n# Inject signal: regions 1-10 correlate with Memory (behavior 1)\nfor (r in 1:10) {\n  brain_data[, r] &lt;- brain_data[, r] + 0.5 * behavdata[, 1]\n}\n\n# Regions 11-15 correlate with Attention (behavior 2)\nfor (r in 11:15) {\n  brain_data[, r] &lt;- brain_data[, r] + 0.4 * behavdata[, 2]\n}\n\n# Run PLS analysis\nresult &lt;- pls_analysis(\n  datamat_lst = list(brain_data),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 1000,\n    num_boot = 1000,\n    stacked_behavdata = behavdata,\n    verbose = FALSE\n  )\n)"
+  },
+  {
+    "objectID": "lesson-02-results.html#permutation-testing",
+    "href": "lesson-02-results.html#permutation-testing",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Permutation Testing",
+    "text": "Permutation Testing\n\nWhy Permutation Tests?\nPLS always finds latent variables - even with random data. We need to test whether the observed patterns are statistically significant or could have occurred by chance.\nPermutation testing:\n\nShuffles the correspondence between brain and behavior data\nRuns PLS on the shuffled data\nRepeats many times to build a null distribution\nCompares observed singular values to null distribution\n\n\n\nInterpreting Permutation Results\n\n# Access permutation results\nperm &lt;- result$perm_result\n\n# P-values for each LV\ncat(\"Permutation p-values:\\n\")\n\nPermutation p-values:\n\nfor (i in seq_along(perm$sprob)) {\n  sig &lt;- ifelse(perm$sprob[i] &lt; 0.05, \"*\", \"\")\n  cat(sprintf(\"  LV%d: p = %.4f %s\\n\", i, perm$sprob[i], sig))\n}\n\n  LV1: p = 0.0000 *\n  LV2: p = 0.2358 \n  LV3: p = 0.5315 \n  LV4: p = 0.9980 \n\n\n\n\nVisualizing the Null Distribution\n\nlibrary(ggplot2)\n\n# Note: The permutation function stores counts, not individual values.\n# Here we simulate what the null distribution would look like for illustration.\n# In practice, the p-value tells us where the observed value falls.\n\nobserved_s &lt;- result$s[1]\np_value &lt;- perm$sprob[1]\n\n# Simulate approximate null distribution based on observed data characteristics\nset.seed(42)\nnull_mean &lt;- observed_s * 0.5  # Null is typically centered lower\nnull_sd &lt;- observed_s * 0.15\nsimulated_null &lt;- rnorm(500, mean = null_mean, sd = null_sd)\n\ndf &lt;- data.frame(s = simulated_null)\n\nggplot(df, aes(x = s)) +\n  geom_histogram(bins = 30, fill = \"steelblue\", alpha = 0.7, color = \"white\") +\n  geom_vline(xintercept = observed_s, color = \"red\", linewidth = 1.5, linetype = \"dashed\") +\n  annotate(\"text\", x = observed_s, y = Inf, label = sprintf(\"Observed\\ns = %.2f\", observed_s),\n           vjust = 2, hjust = -0.1, color = \"red\", fontface = \"bold\") +\n  labs(\n    title = \"LV1: Conceptual Null Distribution\",\n    subtitle = sprintf(\"Actual p = %.4f (from permutation test)\", p_value),\n    x = \"Singular Value\",\n    y = \"Frequency\"\n  ) +\n  theme_minimal(base_size = 14)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nTipHow Many Permutations?\n\n\n\n\nMinimum: 500 for exploratory analysis\nPublication: 1,000 - 5,000\nHigh precision: 10,000+\n\nMore permutations = more precise p-values, especially for small p-values."
+  },
+  {
+    "objectID": "lesson-02-results.html#bootstrap-ratios",
+    "href": "lesson-02-results.html#bootstrap-ratios",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Bootstrap Ratios",
+    "text": "Bootstrap Ratios\n\nWhat Are Bootstrap Ratios?\nWhile permutation tests tell us if an LV is significant, bootstrap ratios tell us which specific variables contribute reliably to that LV.\nBootstrap ratio = salience / standard error\nThis is analogous to a z-score:\n\n|BSR| &gt; 1.96 ≈ p &lt; 0.05\n|BSR| &gt; 2.58 ≈ p &lt; 0.01\n|BSR| &gt; 3.29 ≈ p &lt; 0.001\n\n\n\nExamining Bootstrap Ratios\n\nboot &lt;- result$boot_result\n\n# Bootstrap ratios for brain saliences (LV1)\nbsr_brain &lt;- boot$compare_u[, 1]\n\n# Standard errors\nse_brain &lt;- boot$u_se[, 1]\n\n# Create a summary\nbsr_summary &lt;- data.frame(\n  Region = 1:n_regions,\n  Salience = result$u[, 1],\n  SE = se_brain,\n  BSR = bsr_brain,\n  Significant = abs(bsr_brain) &gt; 1.96\n)\n\n# Show regions with highest absolute BSR\ntop_regions &lt;- bsr_summary[order(abs(bsr_summary$BSR), decreasing = TRUE), ]\nhead(top_regions, 10)\n\n\n  \n\n\n\n\n\nVisualizing Bootstrap Ratios\n\n# Create region names\nregion_names &lt;- paste0(\"Region_\", 1:n_regions)\n\n# Use the package's plotting function\np &lt;- plot_bootstrap_ratios(result, lv = 1,\n                            region_names = region_names,\n                            show_all = TRUE)\nprint(p)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nImportantConservative Significance\n\n\n\nThe plscmd package uses a conservative criterion: a region is considered significant only if the lower bound of its confidence interval (|BSR| - SE) exceeds the threshold. This is more stringent than simply checking if |BSR| &gt; threshold."
+  },
+  {
+    "objectID": "lesson-02-results.html#behavioral-correlations",
+    "href": "lesson-02-results.html#behavioral-correlations",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Behavioral Correlations",
+    "text": "Behavioral Correlations\n\nUnderstanding Behavior Results\nFor each LV, we can examine how behaviors correlate with the brain pattern:\n\n# Original correlations (from bootstrap)\norig_corr &lt;- boot$orig_corr[, 1]\n\n# Confidence intervals\nll_corr &lt;- boot$llcorr[, 1]  # Lower limit\nul_corr &lt;- boot$ulcorr[, 1]  # Upper limit\n\n# Create summary\nbehav_summary &lt;- data.frame(\n  Behavior = colnames(behavdata),\n  Correlation = round(orig_corr, 3),\n  CI_Lower = round(ll_corr, 3),\n  CI_Upper = round(ul_corr, 3),\n  Significant = sign(ll_corr) == sign(ul_corr)  # CI doesn't cross zero\n)\n\nprint(behav_summary)\n\n           Behavior Correlation CI_Lower CI_Upper Significant\nMemory       Memory      -0.879        0        0        TRUE\nAttention Attention      -0.025        0        0        TRUE\nSpeed         Speed       0.417        0        0        TRUE\nAccuracy   Accuracy       0.081        0        0        TRUE\n\n\n\n\nVisualizing Behavioral Correlations\n\n# Use explicit behavior names to ensure uniqueness\nbehav_names &lt;- c(\"Memory\", \"Attention\", \"Speed\", \"Accuracy\")\np &lt;- plot_lv_correlations(result, lv = 1, behav_names = behav_names)\nprint(p)"
+  },
+  {
+    "objectID": "lesson-02-results.html#interpreting-results",
+    "href": "lesson-02-results.html#interpreting-results",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Interpreting Results",
+    "text": "Interpreting Results\n\nA Complete Interpretation Workflow\n\n# Step 1: Which LVs are significant?\ncat(\"Step 1: Significant Latent Variables\\n\")\n\nStep 1: Significant Latent Variables\n\ncat(\"=====================================\\n\")\n\n=====================================\n\nsig_lvs &lt;- which(perm$sprob &lt; 0.05)\nif (length(sig_lvs) &gt; 0) {\n  cat(\"Significant LVs:\", paste(sig_lvs, collapse = \", \"), \"\\n\\n\")\n} else {\n  cat(\"No significant LVs found.\\n\\n\")\n}\n\nSignificant LVs: 1 \n\n# Step 2: For each significant LV, examine the pattern\nfor (lv in sig_lvs) {\n  cat(sprintf(\"\\nLV%d Analysis (p = %.4f)\\n\", lv, perm$sprob[lv]))\n  cat(paste(rep(\"-\", 40), collapse = \"\"), \"\\n\")\n\n  # Variance explained\n  var_exp &lt;- (result$s[lv]^2) / sum(result$s^2) * 100\n  cat(sprintf(\"Variance explained: %.1f%%\\n\\n\", var_exp))\n\n  # Significant behaviors\n  orig_corr &lt;- boot$orig_corr[, lv]\n  ll &lt;- boot$llcorr[, lv]\n  ul &lt;- boot$ulcorr[, lv]\n  sig_behav &lt;- sign(ll) == sign(ul)\n\n  cat(\"Significant behavioral correlations:\\n\")\n  for (b in which(sig_behav)) {\n    cat(sprintf(\"  %s: r = %.2f [%.2f, %.2f]\\n\",\n                colnames(behavdata)[b], orig_corr[b], ll[b], ul[b]))\n  }\n\n  # Count significant brain regions\n  bsr &lt;- boot$compare_u[, lv]\n  se &lt;- boot$u_se[, lv]\n  sig_pos &lt;- sum((bsr - se) &gt; 1.96)\n  sig_neg &lt;- sum((bsr + se) &lt; -1.96)\n\n  cat(sprintf(\"\\nSignificant brain regions:\\n\"))\n  cat(sprintf(\"  Positive: %d regions\\n\", sig_pos))\n  cat(sprintf(\"  Negative: %d regions\\n\", sig_neg))\n}\n\n\nLV1 Analysis (p = 0.0000)\n---------------------------------------- \nVariance explained: 55.4%\n\nSignificant behavioral correlations:\n  Memory: r = -0.88 [0.00, 0.00]\n  Attention: r = -0.03 [0.00, 0.00]\n  Speed: r = 0.42 [0.00, 0.00]\n  Accuracy: r = 0.08 [0.00, 0.00]\n\nSignificant brain regions:\n  Positive: 4 regions\n  Negative: 11 regions"
+  },
+  {
+    "objectID": "lesson-02-results.html#effect-size-and-practical-significance",
+    "href": "lesson-02-results.html#effect-size-and-practical-significance",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Effect Size and Practical Significance",
+    "text": "Effect Size and Practical Significance\n\nBeyond Statistical Significance\nEven significant results may not be practically meaningful. Consider:\n\nVariance Explained: How much of the total covariance does this LV capture?\nEffect Size: How strong are the correlations?\nNumber of Significant Variables: A pattern supported by many variables is more robust.\n\n\n# Summary table\nsummary_table &lt;- pls_summary_table(result)\nprint(summary_table)\n\n  LV Singular_Value Variance_Explained_Pct Cumulative_Pct P_Value Significant\n1  1         2.3586                  55.43          55.43  0.0000           *\n2  2         1.6007                  25.53          80.96  0.2358            \n3  3         1.1053                  12.17          93.13  0.5315            \n4  4         0.8303                   6.87         100.00  0.9980            \n\n\n\n\nCumulative Variance\n\nvar_exp &lt;- (result$s^2) / sum(result$s^2) * 100\ncum_var &lt;- cumsum(var_exp)\n\ndf &lt;- data.frame(\n  LV = factor(1:length(result$s)),\n  Variance = var_exp,\n  Cumulative = cum_var,\n  Significant = perm$sprob &lt; 0.05\n)\n\nggplot(df, aes(x = LV, y = Variance, fill = Significant)) +\n  geom_bar(stat = \"identity\", color = \"black\") +\n  geom_line(aes(y = Cumulative, group = 1), linewidth = 1) +\n  geom_point(aes(y = Cumulative), size = 3) +\n  scale_fill_manual(values = c(\"TRUE\" = \"steelblue\", \"FALSE\" = \"gray70\")) +\n  labs(\n    title = \"Variance Explained by Each Latent Variable\",\n    x = \"Latent Variable\",\n    y = \"Variance Explained (%)\"\n  ) +\n  theme_minimal(base_size = 14)"
+  },
+  {
+    "objectID": "lesson-02-results.html#exercise-2-threshold-sensitivity",
+    "href": "lesson-02-results.html#exercise-2-threshold-sensitivity",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Exercise 2: Threshold Sensitivity",
+    "text": "Exercise 2: Threshold Sensitivity\nExplore how the number of significant regions changes with different thresholds:\n\n# Try different thresholds\nthresholds &lt;- c(1.64, 1.96, 2.58, 3.29)\nthreshold_names &lt;- c(\"p&lt;0.10\", \"p&lt;0.05\", \"p&lt;0.01\", \"p&lt;0.001\")\n\nfor (i in seq_along(thresholds)) {\n  bsr &lt;- result$boot_result$compare_u[, 1]\n  se &lt;- result$boot_result$u_se[, 1]\n  n_sig &lt;- sum(abs(bsr) - se &gt; thresholds[i])\n  cat(sprintf(\"%s (|BSR|&gt;%.2f): %d regions\\n\",\n              threshold_names[i], thresholds[i], n_sig))\n}"
+  },
+  {
+    "objectID": "lesson-02-results.html#common-pitfalls",
+    "href": "lesson-02-results.html#common-pitfalls",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Common Pitfalls",
+    "text": "Common Pitfalls\n\n\n\n\n\n\nWarningAvoid These Mistakes\n\n\n\n\nIgnoring non-significant LVs’ patterns: Even if LV1 is not significant, don’t interpret the brain-behavior pattern.\nOver-interpreting single regions: A pattern is defined by the whole brain, not individual regions.\nForgetting about multiple comparisons: Consider FDR correction if testing many regions.\nConfusing correlation with causation: PLS finds associations, not causal relationships."
+  },
+  {
+    "objectID": "lesson-02-results.html#summary",
+    "href": "lesson-02-results.html#summary",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Summary",
+    "text": "Summary\nIn this lesson, you learned:\n\nPermutation testing determines if LVs capture real signal or noise\nBootstrap ratios identify which variables reliably contribute to each LV\nConfidence intervals for behavioral correlations show reliability\nBoth statistical and practical significance should be considered"
+  },
+  {
+    "objectID": "lesson-02-results.html#next-steps",
+    "href": "lesson-02-results.html#next-steps",
+    "title": "Lesson 2: Understanding PLS Results",
+    "section": "Next Steps",
+    "text": "Next Steps\nIn Lesson 3, we’ll create publication-quality figures:\n\nMulti-panel summary plots\nCustomizing colors and themes\nExporting figures for publication"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html",
+    "href": "lesson-04-missing-data.html",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nDiagnose missing data patterns in your datasets\nChoose appropriate imputation methods\nImplement single and multiple imputation\nProperly pool results from multiple imputations using Rubin’s rules"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#learning-objectives",
+    "href": "lesson-04-missing-data.html#learning-objectives",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "",
+    "text": "By the end of this lesson, you will be able to:\n\nDiagnose missing data patterns in your datasets\nChoose appropriate imputation methods\nImplement single and multiple imputation\nProperly pool results from multiple imputations using Rubin’s rules"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#setup",
+    "href": "lesson-04-missing-data.html#setup",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Setup",
+    "text": "Setup\n\n# Source the plscmd package (all files)\nsource(\"setup.R\")\n\nplscmd package loaded successfully!\n\nlibrary(ggplot2)\nset.seed(42)"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#the-missing-data-problem",
+    "href": "lesson-04-missing-data.html#the-missing-data-problem",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "The Missing Data Problem",
+    "text": "The Missing Data Problem\nMissing data is common in research:\n\nParticipants drop out\nEquipment fails\nData quality checks exclude values\nQuestionnaires have unanswered items\n\n\nTypes of Missing Data\n\n\n\n\n\n\n\n\nType\nDescription\nImplication\n\n\n\n\nMCAR\nMissing Completely At Random\nSafe to impute or delete\n\n\nMAR\nMissing At Random (conditional on observed data)\nImputation is valid\n\n\nMNAR\nMissing Not At Random\nImputation may be biased\n\n\n\n\n\n\n\n\n\nImportantWhy Not Just Delete?\n\n\n\nComplete case deletion (listwise deletion):\n\nReduces sample size and power\nMay introduce bias if data is not MCAR\nWastes information from partially complete cases"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#creating-data-with-missing-values",
+    "href": "lesson-04-missing-data.html#creating-data-with-missing-values",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Creating Data with Missing Values",
+    "text": "Creating Data with Missing Values\nLet’s create a realistic dataset with missing values:\n\n# Create complete data first\nn_subj &lt;- 40\nn_regions &lt;- 30\nn_behav &lt;- 4\nn_cond &lt;- 2\n\n# Behavioral data\nbehavdata_complete &lt;- matrix(rnorm(n_subj * n_behav), nrow = n_subj, ncol = n_behav)\ncolnames(behavdata_complete) &lt;- c(\"Memory\", \"Attention\", \"Speed\", \"Accuracy\")\n\n# Brain data\nbrain_complete &lt;- matrix(rnorm(n_subj * n_cond * n_regions),\n                          nrow = n_subj * n_cond, ncol = n_regions)\n\n# Add signal\nstacked_behav_complete &lt;- do.call(rbind, replicate(n_cond, behavdata_complete, simplify = FALSE))\nfor (r in 1:8) {\n  brain_complete[, r] &lt;- brain_complete[, r] + 0.6 * stacked_behav_complete[, 1]\n}\n\n# Now introduce missing values\nbrain_missing &lt;- brain_complete\nbehav_missing &lt;- behavdata_complete\n\n# 5% missing in brain data (scattered)\nn_brain_missing &lt;- round(0.05 * length(brain_missing))\nbrain_missing[sample(length(brain_missing), n_brain_missing)] &lt;- NA\n\n# 10% missing in one behavioral variable\nbehav_missing[sample(n_subj, round(0.10 * n_subj)), 2] &lt;- NA\n\n# 3% missing in another behavioral variable\nbehav_missing[sample(n_subj, round(0.03 * n_subj)), 4] &lt;- NA\n\ncat(\"Brain data missing:\", sum(is.na(brain_missing)), \"values\\n\")\n\nBrain data missing: 120 values\n\ncat(\"Behavior data missing:\", sum(is.na(behav_missing)), \"values\\n\")\n\nBehavior data missing: 5 values"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#diagnosing-missing-data",
+    "href": "lesson-04-missing-data.html#diagnosing-missing-data",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Diagnosing Missing Data",
+    "text": "Diagnosing Missing Data\n\nUsing pls_check_missing()\nThe pls_check_missing() function provides a comprehensive report:\n\n# Stack behavior data to match brain data structure\nstacked_behav_missing &lt;- do.call(rbind, replicate(n_cond, behav_missing, simplify = FALSE))\n\n# Check missing data\nmissing_report &lt;- pls_check_missing(\n  datamat_lst = list(brain_missing),\n  behavdata = stacked_behav_missing,\n  warn_threshold = 0.05,\n  high_threshold = 0.20,\n  critical_threshold = 0.50\n)\n\n\n\nUnderstanding the Report\n\n# The report is an S3 object\nprint(missing_report)\n\nMissing Data Report for PLS Analysis\n=====================================\n\nOverall: 120 missing of 2400 cells (5.00%)\n\nBy Group:\n  Group 1: 120 missing (5.00%), 30 vars affected, 63 subjects affected\n\nVariable Summary:\n  30 of 30 variables have missing data\n  Max missing per variable: 10.00%\n\nSubject Summary:\n  63 of 80 subjects have missing data\n  Max missing per subject: 13.33%\n\nBehavioral Data:\n  10 missing of 320 cells (3.12%)\n\n\n\n\nVisualizing Missing Patterns\n\n# Create a visual summary of missingness\n# For brain data - show % missing per variable\nbrain_pct_missing &lt;- colMeans(is.na(brain_missing)) * 100\n\ndf_brain &lt;- data.frame(\n  Variable = factor(1:n_regions),\n  Pct_Missing = brain_pct_missing\n)\n\np1 &lt;- ggplot(df_brain, aes(x = Variable, y = Pct_Missing)) +\n  geom_bar(stat = \"identity\", fill = \"steelblue\") +\n  geom_hline(yintercept = 5, linetype = \"dashed\", color = \"orange\") +\n  geom_hline(yintercept = 20, linetype = \"dashed\", color = \"red\") +\n  labs(title = \"Missing Data: Brain Variables\",\n       x = \"Brain Region\", y = \"% Missing\") +\n  theme_minimal()\n\n# For behavior data\nbehav_pct_missing &lt;- colMeans(is.na(behav_missing)) * 100\n\ndf_behav &lt;- data.frame(\n  Variable = colnames(behav_missing),\n  Pct_Missing = behav_pct_missing\n)\n\np2 &lt;- ggplot(df_behav, aes(x = Variable, y = Pct_Missing)) +\n  geom_bar(stat = \"identity\", fill = \"coral\") +\n  geom_hline(yintercept = 5, linetype = \"dashed\", color = \"orange\") +\n  geom_hline(yintercept = 20, linetype = \"dashed\", color = \"red\") +\n  labs(title = \"Missing Data: Behavioral Variables\",\n       x = \"Behavior\", y = \"% Missing\") +\n  theme_minimal()\n\nlibrary(patchwork)\np1 + p2"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#missing-data-thresholds",
+    "href": "lesson-04-missing-data.html#missing-data-thresholds",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Missing Data Thresholds",
+    "text": "Missing Data Thresholds\nBased on statistical literature, the plscmd package uses these thresholds:\n\n\n\nLevel\nPercentage\nRecommendation\n\n\n\n\nAcceptable\n&lt; 5%\nMinimal concern\n\n\nModerate\n5-20%\nImputation recommended\n\n\nHigh\n20-50%\nProceed with caution\n\n\nCritical\n&gt; 50%\nConsider removing variable"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#single-imputation",
+    "href": "lesson-04-missing-data.html#single-imputation",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Single Imputation",
+    "text": "Single Imputation\n\nMean Imputation\nThe simplest approach - replace missing values with the column mean:\n\n# Impute with mean\nimputed_mean &lt;- pls_impute(\n  datamat_lst = list(brain_missing),\n  behavdata = stacked_behav_missing,\n  method = \"mean\",\n  m = 1,\n  verbose = TRUE\n)\n\n# Verify no missing values\ncat(\"\\nAfter imputation:\\n\")\n\n\nAfter imputation:\n\ncat(\"Brain missing:\", sum(is.na(imputed_mean$datamat_lst[[1]])), \"\\n\")\n\nBrain missing: 0 \n\ncat(\"Behavior missing:\", sum(is.na(imputed_mean$behavdata)), \"\\n\")\n\nBehavior missing: 0 \n\n\n\n\n\n\n\n\nWarningLimitations of Mean Imputation\n\n\n\nMean imputation:\n\nUnderestimates variance\nDistorts correlations\nBiases standard errors downward\n\nUse only for very low missingness (&lt; 5%) or as a quick check.\n\n\n\n\nRandom Forest Imputation\nA more sophisticated approach using predictive models:\n\n# Random forest imputation (requires missRanger package)\nimputed_rf &lt;- pls_impute(\n  datamat_lst = list(brain_missing),\n  behavdata = stacked_behav_missing,\n  method = \"rf\",\n  m = 1,\n  maxiter = 10,\n  verbose = TRUE\n)"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#running-pls-with-automatic-imputation",
+    "href": "lesson-04-missing-data.html#running-pls-with-automatic-imputation",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Running PLS with Automatic Imputation",
+    "text": "Running PLS with Automatic Imputation\nThe pls_analysis() function can handle imputation automatically:\n\n# Run PLS with automatic mean imputation\nresult_imputed &lt;- pls_analysis(\n  datamat_lst = list(brain_missing),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = stacked_behav_missing,\n    impute_method = \"mean\",  # Automatic imputation\n    check_missing = TRUE,    # Report missing data\n    verbose = FALSE\n  )\n)\n\ncat(\"LV1 p-value:\", result_imputed$perm_result$sprob[1], \"\\n\")\n\nLV1 p-value: 0 \n\n\n\n\n\n\n\n\nNoteDefault Behavior\n\n\n\nBy default, pls_analysis() will error if missing data is present and no impute_method is specified. This is intentional - it forces you to make a conscious decision about how to handle missing data."
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#multiple-imputation",
+    "href": "lesson-04-missing-data.html#multiple-imputation",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Multiple Imputation",
+    "text": "Multiple Imputation\n\nWhy Multiple Imputation?\nSingle imputation treats imputed values as if they were known. Multiple imputation accounts for uncertainty:\n\nCreate multiple (m) complete datasets with different imputed values\nAnalyze each dataset separately\nPool results using Rubin’s rules\n\n\n\nCreating Multiple Imputations\n\n# Create 5 imputed datasets\nmi_data &lt;- pls_impute(\n  datamat_lst = list(brain_missing),\n  behavdata = stacked_behav_missing,\n  method = \"mean\",  # Use \"rf\" for random forest if available\n  m = 5,            # 5 imputations\n  verbose = TRUE\n)\n\n# Check the structure\ncat(\"\\nNumber of imputed datasets:\", mi_data$m, \"\\n\")\n\n\nNumber of imputed datasets: 5 \n\ncat(\"Class:\", class(mi_data), \"\\n\")\n\nClass: pls_mi_data \n\n\n\n\nRunning PLS on Multiple Imputations\n\n# Full multiple imputation analysis\n# This runs PLS on each imputed dataset and pools results\nmi_result &lt;- pls_analysis_mi(\n  datamat_lst = list(brain_missing),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = stacked_behav_missing,\n    verbose = FALSE\n  ),\n  mi_option = list(\n    method = \"mean\",\n    m = 5,\n    seed = 42\n  )\n)\n\n# View pooled results\nprint(mi_result)"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#rubins-rules-for-pooling",
+    "href": "lesson-04-missing-data.html#rubins-rules-for-pooling",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Rubin’s Rules for Pooling",
+    "text": "Rubin’s Rules for Pooling\n\nTheory\nWhen pooling results from multiple imputations:\nPoint estimate (pooled coefficient): \\[\\bar{\\theta} = \\frac{1}{m} \\sum_{i=1}^{m} \\hat{\\theta}_i\\]\nWithin-imputation variance: \\[\\bar{W} = \\frac{1}{m} \\sum_{i=1}^{m} W_i\\]\nBetween-imputation variance: \\[B = \\frac{1}{m-1} \\sum_{i=1}^{m} (\\hat{\\theta}_i - \\bar{\\theta})^2\\]\nTotal variance: \\[T = \\bar{W} + \\left(1 + \\frac{1}{m}\\right) B\\]\n\n\nUsing pool_estimates()\n\n# Simulate results from 5 imputations\nset.seed(123)\nm &lt;- 5\n\n# Simulated singular values from each imputation\nestimates &lt;- matrix(\n  c(2.1, 2.3, 2.0, 2.2, 2.15,  # LV1\n    1.5, 1.4, 1.6, 1.45, 1.55, # LV2\n    0.8, 0.9, 0.85, 0.82, 0.88), # LV3\n  nrow = m, ncol = 3, byrow = FALSE\n)\n\n# Simulated variances (squared SEs)\nvariances &lt;- matrix(0.01, nrow = m, ncol = 3)\n\n# Pool the estimates\npooled &lt;- pool_estimates(estimates, variances)\n\ncat(\"Pooled estimates:\\n\")\n\nPooled estimates:\n\nprint(round(pooled$pooled, 3))\n\n[1] 1.467 1.533 1.483 1.490 1.527\n\ncat(\"\\nTotal variance:\\n\")\n\n\nTotal variance:\n\nprint(round(pooled$total_var, 4))\n\n[1] 0.5744 0.6811 0.4644 0.6464 0.5482\n\ncat(\"\\nFraction of Missing Information (FMI):\\n\")\n\n\nFraction of Missing Information (FMI):\n\nprint(round(pooled$fmi, 3))\n\n[1] 0.983 0.985 0.978 0.985 0.982\n\n\n\n\nPooling P-values\nFor permutation p-values, we use the median p-value method:\n\n# Simulated p-values from 5 imputations\n# Rows = LVs, Columns = imputations\npval_matrix &lt;- matrix(c(\n  0.001, 0.002, 0.001, 0.003, 0.002,  # LV1 across 5 imputations\n  0.12,  0.15,  0.11,  0.14,  0.13,   # LV2 across 5 imputations\n  0.45,  0.52,  0.48,  0.41,  0.50    # LV3 across 5 imputations\n), nrow = 3, byrow = TRUE)\n\ncat(\"P-values matrix (rows=LVs, cols=imputations):\\n\")\n\nP-values matrix (rows=LVs, cols=imputations):\n\nprint(pval_matrix)\n\n      [,1]  [,2]  [,3]  [,4]  [,5]\n[1,] 0.001 0.002 0.001 0.003 0.002\n[2,] 0.120 0.150 0.110 0.140 0.130\n[3,] 0.450 0.520 0.480 0.410 0.500\n\n# Pool using median method\npooled_p &lt;- pool_pvalues(pval_matrix)\n\ncat(\"\\nPooled p-values (median method):\\n\")\n\n\nPooled p-values (median method):\n\ncat(\"LV1:\", pooled_p[1], \"\\n\")\n\nLV1: 0.002 \n\ncat(\"LV2:\", pooled_p[2], \"\\n\")\n\nLV2: 0.13 \n\ncat(\"LV3:\", pooled_p[3], \"\\n\")\n\nLV3: 0.48"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#comparing-approaches",
+    "href": "lesson-04-missing-data.html#comparing-approaches",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Comparing Approaches",
+    "text": "Comparing Approaches\nLet’s compare complete case, single imputation, and the true (complete) data:\n\n# 1. Analysis on complete data (gold standard)\nresult_complete &lt;- pls_analysis(\n  datamat_lst = list(brain_complete),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = stacked_behav_complete,\n    verbose = FALSE\n  )\n)\n\n# 2. Analysis with mean imputation\nresult_mean &lt;- pls_analysis(\n  datamat_lst = list(brain_missing),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = stacked_behav_missing,\n    impute_method = \"mean\",\n    verbose = FALSE\n  )\n)\n\n# Compare results\ncomparison &lt;- data.frame(\n  Method = c(\"Complete Data\", \"Mean Imputation\"),\n  LV1_Singular = c(result_complete$s[1], result_mean$s[1]),\n  LV1_Pvalue = c(result_complete$perm_result$sprob[1],\n                  result_mean$perm_result$sprob[1]),\n  LV1_VarExplained = c(\n    (result_complete$s[1]^2) / sum(result_complete$s^2) * 100,\n    (result_mean$s[1]^2) / sum(result_mean$s^2) * 100\n  )\n)\n\nknitr::kable(comparison, digits = 3,\n              caption = \"Comparison of Missing Data Approaches\")\n\n\nComparison of Missing Data Approaches\n\n\nMethod\nLV1_Singular\nLV1_Pvalue\nLV1_VarExplained\n\n\n\n\nComplete Data\n2.488\n0\n58.464\n\n\nMean Imputation\n2.469\n0\n57.648"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#best-practices",
+    "href": "lesson-04-missing-data.html#best-practices",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Best Practices",
+    "text": "Best Practices\n\n\n\n\n\n\nTipRecommendations\n\n\n\n\nAlways report the amount and pattern of missing data\nUse multiple imputation when missingness &gt; 5%\nUse at least 5 imputations (more for higher missingness)\nRandom forest imputation generally outperforms mean imputation\nCheck sensitivity by comparing results across methods\nDocument your approach for reproducibility"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#exercise-4-handle-missing-data",
+    "href": "lesson-04-missing-data.html#exercise-4-handle-missing-data",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Exercise 4: Handle Missing Data",
+    "text": "Exercise 4: Handle Missing Data\nCreate a dataset with 15% missing data and compare:\n\nMean imputation\nMultiple imputation (if missRanger is available)\n\n\n# Create data with 15% missing\nbrain_ex &lt;- brain_complete\nn_missing &lt;- round(0.15 * length(brain_ex))\nbrain_ex[sample(length(brain_ex), n_missing)] &lt;- NA\n\n# Check the missingness\npls_check_missing(list(brain_ex))\n\n# Run with mean imputation\nresult_ex_mean &lt;- pls_analysis(\n  datamat_lst = list(brain_ex),\n  num_subj_lst = c(n_subj),\n  num_cond = n_cond,\n  option = list(\n    method = 3,\n    num_perm = 500,\n    num_boot = 500,\n    stacked_behavdata = stacked_behav_complete,\n    impute_method = \"mean\",\n    verbose = FALSE\n  )\n)\n\n# Compare to complete data\ncat(\"Complete data LV1 p-value:\", result_complete$perm_result$sprob[1], \"\\n\")\ncat(\"Mean imputed LV1 p-value:\", result_ex_mean$perm_result$sprob[1], \"\\n\")"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#summary",
+    "href": "lesson-04-missing-data.html#summary",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Summary",
+    "text": "Summary\nIn this lesson, you learned:\n\nHow to diagnose missing data patterns\nThe difference between single and multiple imputation\nHow to use pls_impute() and pls_analysis_mi()\nRubin’s rules for properly pooling multiple imputation results\nBest practices for handling missing data in PLS analyses"
+  },
+  {
+    "objectID": "lesson-04-missing-data.html#next-steps",
+    "href": "lesson-04-missing-data.html#next-steps",
+    "title": "Lesson 4: Handling Missing Data",
+    "section": "Next Steps",
+    "text": "Next Steps\nIn Lesson 5, we’ll explore advanced topics:\n\nRobust correlation methods\nUnderstanding internal functions\nBuilding custom analysis workflows"
+  }
+]
