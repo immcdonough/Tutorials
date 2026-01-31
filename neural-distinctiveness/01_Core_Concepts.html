@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>2&nbsp; Lesson 1: Core Concepts in Neural Pattern Analysis – Neural Distinctiveness Analysis Course</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<link href="./02_GLM_HRF_Convolution.html" rel="next">
+<link href="./index.html" rel="prev">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-54ac47856a4c6775c8d4b61fb994e574.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="./01_Core_Concepts.html"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Lesson 1: Core Concepts in Neural Pattern Analysis</span></a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Toggle sidebar navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Search" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header">
+    <div class="sidebar-title mb-0 py-0">
+      <a href="./">Neural Distinctiveness Analysis Course</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Search"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Neural Distinctiveness Analysis Course</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./01_Core_Concepts.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Lesson 1: Core Concepts in Neural Pattern Analysis</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./02_GLM_HRF_Convolution.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Lesson 2: GLM and HRF Convolution</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./03_Pattern_Extraction_Parcellation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">4</span>&nbsp; <span class="chapter-title">Lesson 3: Pattern Extraction &amp; Parcellation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./04_CrossValidation_Distance.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">5</span>&nbsp; <span class="chapter-title">Lesson 4: Cross-Validation &amp; Distance Computation</span></span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="./05_Group_Statistics_Validation.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text"><span class="chapter-number">6</span>&nbsp; <span class="chapter-title">Lesson 5: Group Statistics &amp; Validation</span></span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives"><span class="header-section-number">2.1</span> Learning Objectives</a></li>
+  <li><a href="#part-1-the-problem-with-euclidean-distance" id="toc-part-1-the-problem-with-euclidean-distance" class="nav-link" data-scroll-target="#part-1-the-problem-with-euclidean-distance"><span class="header-section-number">2.2</span> Part 1: The Problem with Euclidean Distance</a>
+  <ul class="collapse">
+  <li><a href="#why-not-just-use-euclidean-distance" id="toc-why-not-just-use-euclidean-distance" class="nav-link" data-scroll-target="#why-not-just-use-euclidean-distance"><span class="header-section-number">2.2.1</span> Why not just use Euclidean distance?</a></li>
+  </ul></li>
+  <li><a href="#part-2-mahalanobis-distance-to-the-rescue" id="toc-part-2-mahalanobis-distance-to-the-rescue" class="nav-link" data-scroll-target="#part-2-mahalanobis-distance-to-the-rescue"><span class="header-section-number">2.3</span> Part 2: Mahalanobis Distance to the Rescue</a>
+  <ul class="collapse">
+  <li><a href="#definition" id="toc-definition" class="nav-link" data-scroll-target="#definition"><span class="header-section-number">2.3.1</span> Definition</a></li>
+  <li><a href="#intuition" id="toc-intuition" class="nav-link" data-scroll-target="#intuition"><span class="header-section-number">2.3.2</span> Intuition</a></li>
+  <li><a href="#units-of-mahalanobis-distance" id="toc-units-of-mahalanobis-distance" class="nav-link" data-scroll-target="#units-of-mahalanobis-distance"><span class="header-section-number">2.3.3</span> Units of Mahalanobis Distance</a></li>
+  </ul></li>
+  <li><a href="#part-3-cross-validation---avoiding-circular-analysis" id="toc-part-3-cross-validation---avoiding-circular-analysis" class="nav-link" data-scroll-target="#part-3-cross-validation---avoiding-circular-analysis"><span class="header-section-number">2.4</span> Part 3: Cross-Validation - Avoiding Circular Analysis</a>
+  <ul class="collapse">
+  <li><a href="#the-problem-bias-in-distance-estimation" id="toc-the-problem-bias-in-distance-estimation" class="nav-link" data-scroll-target="#the-problem-bias-in-distance-estimation"><span class="header-section-number">2.4.1</span> The Problem: Bias in Distance Estimation</a></li>
+  <li><a href="#the-solution-leave-one-run-out-cross-validation" id="toc-the-solution-leave-one-run-out-cross-validation" class="nav-link" data-scroll-target="#the-solution-leave-one-run-out-cross-validation"><span class="header-section-number">2.4.2</span> The Solution: Leave-One-Run-Out Cross-Validation</a></li>
+  </ul></li>
+  <li><a href="#part-4-representational-dissimilarity-matrices-rdms" id="toc-part-4-representational-dissimilarity-matrices-rdms" class="nav-link" data-scroll-target="#part-4-representational-dissimilarity-matrices-rdms"><span class="header-section-number">2.5</span> Part 4: Representational Dissimilarity Matrices (RDMs)</a>
+  <ul class="collapse">
+  <li><a href="#what-is-an-rdm" id="toc-what-is-an-rdm" class="nav-link" data-scroll-target="#what-is-an-rdm"><span class="header-section-number">2.5.1</span> What is an RDM?</a></li>
+  </ul></li>
+  <li><a href="#part-5-rsa---representational-similarity-analysis" id="toc-part-5-rsa---representational-similarity-analysis" class="nav-link" data-scroll-target="#part-5-rsa---representational-similarity-analysis"><span class="header-section-number">2.6</span> Part 5: RSA - Representational Similarity Analysis</a>
+  <ul class="collapse">
+  <li><a href="#category-model" id="toc-category-model" class="nav-link" data-scroll-target="#category-model"><span class="header-section-number">2.6.1</span> Category Model</a></li>
+  </ul></li>
+  <li><a href="#part-6-the-n-back-confound-critical" id="toc-part-6-the-n-back-confound-critical" class="nav-link" data-scroll-target="#part-6-the-n-back-confound-critical"><span class="header-section-number">2.7</span> Part 6: The N-back Confound (Critical!)</a>
+  <ul class="collapse">
+  <li><a href="#why-we-use-4-conditions-instead-of-6" id="toc-why-we-use-4-conditions-instead-of-6" class="nav-link" data-scroll-target="#why-we-use-4-conditions-instead-of-6"><span class="header-section-number">2.7.1</span> Why We Use 4 Conditions Instead of 6</a></li>
+  <li><a href="#the-solution" id="toc-the-solution" class="nav-link" data-scroll-target="#the-solution"><span class="header-section-number">2.7.2</span> The Solution</a></li>
+  </ul></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary"><span class="header-section-number">2.8</span> Summary</a>
+  <ul class="collapse">
+  <li><a href="#key-concepts" id="toc-key-concepts" class="nav-link" data-scroll-target="#key-concepts"><span class="header-section-number">2.8.1</span> Key Concepts</a></li>
+  <li><a href="#primary-metrics" id="toc-primary-metrics" class="nav-link" data-scroll-target="#primary-metrics"><span class="header-section-number">2.8.2</span> Primary Metrics</a></li>
+  </ul></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises"><span class="header-section-number">2.9</span> Exercises</a>
+  <ul class="collapse">
+  <li><a href="#exercise-1-effect-of-noise-correlation" id="toc-exercise-1-effect-of-noise-correlation" class="nav-link" data-scroll-target="#exercise-1-effect-of-noise-correlation"><span class="header-section-number">2.9.1</span> Exercise 1: Effect of Noise Correlation</a></li>
+  <li><a href="#exercise-2-null-distribution" id="toc-exercise-2-null-distribution" class="nav-link" data-scroll-target="#exercise-2-null-distribution"><span class="header-section-number">2.9.2</span> Exercise 2: Null Distribution</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title"><span class="chapter-number">2</span>&nbsp; <span class="chapter-title">Lesson 1: Core Concepts in Neural Pattern Analysis</span></h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Mahalanobis Distance, RDMs, RSA, and Cross-Validation</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2" data-number="2.1">
+<h2 data-number="2.1" class="anchored" data-anchor-id="learning-objectives"><span class="header-section-number">2.1</span> Learning Objectives</h2>
+<p>By the end of this lesson, you will:</p>
+<ol type="1">
+<li>Understand why Mahalanobis distance is preferred over Euclidean distance</li>
+<li>Know how to construct and interpret Representational Dissimilarity Matrices (RDMs)</li>
+<li>Understand cross-validation and why it’s critical for unbiased estimates</li>
+<li>Recognize the N-back task confound and the 4-condition solution</li>
+</ol>
+<div id="setup" class="cell" data-execution_count="1">
+<details class="code-fold">
+<summary>Setup code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.spatial.distance <span class="im">import</span> pdist, squareform</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>plt.style.use(<span class="st">'seaborn-v0_8-whitegrid'</span>)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> [<span class="dv">10</span>, <span class="dv">6</span>]</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'font.size'</span>] <span class="op">=</span> <span class="dv">12</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+</section>
+<section id="part-1-the-problem-with-euclidean-distance" class="level2" data-number="2.2">
+<h2 data-number="2.2" class="anchored" data-anchor-id="part-1-the-problem-with-euclidean-distance"><span class="header-section-number">2.2</span> Part 1: The Problem with Euclidean Distance</h2>
+<section id="why-not-just-use-euclidean-distance" class="level3" data-number="2.2.1">
+<h3 data-number="2.2.1" class="anchored" data-anchor-id="why-not-just-use-euclidean-distance"><span class="header-section-number">2.2.1</span> Why not just use Euclidean distance?</h3>
+<p>When comparing neural activation patterns, the naive approach is to compute the Euclidean distance:</p>
+<p><span class="math display">\[d_{Euclidean} = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}\]</span></p>
+<p><strong>Problem</strong>: This treats all voxels/vertices equally, ignoring:</p>
+<ol type="1">
+<li><strong>Noise correlations</strong> between voxels</li>
+<li><strong>Different noise levels</strong> across brain regions</li>
+</ol>
+<p>Let’s see this problem in action:</p>
+<div id="cell-euclidean-problem" class="cell" data-execution_count="2">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># True pattern difference (what we want to detect)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>true_diff <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>])</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Scenario A: Independent noise</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>cov_A <span class="op">=</span> np.array([[<span class="dv">1</span>, <span class="dv">0</span>], [<span class="dv">0</span>, <span class="dv">1</span>]])</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Scenario B: Correlated noise</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>cov_B <span class="op">=</span> np.array([[<span class="dv">1</span>, <span class="fl">0.9</span>], [<span class="fl">0.9</span>, <span class="dv">1</span>]])</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate samples</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>n_samples <span class="op">=</span> <span class="dv">500</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>noise_A <span class="op">=</span> np.random.multivariate_normal([<span class="dv">0</span>, <span class="dv">0</span>], cov_A, n_samples)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>noise_B <span class="op">=</span> np.random.multivariate_normal([<span class="dv">0</span>, <span class="dv">0</span>], cov_B, n_samples)</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>condition1_A <span class="op">=</span> noise_A</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>condition2_A <span class="op">=</span> true_diff <span class="op">+</span> noise_A</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>condition1_B <span class="op">=</span> noise_B</span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>condition2_B <span class="op">=</span> true_diff <span class="op">+</span> noise_B</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].scatter(condition1_A[:, <span class="dv">0</span>], condition1_A[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 1'</span>)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].scatter(condition2_A[:, <span class="dv">0</span>], condition2_A[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 2'</span>)</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Voxel 1 activation'</span>)</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Voxel 2 activation'</span>)</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Scenario A: Independent Noise</span><span class="ch">\n</span><span class="st">(Euclidean works OK)'</span>)</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].scatter(condition1_B[:, <span class="dv">0</span>], condition1_B[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 1'</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].scatter(condition2_B[:, <span class="dv">0</span>], condition2_B[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 2'</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Voxel 1 activation'</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Voxel 2 activation'</span>)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Scenario B: Correlated Noise</span><span class="ch">\n</span><span class="st">(Euclidean misleading!)'</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Euclidean distances</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a>eucl_A <span class="op">=</span> np.linalg.norm(condition2_A.mean(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> condition1_A.mean(axis<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a>eucl_B <span class="op">=</span> np.linalg.norm(condition2_B.mean(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> condition1_B.mean(axis<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Euclidean distance (Scenario A): </span><span class="sc">{</span>eucl_A<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Euclidean distance (Scenario B): </span><span class="sc">{</span>eucl_B<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">=&gt; Both have SAME Euclidean distance, but Scenario B has MORE overlap!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="euclidean-problem" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="01_Core_Concepts_files/figure-html/euclidean-problem-output-1.png" width="1186" height="563" class="figure-img"></p>
+<figcaption>Two scenarios with the same Euclidean distance but different distinguishability</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Euclidean distance (Scenario A): 1.414
+Euclidean distance (Scenario B): 1.414
+
+=&gt; Both have SAME Euclidean distance, but Scenario B has MORE overlap!</code></pre>
+</div>
+</div>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Key Insight
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>In Scenario B, the noise is correlated along the <strong>same direction</strong> as the true signal. Euclidean distance doesn’t capture that the conditions are actually <strong>harder to distinguish</strong>.</p>
+</div>
+</div>
+</section>
+</section>
+<section id="part-2-mahalanobis-distance-to-the-rescue" class="level2" data-number="2.3">
+<h2 data-number="2.3" class="anchored" data-anchor-id="part-2-mahalanobis-distance-to-the-rescue"><span class="header-section-number">2.3</span> Part 2: Mahalanobis Distance to the Rescue</h2>
+<section id="definition" class="level3" data-number="2.3.1">
+<h3 data-number="2.3.1" class="anchored" data-anchor-id="definition"><span class="header-section-number">2.3.1</span> Definition</h3>
+<p>Mahalanobis distance normalizes by the noise covariance:</p>
+<p><span class="math display">\[d_{Mahal}^2 = (\mathbf{x} - \mathbf{y})^T \mathbf{\Sigma}^{-1} (\mathbf{x} - \mathbf{y})\]</span></p>
+<p>Where:</p>
+<ul>
+<li><span class="math inline">\(\mathbf{x}, \mathbf{y}\)</span> are the pattern vectors for two conditions</li>
+<li><span class="math inline">\(\mathbf{\Sigma}^{-1}\)</span> is the <strong>precision matrix</strong> (inverse of noise covariance)</li>
+</ul>
+</section>
+<section id="intuition" class="level3" data-number="2.3.2">
+<h3 data-number="2.3.2" class="anchored" data-anchor-id="intuition"><span class="header-section-number">2.3.2</span> Intuition</h3>
+<ul>
+<li>Directions with <strong>high noise</strong> get <strong>down-weighted</strong></li>
+<li>Directions with <strong>low noise</strong> get <strong>up-weighted</strong></li>
+<li>Correlated noise gets “whitened” out</li>
+</ul>
+<div id="mahalanobis-demo" class="cell" data-execution_count="3">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mahalanobis_distance_squared(pattern_a, pattern_b, precision):</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute squared Mahalanobis distance between two patterns."""</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> pattern_a <span class="op">-</span> pattern_b</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>    d_squared <span class="op">=</span> diff <span class="op">@</span> precision <span class="op">@</span> diff</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d_squared</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute precision matrices</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>precision_A <span class="op">=</span> np.linalg.inv(cov_A)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>precision_B <span class="op">=</span> np.linalg.inv(cov_B)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Get mean patterns</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>mean_cond1_A <span class="op">=</span> condition1_A.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>mean_cond2_A <span class="op">=</span> condition2_A.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>mean_cond1_B <span class="op">=</span> condition1_B.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>mean_cond2_B <span class="op">=</span> condition2_B.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Mahalanobis distances</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>mahal_A <span class="op">=</span> mahalanobis_distance_squared(mean_cond2_A, mean_cond1_A, precision_A)</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>mahal_B <span class="op">=</span> mahalanobis_distance_squared(mean_cond2_B, mean_cond1_B, precision_B)</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Squared Mahalanobis distance (Scenario A): </span><span class="sc">{</span>mahal_A<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Squared Mahalanobis distance (Scenario B): </span><span class="sc">{</span>mahal_B<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=&gt; Mahalanobis correctly shows Scenario B has LARGER standardized distance!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Squared Mahalanobis distance (Scenario A): 2.000
+Squared Mahalanobis distance (Scenario B): 1.053
+
+=&gt; Mahalanobis correctly shows Scenario B has LARGER standardized distance!</code></pre>
+</div>
+</div>
+</section>
+<section id="units-of-mahalanobis-distance" class="level3" data-number="2.3.3">
+<h3 data-number="2.3.3" class="anchored" data-anchor-id="units-of-mahalanobis-distance"><span class="header-section-number">2.3.3</span> Units of Mahalanobis Distance</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Units</th>
+<th>Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>d² (squared)</td>
+<td>Variance</td>
+<td>What we compute</td>
+</tr>
+<tr class="even">
+<td>d = √d²</td>
+<td>Standard deviations</td>
+<td>What we report</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Typical values</strong>:</p>
+<ul>
+<li>Whole-brain average: ~0.3 SD</li>
+<li>Visual areas (FFA, LOC): ~0.6-0.8 SD</li>
+</ul>
+</section>
+</section>
+<section id="part-3-cross-validation---avoiding-circular-analysis" class="level2" data-number="2.4">
+<h2 data-number="2.4" class="anchored" data-anchor-id="part-3-cross-validation---avoiding-circular-analysis"><span class="header-section-number">2.4</span> Part 3: Cross-Validation - Avoiding Circular Analysis</h2>
+<section id="the-problem-bias-in-distance-estimation" class="level3" data-number="2.4.1">
+<h3 data-number="2.4.1" class="anchored" data-anchor-id="the-problem-bias-in-distance-estimation"><span class="header-section-number">2.4.1</span> The Problem: Bias in Distance Estimation</h3>
+<p>If we use the <strong>same data</strong> to:</p>
+<ol type="1">
+<li>Estimate the noise covariance</li>
+<li>Compute the distance</li>
+</ol>
+<p>We get <strong>biased (inflated)</strong> estimates!</p>
+</section>
+<section id="the-solution-leave-one-run-out-cross-validation" class="level3" data-number="2.4.2">
+<h3 data-number="2.4.2" class="anchored" data-anchor-id="the-solution-leave-one-run-out-cross-validation"><span class="header-section-number">2.4.2</span> The Solution: Leave-One-Run-Out Cross-Validation</h3>
+<pre><code>For each test run:
+    1. Use OTHER runs to estimate noise covariance
+    2. Apply precision matrix to TEST run patterns
+    3. Average distances across folds</code></pre>
+<p>This gives us the <strong>crossnobis</strong> distance - an unbiased estimator.</p>
+<div id="cell-crossnobis-demo" class="cell" data-execution_count="4">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> crossnobis_demo(n_features<span class="op">=</span><span class="dv">50</span>, n_timepoints<span class="op">=</span><span class="dv">100</span>, n_runs<span class="op">=</span><span class="dv">3</span>, true_effect<span class="op">=</span><span class="fl">0.5</span>):</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Demonstrate biased vs cross-validated Mahalanobis."""</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co"># True noise covariance</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    A <span class="op">=</span> np.random.randn(n_features, n_features)</span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    true_cov <span class="op">=</span> A <span class="op">@</span> A.T <span class="op">/</span> n_features</span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    true_cov <span class="op">=</span> true_cov <span class="op">/</span> np.trace(true_cov) <span class="op">*</span> n_features</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># True patterns</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    true_face <span class="op">=</span> np.random.randn(n_features)</span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    true_object <span class="op">=</span> true_face <span class="op">+</span> true_effect <span class="op">*</span> np.random.randn(n_features)</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate per-run patterns</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    patterns <span class="op">=</span> np.zeros((n_runs, <span class="dv">2</span>, n_features))</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    residuals <span class="op">=</span> np.zeros((n_runs, n_timepoints, n_features))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> run <span class="kw">in</span> <span class="bu">range</span>(n_runs):</span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>        estimation_noise <span class="op">=</span> np.random.multivariate_normal(</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>            np.zeros(n_features), true_cov, <span class="dv">2</span>)</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>        patterns[run, <span class="dv">0</span>] <span class="op">=</span> true_face <span class="op">+</span> estimation_noise[<span class="dv">0</span>] <span class="op">/</span> np.sqrt(n_timepoints<span class="op">/</span><span class="dv">10</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>        patterns[run, <span class="dv">1</span>] <span class="op">=</span> true_object <span class="op">+</span> estimation_noise[<span class="dv">1</span>] <span class="op">/</span> np.sqrt(n_timepoints<span class="op">/</span><span class="dv">10</span>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>        residuals[run] <span class="op">=</span> np.random.multivariate_normal(</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>            np.zeros(n_features), true_cov, n_timepoints)</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="co"># BIASED: use all data</span></span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    all_residuals <span class="op">=</span> residuals.reshape(<span class="op">-</span><span class="dv">1</span>, n_features)</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    cov_biased <span class="op">=</span> np.cov(all_residuals.T)</span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    prec_biased <span class="op">=</span> np.linalg.inv(cov_biased <span class="op">+</span> <span class="fl">0.01</span> <span class="op">*</span> np.eye(n_features))</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    mean_face_all <span class="op">=</span> patterns[:, <span class="dv">0</span>].mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>    mean_object_all <span class="op">=</span> patterns[:, <span class="dv">1</span>].mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>    d_biased <span class="op">=</span> mahalanobis_distance_squared(mean_face_all, mean_object_all, prec_biased)</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a>    <span class="co"># CROSS-VALIDATED</span></span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>    d_cv_folds <span class="op">=</span> []</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> test_run <span class="kw">in</span> <span class="bu">range</span>(n_runs):</span>
+<span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a>        train_runs <span class="op">=</span> [r <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(n_runs) <span class="cf">if</span> r <span class="op">!=</span> test_run]</span>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a>        train_residuals <span class="op">=</span> np.vstack([residuals[r] <span class="cf">for</span> r <span class="kw">in</span> train_runs])</span>
+<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>        cov_train <span class="op">=</span> np.cov(train_residuals.T)</span>
+<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>        prec_train <span class="op">=</span> np.linalg.inv(cov_train <span class="op">+</span> <span class="fl">0.01</span> <span class="op">*</span> np.eye(n_features))</span>
+<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a>        d_fold <span class="op">=</span> mahalanobis_distance_squared(</span>
+<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>            patterns[test_run, <span class="dv">0</span>], patterns[test_run, <span class="dv">1</span>], prec_train)</span>
+<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        d_cv_folds.append(d_fold)</span>
+<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>    d_cv <span class="op">=</span> np.mean(d_cv_folds)</span>
+<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d_biased, d_cv</span>
+<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate under null (no true effect)</span></span>
+<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>n_simulations <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>biased_distances <span class="op">=</span> []</span>
+<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>cv_distances <span class="op">=</span> []</span>
+<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_simulations):</span>
+<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>    d_biased, d_cv <span class="op">=</span> crossnobis_demo(true_effect<span class="op">=</span><span class="fl">0.0</span>)</span>
+<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a>    biased_distances.append(d_biased)</span>
+<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    cv_distances.append(d_cv)</span>
+<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].hist(biased_distances, bins<span class="op">=</span><span class="dv">30</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'True value = 0'</span>)</span>
+<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(np.mean(biased_distances), color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>,</span>
+<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a>                linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean = </span><span class="sc">{</span>np<span class="sc">.</span>mean(biased_distances)<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Squared Mahalanobis Distance'</span>)</span>
+<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Count'</span>)</span>
+<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'BIASED Method'</span>)</span>
+<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].hist(cv_distances, bins<span class="op">=</span><span class="dv">30</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, color<span class="op">=</span><span class="st">'green'</span>)</span>
+<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'True value = 0'</span>)</span>
+<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axvline(np.mean(cv_distances), color<span class="op">=</span><span class="st">'green'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>,</span>
+<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>                linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean = </span><span class="sc">{</span>np<span class="sc">.</span>mean(cv_distances)<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Squared Mahalanobis Distance'</span>)</span>
+<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Count'</span>)</span>
+<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'CROSS-VALIDATED Method'</span>)</span>
+<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="crossnobis-demo" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="01_Core_Concepts_files/figure-html/crossnobis-demo-output-1.png" width="1327" height="466" class="figure-img"></p>
+<figcaption>Biased vs cross-validated distance estimates under the null hypothesis</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Key Points about Crossnobis
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><strong>Can be negative</strong>: Unlike standard Mahalanobis, crossnobis can be negative under the null</li>
+<li><strong>Expected value under null = 0</strong>: Perfect for hypothesis testing</li>
+<li><strong>Requires multiple runs</strong>: We use 3 runs for leave-one-out CV</li>
+</ol>
+</div>
+</div>
+</section>
+</section>
+<section id="part-4-representational-dissimilarity-matrices-rdms" class="level2" data-number="2.5">
+<h2 data-number="2.5" class="anchored" data-anchor-id="part-4-representational-dissimilarity-matrices-rdms"><span class="header-section-number">2.5</span> Part 4: Representational Dissimilarity Matrices (RDMs)</h2>
+<section id="what-is-an-rdm" class="level3" data-number="2.5.1">
+<h3 data-number="2.5.1" class="anchored" data-anchor-id="what-is-an-rdm"><span class="header-section-number">2.5.1</span> What is an RDM?</h3>
+<p>An RDM is a symmetric matrix where each cell contains the dissimilarity (distance) between two conditions.</p>
+<p>For our 6 conditions:</p>
+<ol type="1">
+<li>FaceSingle</li>
+<li>FaceRepeatFirst</li>
+<li>FaceRepeatSubsequent</li>
+<li>ObjectSingle</li>
+<li>ObjectRepeatFirst</li>
+<li>ObjectRepeatSubsequent</li>
+</ol>
+<div id="cell-rdm-example" class="cell" data-execution_count="5">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_example_rdm():</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create a realistic example RDM."""</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>    rdm <span class="op">=</span> np.array([</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.00</span>, <span class="fl">0.10</span>, <span class="fl">0.15</span>, <span class="fl">0.60</span>, <span class="fl">0.65</span>, <span class="fl">0.70</span>],</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.10</span>, <span class="fl">0.00</span>, <span class="fl">0.12</span>, <span class="fl">0.58</span>, <span class="fl">0.62</span>, <span class="fl">0.68</span>],</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.15</span>, <span class="fl">0.12</span>, <span class="fl">0.00</span>, <span class="fl">0.55</span>, <span class="fl">0.58</span>, <span class="fl">0.65</span>],</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.60</span>, <span class="fl">0.58</span>, <span class="fl">0.55</span>, <span class="fl">0.00</span>, <span class="fl">0.08</span>, <span class="fl">0.13</span>],</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.65</span>, <span class="fl">0.62</span>, <span class="fl">0.58</span>, <span class="fl">0.08</span>, <span class="fl">0.00</span>, <span class="fl">0.10</span>],</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.70</span>, <span class="fl">0.68</span>, <span class="fl">0.65</span>, <span class="fl">0.13</span>, <span class="fl">0.10</span>, <span class="fl">0.00</span>],</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rdm</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>condition_names <span class="op">=</span> [<span class="st">'FaceSingle'</span>, <span class="st">'FaceRepeatFirst'</span>, <span class="st">'FaceRepeatSubsequent'</span>,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'ObjectSingle'</span>, <span class="st">'ObjectRepeatFirst'</span>, <span class="st">'ObjectRepeatSubsequent'</span>]</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>rdm <span class="op">=</span> create_example_rdm()</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(rdm, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(condition_names, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(condition_names)</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Representational Dissimilarity Matrix (RDM)'</span>)</span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        ax.text(j, i, <span class="ss">f'</span><span class="sc">{</span>rdm[i,j]<span class="sc">:.2f}</span><span class="ss">'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'white'</span> <span class="cf">if</span> rdm[i,j] <span class="op">&gt;</span> <span class="fl">0.3</span> <span class="cf">else</span> <span class="st">'black'</span>)</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>plt.colorbar(im, label<span class="op">=</span><span class="st">'Squared Mahalanobis Distance'</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="rdm-example" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="01_Core_Concepts_files/figure-html/rdm-example-output-1.png" width="887" height="754" class="figure-img"></p>
+<figcaption>Example RDM showing category structure</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Notice the <strong>block structure</strong>:</p>
+<ul>
+<li>Face conditions (top-left 3x3): LOW distances</li>
+<li>Object conditions (bottom-right 3x3): LOW distances</li>
+<li>Face vs Object (off-diagonal): HIGH distances</li>
+</ul>
+</section>
+</section>
+<section id="part-5-rsa---representational-similarity-analysis" class="level2" data-number="2.6">
+<h2 data-number="2.6" class="anchored" data-anchor-id="part-5-rsa---representational-similarity-analysis"><span class="header-section-number">2.6</span> Part 5: RSA - Representational Similarity Analysis</h2>
+<p>RSA tests whether the <strong>observed RDM</strong> matches a <strong>theoretical model RDM</strong>.</p>
+<section id="category-model" class="level3" data-number="2.6.1">
+<h3 data-number="2.6.1" class="anchored" data-anchor-id="category-model"><span class="header-section-number">2.6.1</span> Category Model</h3>
+<p>Predicts:</p>
+<ul>
+<li>Within-category distance = 0 (all faces similar, all objects similar)</li>
+<li>Between-category distance = 1 (faces different from objects)</li>
+</ul>
+<div id="cell-rsa-demo" class="cell" data-execution_count="6">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> model_rdm_category(n_conditions):</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create category model RDM."""</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_conditions <span class="op">==</span> <span class="dv">6</span>:</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> np.array([</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a>        ], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> n_conditions <span class="op">==</span> <span class="dv">4</span>:</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> np.array([</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a>        ], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> model</span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_rsa(empirical_rdm, model_rdm):</span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute RSA correlation."""</span></span>
+<span id="cb9-23"><a href="#cb9-23" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> empirical_rdm.shape[<span class="dv">0</span>]</span>
+<span id="cb9-24"><a href="#cb9-24" aria-hidden="true" tabindex="-1"></a>    tril_indices <span class="op">=</span> np.tril_indices(n, k<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb9-25"><a href="#cb9-25" aria-hidden="true" tabindex="-1"></a>    empirical_vec <span class="op">=</span> empirical_rdm[tril_indices]</span>
+<span id="cb9-26"><a href="#cb9-26" aria-hidden="true" tabindex="-1"></a>    model_vec <span class="op">=</span> model_rdm[tril_indices]</span>
+<span id="cb9-27"><a href="#cb9-27" aria-hidden="true" tabindex="-1"></a>    r, p <span class="op">=</span> stats.spearmanr(empirical_vec, model_vec)</span>
+<span id="cb9-28"><a href="#cb9-28" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> r, p</span>
+<span id="cb9-29"><a href="#cb9-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-30"><a href="#cb9-30" aria-hidden="true" tabindex="-1"></a><span class="co"># Show models</span></span>
+<span id="cb9-31"><a href="#cb9-31" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb9-32"><a href="#cb9-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-33"><a href="#cb9-33" aria-hidden="true" tabindex="-1"></a>model_6 <span class="op">=</span> model_rdm_category(<span class="dv">6</span>)</span>
+<span id="cb9-34"><a href="#cb9-34" aria-hidden="true" tabindex="-1"></a>model_4 <span class="op">=</span> model_rdm_category(<span class="dv">4</span>)</span>
+<span id="cb9-35"><a href="#cb9-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-36"><a href="#cb9-36" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].imshow(rdm, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb9-37"><a href="#cb9-37" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Empirical RDM'</span>)</span>
+<span id="cb9-38"><a href="#cb9-38" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb9-39"><a href="#cb9-39" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xticklabels([<span class="st">'FS'</span>,<span class="st">'FRF'</span>,<span class="st">'FRS'</span>,<span class="st">'OS'</span>,<span class="st">'ORF'</span>,<span class="st">'ORS'</span>], fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb9-40"><a href="#cb9-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-41"><a href="#cb9-41" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].imshow(model_6, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb9-42"><a href="#cb9-42" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'6-Condition Model'</span>)</span>
+<span id="cb9-43"><a href="#cb9-43" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb9-44"><a href="#cb9-44" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticklabels([<span class="st">'FS'</span>,<span class="st">'FRF'</span>,<span class="st">'FRS'</span>,<span class="st">'OS'</span>,<span class="st">'ORF'</span>,<span class="st">'ORS'</span>], fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb9-45"><a href="#cb9-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-46"><a href="#cb9-46" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].imshow(model_4, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb9-47"><a href="#cb9-47" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_title(<span class="st">'4-Condition Model</span><span class="ch">\n</span><span class="st">(RECOMMENDED)'</span>)</span>
+<span id="cb9-48"><a href="#cb9-48" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xticks(<span class="bu">range</span>(<span class="dv">4</span>))</span>
+<span id="cb9-49"><a href="#cb9-49" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xticklabels([<span class="st">'FS'</span>,<span class="st">'FRF'</span>,<span class="st">'OS'</span>,<span class="st">'ORF'</span>], fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb9-50"><a href="#cb9-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-51"><a href="#cb9-51" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb9-52"><a href="#cb9-52" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb9-53"><a href="#cb9-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-54"><a href="#cb9-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RSA</span></span>
+<span id="cb9-55"><a href="#cb9-55" aria-hidden="true" tabindex="-1"></a>r_6, p_6 <span class="op">=</span> compute_rsa(rdm, model_6)</span>
+<span id="cb9-56"><a href="#cb9-56" aria-hidden="true" tabindex="-1"></a>rdm_4 <span class="op">=</span> rdm[np.ix_([<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>], [<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>])]</span>
+<span id="cb9-57"><a href="#cb9-57" aria-hidden="true" tabindex="-1"></a>r_4, p_4 <span class="op">=</span> compute_rsa(rdm_4, model_4)</span>
+<span id="cb9-58"><a href="#cb9-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-59"><a href="#cb9-59" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"6-condition RSA: r = </span><span class="sc">{</span>r_6<span class="sc">:.3f}</span><span class="ss">, p = </span><span class="sc">{</span>p_6<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb9-60"><a href="#cb9-60" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"4-condition RSA: r = </span><span class="sc">{</span>r_4<span class="sc">:.3f}</span><span class="ss">, p = </span><span class="sc">{</span>p_4<span class="sc">:.4f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="rsa-demo" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="01_Core_Concepts_files/figure-html/rsa-demo-output-1.png" width="1278" height="370" class="figure-img"></p>
+<figcaption>Comparing 6-condition and 4-condition RSA models</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>6-condition RSA: r = 0.853, p = 0.0001
+4-condition RSA: r = 0.828, p = 0.0418</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="part-6-the-n-back-confound-critical" class="level2" data-number="2.7">
+<h2 data-number="2.7" class="anchored" data-anchor-id="part-6-the-n-back-confound-critical"><span class="header-section-number">2.7</span> Part 6: The N-back Confound (Critical!)</h2>
+<section id="why-we-use-4-conditions-instead-of-6" class="level3" data-number="2.7.1">
+<h3 data-number="2.7.1" class="anchored" data-anchor-id="why-we-use-4-conditions-instead-of-6"><span class="header-section-number">2.7.1</span> Why We Use 4 Conditions Instead of 6</h3>
+<p>The <strong>RepeatSubsequent</strong> conditions are <strong>confounded</strong> by N-back task demands:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Process</th>
+<th>RepeatSubsequent</th>
+<th>Single/RepeatFirst</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Stimulus encoding</td>
+<td>Yes</td>
+<td>Yes</td>
+</tr>
+<tr class="even">
+<td>Working memory retrieval</td>
+<td><strong>Yes</strong></td>
+<td>No</td>
+</tr>
+<tr class="odd">
+<td>Match/mismatch decision</td>
+<td><strong>Yes</strong></td>
+<td>No</td>
+</tr>
+<tr class="even">
+<td>Motor response</td>
+<td><strong>Yes</strong></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>The Problem
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>If we include RepeatSubsequent conditions, we might be measuring task-related differences (WM, decision, motor) <strong>NOT</strong> pure category representations.</p>
+</div>
+</div>
+</section>
+<section id="the-solution" class="level3" data-number="2.7.2">
+<h3 data-number="2.7.2" class="anchored" data-anchor-id="the-solution"><span class="header-section-number">2.7.2</span> The Solution</h3>
+<p>Use the <strong>4-condition model</strong> that excludes RepeatSubsequent:</p>
+<ul>
+<li>FaceSingle</li>
+<li>FaceRepeatFirst</li>
+<li>ObjectSingle</li>
+<li>ObjectRepeatFirst</li>
+</ul>
+<div id="cell-confound-viz" class="cell" data-execution_count="7">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>conditions <span class="op">=</span> [<span class="st">'FaceSingle'</span>, <span class="st">'FaceRepeatFirst'</span>, <span class="st">'FaceRepeatSubsequent'</span>,</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>              <span class="st">'ObjectSingle'</span>, <span class="st">'ObjectRepeatFirst'</span>, <span class="st">'ObjectRepeatSubsequent'</span>]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>category_signal <span class="op">=</span> [<span class="fl">0.8</span>, <span class="fl">0.7</span>, <span class="fl">0.4</span>, <span class="fl">0.8</span>, <span class="fl">0.7</span>, <span class="fl">0.4</span>]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>task_signal <span class="op">=</span> [<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span>]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.arange(<span class="bu">len</span>(conditions))</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>width <span class="op">=</span> <span class="fl">0.35</span></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>))</span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>ax.bar(x <span class="op">-</span> width<span class="op">/</span><span class="dv">2</span>, category_signal, width, label<span class="op">=</span><span class="st">'Category Signal'</span>, color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
+<span id="cb11-12"><a href="#cb11-12" aria-hidden="true" tabindex="-1"></a>ax.bar(x <span class="op">+</span> width<span class="op">/</span><span class="dv">2</span>, task_signal, width, label<span class="op">=</span><span class="st">'Task Confound'</span>, color<span class="op">=</span><span class="st">'coral'</span>)</span>
+<span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Relative Signal Contribution'</span>)</span>
+<span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'N-back Task Confound in Different Conditions'</span>)</span>
+<span id="cb11-16"><a href="#cb11-16" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(x)</span>
+<span id="cb11-17"><a href="#cb11-17" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(conditions, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
+<span id="cb11-18"><a href="#cb11-18" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb11-19"><a href="#cb11-19" aria-hidden="true" tabindex="-1"></a>ax.axhline(y<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb11-20"><a href="#cb11-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight clean conditions</span></span>
+<span id="cb11-22"><a href="#cb11-22" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> [<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>]:</span>
+<span id="cb11-23"><a href="#cb11-23" aria-hidden="true" tabindex="-1"></a>    ax.get_xticklabels()[i].set_weight(<span class="st">'bold'</span>)</span>
+<span id="cb11-24"><a href="#cb11-24" aria-hidden="true" tabindex="-1"></a>    ax.get_xticklabels()[i].set_color(<span class="st">'darkgreen'</span>)</span>
+<span id="cb11-25"><a href="#cb11-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-26"><a href="#cb11-26" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb11-27"><a href="#cb11-27" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb11-28"><a href="#cb11-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-29"><a href="#cb11-29" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"GREEN labels = Clean conditions (used in 4-condition model)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div id="confound-viz" class="quarto-figure quarto-figure-center anchored">
+<figure class="figure">
+<p><img src="01_Core_Concepts_files/figure-html/confound-viz-output-1.png" width="1136" height="562" class="figure-img"></p>
+<figcaption>N-back task confound across conditions</figcaption>
+</figure>
+</div>
+</div>
+<div class="cell-output cell-output-stdout">
+<pre><code>GREEN labels = Clean conditions (used in 4-condition model)</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="summary" class="level2" data-number="2.8">
+<h2 data-number="2.8" class="anchored" data-anchor-id="summary"><span class="header-section-number">2.8</span> Summary</h2>
+<section id="key-concepts" class="level3" data-number="2.8.1">
+<h3 data-number="2.8.1" class="anchored" data-anchor-id="key-concepts"><span class="header-section-number">2.8.1</span> Key Concepts</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Concept</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Mahalanobis distance</td>
+<td>Normalizes by noise covariance (SD units)</td>
+</tr>
+<tr class="even">
+<td>Cross-validation</td>
+<td>Prevents inflated estimates (crossnobis)</td>
+</tr>
+<tr class="odd">
+<td>RDM</td>
+<td>Captures all pairwise condition distances</td>
+</tr>
+<tr class="even">
+<td>RSA</td>
+<td>Tests if RDM matches theoretical model</td>
+</tr>
+<tr class="odd">
+<td>4-condition model</td>
+<td>Avoids N-back task confounds</td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="primary-metrics" class="level3" data-number="2.8.2">
+<h3 data-number="2.8.2" class="anchored" data-anchor-id="primary-metrics"><span class="header-section-number">2.8.2</span> Primary Metrics</h3>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Description</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>D_single</code></td>
+<td>FaceSingle vs ObjectSingle d²</td>
+<td><strong>PRIMARY</strong></td>
+</tr>
+<tr class="even">
+<td><code>model_category_4cond_r</code></td>
+<td>RSA with 4-condition model</td>
+<td>Secondary</td>
+</tr>
+<tr class="odd">
+<td><code>sqrt(D_single)</code></td>
+<td>Distance in SD units</td>
+<td>Reporting</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="exercises" class="level2" data-number="2.9">
+<h2 data-number="2.9" class="anchored" data-anchor-id="exercises"><span class="header-section-number">2.9</span> Exercises</h2>
+<section id="exercise-1-effect-of-noise-correlation" class="level3" data-number="2.9.1">
+<h3 data-number="2.9.1" class="anchored" data-anchor-id="exercise-1-effect-of-noise-correlation"><span class="header-section-number">2.9.1</span> Exercise 1: Effect of Noise Correlation</h3>
+<p>Modify the correlation and observe how Mahalanobis changes:</p>
+<div id="exercise-1" class="cell" data-execution_count="8">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>correlations <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span>, <span class="fl">0.99</span>]</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>diff <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>])</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> corr <span class="kw">in</span> correlations:</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    cov_test <span class="op">=</span> np.array([[<span class="dv">1</span>, corr], [corr, <span class="dv">1</span>]])</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    precision_test <span class="op">=</span> np.linalg.inv(cov_test)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    d_mahal <span class="op">=</span> diff <span class="op">@</span> precision_test <span class="op">@</span> diff</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Correlation = </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">: Mahalanobis d² = </span><span class="sc">{</span>d_mahal<span class="sc">:.3f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Correlation = 0.00: Mahalanobis d² = 2.000
+Correlation = 0.50: Mahalanobis d² = 1.333
+Correlation = 0.90: Mahalanobis d² = 1.053
+Correlation = 0.99: Mahalanobis d² = 1.005</code></pre>
+</div>
+</div>
+</section>
+<section id="exercise-2-null-distribution" class="level3" data-number="2.9.2">
+<h3 data-number="2.9.2" class="anchored" data-anchor-id="exercise-2-null-distribution"><span class="header-section-number">2.9.2</span> Exercise 2: Null Distribution</h3>
+<p>Verify crossnobis is centered at 0 under the null, shifted with true effect:</p>
+<div id="cell-exercise-2" class="cell" data-execution_count="9">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>n_sims <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>null_distances <span class="op">=</span> [crossnobis_demo(true_effect<span class="op">=</span><span class="fl">0.0</span>)[<span class="dv">1</span>] <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_sims)]</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>effect_distances <span class="op">=</span> [crossnobis_demo(true_effect<span class="op">=</span><span class="fl">1.0</span>)[<span class="dv">1</span>] <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_sims)]</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>ax.hist(null_distances, bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="ss">f'Null (mean=</span><span class="sc">{</span>np<span class="sc">.</span>mean(null_distances)<span class="sc">:.2f}</span><span class="ss">)'</span>)</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a>ax.hist(effect_distances, bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="ss">f'Effect=1 (mean=</span><span class="sc">{</span>np<span class="sc">.</span>mean(effect_distances)<span class="sc">:.2f}</span><span class="ss">)'</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Cross-validated Mahalanobis d²'</span>)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Null vs True Effect Distribution'</span>)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="01_Core_Concepts_files/figure-html/exercise-2-output-1.png" id="exercise-2" width="786" height="451" class="figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+
+
+<!-- -->
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="./index.html" class="pagination-link" aria-label="Neural Distinctiveness Analysis Course">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text"><span class="chapter-number">1</span>&nbsp; <span class="chapter-title">Neural Distinctiveness Analysis Course</span></span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="./02_GLM_HRF_Convolution.html" class="pagination-link" aria-label="Lesson 2: GLM and HRF Convolution">
+        <span class="nav-page-text"><span class="chapter-number">3</span>&nbsp; <span class="chapter-title">Lesson 2: GLM and HRF Convolution</span></span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Lesson 1: Core Concepts in Neural Pattern Analysis"</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Mahalanobis Distance, RDMs, RSA, and Cross-Validation"</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="fu">## Learning Objectives</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>By the end of this lesson, you will:</span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Understand why Mahalanobis distance is preferred over Euclidean distance</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Know how to construct and interpret Representational Dissimilarity Matrices (RDMs)</span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>Understand cross-validation and why it's critical for unbiased estimates</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>Recognize the N-back task confound and the 4-condition solution</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-fold: true</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="co">#| code-summary: "Setup code"</span></span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy <span class="im">import</span> stats</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> scipy.spatial.distance <span class="im">import</span> pdist, squareform</span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> warnings</span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a>warnings.filterwarnings(<span class="st">'ignore'</span>)</span>
+<span id="cb16-28"><a href="#cb16-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-29"><a href="#cb16-29" aria-hidden="true" tabindex="-1"></a>np.random.seed(<span class="dv">42</span>)</span>
+<span id="cb16-30"><a href="#cb16-30" aria-hidden="true" tabindex="-1"></a>plt.style.use(<span class="st">'seaborn-v0_8-whitegrid'</span>)</span>
+<span id="cb16-31"><a href="#cb16-31" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'figure.figsize'</span>] <span class="op">=</span> [<span class="dv">10</span>, <span class="dv">6</span>]</span>
+<span id="cb16-32"><a href="#cb16-32" aria-hidden="true" tabindex="-1"></a>plt.rcParams[<span class="st">'font.size'</span>] <span class="op">=</span> <span class="dv">12</span></span>
+<span id="cb16-33"><a href="#cb16-33" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-34"><a href="#cb16-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-35"><a href="#cb16-35" aria-hidden="true" tabindex="-1"></a><span class="fu">## Part 1: The Problem with Euclidean Distance</span></span>
+<span id="cb16-36"><a href="#cb16-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-37"><a href="#cb16-37" aria-hidden="true" tabindex="-1"></a><span class="fu">### Why not just use Euclidean distance?</span></span>
+<span id="cb16-38"><a href="#cb16-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-39"><a href="#cb16-39" aria-hidden="true" tabindex="-1"></a>When comparing neural activation patterns, the naive approach is to compute the Euclidean distance:</span>
+<span id="cb16-40"><a href="#cb16-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>$$d_{Euclidean} = \sqrt{\sum_{i=1}^{n} (x_i - y_i)^2}$$</span>
+<span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a>**Problem**: This treats all voxels/vertices equally, ignoring:</span>
+<span id="cb16-44"><a href="#cb16-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-45"><a href="#cb16-45" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Noise correlations** between voxels</span>
+<span id="cb16-46"><a href="#cb16-46" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Different noise levels** across brain regions</span>
+<span id="cb16-47"><a href="#cb16-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-48"><a href="#cb16-48" aria-hidden="true" tabindex="-1"></a>Let's see this problem in action:</span>
+<span id="cb16-49"><a href="#cb16-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-52"><a href="#cb16-52" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-53"><a href="#cb16-53" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: euclidean-problem</span></span>
+<span id="cb16-54"><a href="#cb16-54" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Two scenarios with the same Euclidean distance but different distinguishability"</span></span>
+<span id="cb16-55"><a href="#cb16-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-56"><a href="#cb16-56" aria-hidden="true" tabindex="-1"></a><span class="co"># True pattern difference (what we want to detect)</span></span>
+<span id="cb16-57"><a href="#cb16-57" aria-hidden="true" tabindex="-1"></a>true_diff <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>])</span>
+<span id="cb16-58"><a href="#cb16-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-59"><a href="#cb16-59" aria-hidden="true" tabindex="-1"></a><span class="co"># Scenario A: Independent noise</span></span>
+<span id="cb16-60"><a href="#cb16-60" aria-hidden="true" tabindex="-1"></a>cov_A <span class="op">=</span> np.array([[<span class="dv">1</span>, <span class="dv">0</span>], [<span class="dv">0</span>, <span class="dv">1</span>]])</span>
+<span id="cb16-61"><a href="#cb16-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-62"><a href="#cb16-62" aria-hidden="true" tabindex="-1"></a><span class="co"># Scenario B: Correlated noise</span></span>
+<span id="cb16-63"><a href="#cb16-63" aria-hidden="true" tabindex="-1"></a>cov_B <span class="op">=</span> np.array([[<span class="dv">1</span>, <span class="fl">0.9</span>], [<span class="fl">0.9</span>, <span class="dv">1</span>]])</span>
+<span id="cb16-64"><a href="#cb16-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-65"><a href="#cb16-65" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate samples</span></span>
+<span id="cb16-66"><a href="#cb16-66" aria-hidden="true" tabindex="-1"></a>n_samples <span class="op">=</span> <span class="dv">500</span></span>
+<span id="cb16-67"><a href="#cb16-67" aria-hidden="true" tabindex="-1"></a>noise_A <span class="op">=</span> np.random.multivariate_normal([<span class="dv">0</span>, <span class="dv">0</span>], cov_A, n_samples)</span>
+<span id="cb16-68"><a href="#cb16-68" aria-hidden="true" tabindex="-1"></a>noise_B <span class="op">=</span> np.random.multivariate_normal([<span class="dv">0</span>, <span class="dv">0</span>], cov_B, n_samples)</span>
+<span id="cb16-69"><a href="#cb16-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-70"><a href="#cb16-70" aria-hidden="true" tabindex="-1"></a>condition1_A <span class="op">=</span> noise_A</span>
+<span id="cb16-71"><a href="#cb16-71" aria-hidden="true" tabindex="-1"></a>condition2_A <span class="op">=</span> true_diff <span class="op">+</span> noise_A</span>
+<span id="cb16-72"><a href="#cb16-72" aria-hidden="true" tabindex="-1"></a>condition1_B <span class="op">=</span> noise_B</span>
+<span id="cb16-73"><a href="#cb16-73" aria-hidden="true" tabindex="-1"></a>condition2_B <span class="op">=</span> true_diff <span class="op">+</span> noise_B</span>
+<span id="cb16-74"><a href="#cb16-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-75"><a href="#cb16-75" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb16-76"><a href="#cb16-76" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">6</span>))</span>
+<span id="cb16-77"><a href="#cb16-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-78"><a href="#cb16-78" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].scatter(condition1_A[:, <span class="dv">0</span>], condition1_A[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 1'</span>)</span>
+<span id="cb16-79"><a href="#cb16-79" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].scatter(condition2_A[:, <span class="dv">0</span>], condition2_A[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 2'</span>)</span>
+<span id="cb16-80"><a href="#cb16-80" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Voxel 1 activation'</span>)</span>
+<span id="cb16-81"><a href="#cb16-81" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Voxel 2 activation'</span>)</span>
+<span id="cb16-82"><a href="#cb16-82" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Scenario A: Independent Noise</span><span class="ch">\n</span><span class="st">(Euclidean works OK)'</span>)</span>
+<span id="cb16-83"><a href="#cb16-83" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb16-84"><a href="#cb16-84" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb16-85"><a href="#cb16-85" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb16-86"><a href="#cb16-86" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb16-87"><a href="#cb16-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-88"><a href="#cb16-88" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].scatter(condition1_B[:, <span class="dv">0</span>], condition1_B[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 1'</span>)</span>
+<span id="cb16-89"><a href="#cb16-89" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].scatter(condition2_B[:, <span class="dv">0</span>], condition2_B[:, <span class="dv">1</span>], alpha<span class="op">=</span><span class="fl">0.3</span>, label<span class="op">=</span><span class="st">'Condition 2'</span>)</span>
+<span id="cb16-90"><a href="#cb16-90" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Voxel 1 activation'</span>)</span>
+<span id="cb16-91"><a href="#cb16-91" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Voxel 2 activation'</span>)</span>
+<span id="cb16-92"><a href="#cb16-92" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'Scenario B: Correlated Noise</span><span class="ch">\n</span><span class="st">(Euclidean misleading!)'</span>)</span>
+<span id="cb16-93"><a href="#cb16-93" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb16-94"><a href="#cb16-94" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb16-95"><a href="#cb16-95" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylim(<span class="op">-</span><span class="dv">4</span>, <span class="dv">5</span>)</span>
+<span id="cb16-96"><a href="#cb16-96" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_aspect(<span class="st">'equal'</span>)</span>
+<span id="cb16-97"><a href="#cb16-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-98"><a href="#cb16-98" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb16-99"><a href="#cb16-99" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb16-100"><a href="#cb16-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-101"><a href="#cb16-101" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Euclidean distances</span></span>
+<span id="cb16-102"><a href="#cb16-102" aria-hidden="true" tabindex="-1"></a>eucl_A <span class="op">=</span> np.linalg.norm(condition2_A.mean(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> condition1_A.mean(axis<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb16-103"><a href="#cb16-103" aria-hidden="true" tabindex="-1"></a>eucl_B <span class="op">=</span> np.linalg.norm(condition2_B.mean(axis<span class="op">=</span><span class="dv">0</span>) <span class="op">-</span> condition1_B.mean(axis<span class="op">=</span><span class="dv">0</span>))</span>
+<span id="cb16-104"><a href="#cb16-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-105"><a href="#cb16-105" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Euclidean distance (Scenario A): </span><span class="sc">{</span>eucl_A<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb16-106"><a href="#cb16-106" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Euclidean distance (Scenario B): </span><span class="sc">{</span>eucl_B<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb16-107"><a href="#cb16-107" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">=&gt; Both have SAME Euclidean distance, but Scenario B has MORE overlap!"</span>)</span>
+<span id="cb16-108"><a href="#cb16-108" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-109"><a href="#cb16-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-110"><a href="#cb16-110" aria-hidden="true" tabindex="-1"></a>::: {.callout-important}</span>
+<span id="cb16-111"><a href="#cb16-111" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key Insight</span></span>
+<span id="cb16-112"><a href="#cb16-112" aria-hidden="true" tabindex="-1"></a>In Scenario B, the noise is correlated along the **same direction** as the true signal. Euclidean distance doesn't capture that the conditions are actually **harder to distinguish**.</span>
+<span id="cb16-113"><a href="#cb16-113" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb16-114"><a href="#cb16-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-115"><a href="#cb16-115" aria-hidden="true" tabindex="-1"></a><span class="fu">## Part 2: Mahalanobis Distance to the Rescue</span></span>
+<span id="cb16-116"><a href="#cb16-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-117"><a href="#cb16-117" aria-hidden="true" tabindex="-1"></a><span class="fu">### Definition</span></span>
+<span id="cb16-118"><a href="#cb16-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-119"><a href="#cb16-119" aria-hidden="true" tabindex="-1"></a>Mahalanobis distance normalizes by the noise covariance:</span>
+<span id="cb16-120"><a href="#cb16-120" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-121"><a href="#cb16-121" aria-hidden="true" tabindex="-1"></a>$$d_{Mahal}^2 = (\mathbf{x} - \mathbf{y})^T \mathbf{\Sigma}^{-1} (\mathbf{x} - \mathbf{y})$$</span>
+<span id="cb16-122"><a href="#cb16-122" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-123"><a href="#cb16-123" aria-hidden="true" tabindex="-1"></a>Where:</span>
+<span id="cb16-124"><a href="#cb16-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-125"><a href="#cb16-125" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{x}, \mathbf{y}$ are the pattern vectors for two conditions</span>
+<span id="cb16-126"><a href="#cb16-126" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>$\mathbf{\Sigma}^{-1}$ is the **precision matrix** (inverse of noise covariance)</span>
+<span id="cb16-127"><a href="#cb16-127" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-128"><a href="#cb16-128" aria-hidden="true" tabindex="-1"></a><span class="fu">### Intuition</span></span>
+<span id="cb16-129"><a href="#cb16-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-130"><a href="#cb16-130" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Directions with **high noise** get **down-weighted**</span>
+<span id="cb16-131"><a href="#cb16-131" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Directions with **low noise** get **up-weighted**</span>
+<span id="cb16-132"><a href="#cb16-132" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Correlated noise gets "whitened" out</span>
+<span id="cb16-133"><a href="#cb16-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-136"><a href="#cb16-136" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-137"><a href="#cb16-137" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: mahalanobis-demo</span></span>
+<span id="cb16-138"><a href="#cb16-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-139"><a href="#cb16-139" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> mahalanobis_distance_squared(pattern_a, pattern_b, precision):</span>
+<span id="cb16-140"><a href="#cb16-140" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute squared Mahalanobis distance between two patterns."""</span></span>
+<span id="cb16-141"><a href="#cb16-141" aria-hidden="true" tabindex="-1"></a>    diff <span class="op">=</span> pattern_a <span class="op">-</span> pattern_b</span>
+<span id="cb16-142"><a href="#cb16-142" aria-hidden="true" tabindex="-1"></a>    d_squared <span class="op">=</span> diff <span class="op">@</span> precision <span class="op">@</span> diff</span>
+<span id="cb16-143"><a href="#cb16-143" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d_squared</span>
+<span id="cb16-144"><a href="#cb16-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-145"><a href="#cb16-145" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute precision matrices</span></span>
+<span id="cb16-146"><a href="#cb16-146" aria-hidden="true" tabindex="-1"></a>precision_A <span class="op">=</span> np.linalg.inv(cov_A)</span>
+<span id="cb16-147"><a href="#cb16-147" aria-hidden="true" tabindex="-1"></a>precision_B <span class="op">=</span> np.linalg.inv(cov_B)</span>
+<span id="cb16-148"><a href="#cb16-148" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-149"><a href="#cb16-149" aria-hidden="true" tabindex="-1"></a><span class="co"># Get mean patterns</span></span>
+<span id="cb16-150"><a href="#cb16-150" aria-hidden="true" tabindex="-1"></a>mean_cond1_A <span class="op">=</span> condition1_A.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-151"><a href="#cb16-151" aria-hidden="true" tabindex="-1"></a>mean_cond2_A <span class="op">=</span> condition2_A.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-152"><a href="#cb16-152" aria-hidden="true" tabindex="-1"></a>mean_cond1_B <span class="op">=</span> condition1_B.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-153"><a href="#cb16-153" aria-hidden="true" tabindex="-1"></a>mean_cond2_B <span class="op">=</span> condition2_B.mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-154"><a href="#cb16-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-155"><a href="#cb16-155" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute Mahalanobis distances</span></span>
+<span id="cb16-156"><a href="#cb16-156" aria-hidden="true" tabindex="-1"></a>mahal_A <span class="op">=</span> mahalanobis_distance_squared(mean_cond2_A, mean_cond1_A, precision_A)</span>
+<span id="cb16-157"><a href="#cb16-157" aria-hidden="true" tabindex="-1"></a>mahal_B <span class="op">=</span> mahalanobis_distance_squared(mean_cond2_B, mean_cond1_B, precision_B)</span>
+<span id="cb16-158"><a href="#cb16-158" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-159"><a href="#cb16-159" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Squared Mahalanobis distance (Scenario A): </span><span class="sc">{</span>mahal_A<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb16-160"><a href="#cb16-160" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Squared Mahalanobis distance (Scenario B): </span><span class="sc">{</span>mahal_B<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb16-161"><a href="#cb16-161" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">=&gt; Mahalanobis correctly shows Scenario B has LARGER standardized distance!"</span>)</span>
+<span id="cb16-162"><a href="#cb16-162" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-163"><a href="#cb16-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-164"><a href="#cb16-164" aria-hidden="true" tabindex="-1"></a><span class="fu">### Units of Mahalanobis Distance</span></span>
+<span id="cb16-165"><a href="#cb16-165" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-166"><a href="#cb16-166" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Metric <span class="pp">|</span> Units <span class="pp">|</span> Interpretation <span class="pp">|</span></span>
+<span id="cb16-167"><a href="#cb16-167" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|-------|----------------|</span></span>
+<span id="cb16-168"><a href="#cb16-168" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> d² (squared) <span class="pp">|</span> Variance <span class="pp">|</span> What we compute <span class="pp">|</span></span>
+<span id="cb16-169"><a href="#cb16-169" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> d = √d² <span class="pp">|</span> Standard deviations <span class="pp">|</span> What we report <span class="pp">|</span></span>
+<span id="cb16-170"><a href="#cb16-170" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-171"><a href="#cb16-171" aria-hidden="true" tabindex="-1"></a>**Typical values**:</span>
+<span id="cb16-172"><a href="#cb16-172" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-173"><a href="#cb16-173" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Whole-brain average: ~0.3 SD</span>
+<span id="cb16-174"><a href="#cb16-174" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Visual areas (FFA, LOC): ~0.6-0.8 SD</span>
+<span id="cb16-175"><a href="#cb16-175" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-176"><a href="#cb16-176" aria-hidden="true" tabindex="-1"></a><span class="fu">## Part 3: Cross-Validation - Avoiding Circular Analysis</span></span>
+<span id="cb16-177"><a href="#cb16-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-178"><a href="#cb16-178" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Problem: Bias in Distance Estimation</span></span>
+<span id="cb16-179"><a href="#cb16-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-180"><a href="#cb16-180" aria-hidden="true" tabindex="-1"></a>If we use the **same data** to:</span>
+<span id="cb16-181"><a href="#cb16-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-182"><a href="#cb16-182" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>Estimate the noise covariance</span>
+<span id="cb16-183"><a href="#cb16-183" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Compute the distance</span>
+<span id="cb16-184"><a href="#cb16-184" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-185"><a href="#cb16-185" aria-hidden="true" tabindex="-1"></a>We get **biased (inflated)** estimates!</span>
+<span id="cb16-186"><a href="#cb16-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-187"><a href="#cb16-187" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Solution: Leave-One-Run-Out Cross-Validation</span></span>
+<span id="cb16-188"><a href="#cb16-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-189"><a href="#cb16-189" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-190"><a href="#cb16-190" aria-hidden="true" tabindex="-1"></a><span class="in">For each test run:</span></span>
+<span id="cb16-191"><a href="#cb16-191" aria-hidden="true" tabindex="-1"></a><span class="in">    1. Use OTHER runs to estimate noise covariance</span></span>
+<span id="cb16-192"><a href="#cb16-192" aria-hidden="true" tabindex="-1"></a><span class="in">    2. Apply precision matrix to TEST run patterns</span></span>
+<span id="cb16-193"><a href="#cb16-193" aria-hidden="true" tabindex="-1"></a><span class="in">    3. Average distances across folds</span></span>
+<span id="cb16-194"><a href="#cb16-194" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-195"><a href="#cb16-195" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-196"><a href="#cb16-196" aria-hidden="true" tabindex="-1"></a>This gives us the **crossnobis** distance - an unbiased estimator.</span>
+<span id="cb16-197"><a href="#cb16-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-200"><a href="#cb16-200" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-201"><a href="#cb16-201" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: crossnobis-demo</span></span>
+<span id="cb16-202"><a href="#cb16-202" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Biased vs cross-validated distance estimates under the null hypothesis"</span></span>
+<span id="cb16-203"><a href="#cb16-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-204"><a href="#cb16-204" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> crossnobis_demo(n_features<span class="op">=</span><span class="dv">50</span>, n_timepoints<span class="op">=</span><span class="dv">100</span>, n_runs<span class="op">=</span><span class="dv">3</span>, true_effect<span class="op">=</span><span class="fl">0.5</span>):</span>
+<span id="cb16-205"><a href="#cb16-205" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Demonstrate biased vs cross-validated Mahalanobis."""</span></span>
+<span id="cb16-206"><a href="#cb16-206" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-207"><a href="#cb16-207" aria-hidden="true" tabindex="-1"></a>    <span class="co"># True noise covariance</span></span>
+<span id="cb16-208"><a href="#cb16-208" aria-hidden="true" tabindex="-1"></a>    A <span class="op">=</span> np.random.randn(n_features, n_features)</span>
+<span id="cb16-209"><a href="#cb16-209" aria-hidden="true" tabindex="-1"></a>    true_cov <span class="op">=</span> A <span class="op">@</span> A.T <span class="op">/</span> n_features</span>
+<span id="cb16-210"><a href="#cb16-210" aria-hidden="true" tabindex="-1"></a>    true_cov <span class="op">=</span> true_cov <span class="op">/</span> np.trace(true_cov) <span class="op">*</span> n_features</span>
+<span id="cb16-211"><a href="#cb16-211" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-212"><a href="#cb16-212" aria-hidden="true" tabindex="-1"></a>    <span class="co"># True patterns</span></span>
+<span id="cb16-213"><a href="#cb16-213" aria-hidden="true" tabindex="-1"></a>    true_face <span class="op">=</span> np.random.randn(n_features)</span>
+<span id="cb16-214"><a href="#cb16-214" aria-hidden="true" tabindex="-1"></a>    true_object <span class="op">=</span> true_face <span class="op">+</span> true_effect <span class="op">*</span> np.random.randn(n_features)</span>
+<span id="cb16-215"><a href="#cb16-215" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-216"><a href="#cb16-216" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Generate per-run patterns</span></span>
+<span id="cb16-217"><a href="#cb16-217" aria-hidden="true" tabindex="-1"></a>    patterns <span class="op">=</span> np.zeros((n_runs, <span class="dv">2</span>, n_features))</span>
+<span id="cb16-218"><a href="#cb16-218" aria-hidden="true" tabindex="-1"></a>    residuals <span class="op">=</span> np.zeros((n_runs, n_timepoints, n_features))</span>
+<span id="cb16-219"><a href="#cb16-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-220"><a href="#cb16-220" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> run <span class="kw">in</span> <span class="bu">range</span>(n_runs):</span>
+<span id="cb16-221"><a href="#cb16-221" aria-hidden="true" tabindex="-1"></a>        estimation_noise <span class="op">=</span> np.random.multivariate_normal(</span>
+<span id="cb16-222"><a href="#cb16-222" aria-hidden="true" tabindex="-1"></a>            np.zeros(n_features), true_cov, <span class="dv">2</span>)</span>
+<span id="cb16-223"><a href="#cb16-223" aria-hidden="true" tabindex="-1"></a>        patterns[run, <span class="dv">0</span>] <span class="op">=</span> true_face <span class="op">+</span> estimation_noise[<span class="dv">0</span>] <span class="op">/</span> np.sqrt(n_timepoints<span class="op">/</span><span class="dv">10</span>)</span>
+<span id="cb16-224"><a href="#cb16-224" aria-hidden="true" tabindex="-1"></a>        patterns[run, <span class="dv">1</span>] <span class="op">=</span> true_object <span class="op">+</span> estimation_noise[<span class="dv">1</span>] <span class="op">/</span> np.sqrt(n_timepoints<span class="op">/</span><span class="dv">10</span>)</span>
+<span id="cb16-225"><a href="#cb16-225" aria-hidden="true" tabindex="-1"></a>        residuals[run] <span class="op">=</span> np.random.multivariate_normal(</span>
+<span id="cb16-226"><a href="#cb16-226" aria-hidden="true" tabindex="-1"></a>            np.zeros(n_features), true_cov, n_timepoints)</span>
+<span id="cb16-227"><a href="#cb16-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-228"><a href="#cb16-228" aria-hidden="true" tabindex="-1"></a>    <span class="co"># BIASED: use all data</span></span>
+<span id="cb16-229"><a href="#cb16-229" aria-hidden="true" tabindex="-1"></a>    all_residuals <span class="op">=</span> residuals.reshape(<span class="op">-</span><span class="dv">1</span>, n_features)</span>
+<span id="cb16-230"><a href="#cb16-230" aria-hidden="true" tabindex="-1"></a>    cov_biased <span class="op">=</span> np.cov(all_residuals.T)</span>
+<span id="cb16-231"><a href="#cb16-231" aria-hidden="true" tabindex="-1"></a>    prec_biased <span class="op">=</span> np.linalg.inv(cov_biased <span class="op">+</span> <span class="fl">0.01</span> <span class="op">*</span> np.eye(n_features))</span>
+<span id="cb16-232"><a href="#cb16-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-233"><a href="#cb16-233" aria-hidden="true" tabindex="-1"></a>    mean_face_all <span class="op">=</span> patterns[:, <span class="dv">0</span>].mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-234"><a href="#cb16-234" aria-hidden="true" tabindex="-1"></a>    mean_object_all <span class="op">=</span> patterns[:, <span class="dv">1</span>].mean(axis<span class="op">=</span><span class="dv">0</span>)</span>
+<span id="cb16-235"><a href="#cb16-235" aria-hidden="true" tabindex="-1"></a>    d_biased <span class="op">=</span> mahalanobis_distance_squared(mean_face_all, mean_object_all, prec_biased)</span>
+<span id="cb16-236"><a href="#cb16-236" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-237"><a href="#cb16-237" aria-hidden="true" tabindex="-1"></a>    <span class="co"># CROSS-VALIDATED</span></span>
+<span id="cb16-238"><a href="#cb16-238" aria-hidden="true" tabindex="-1"></a>    d_cv_folds <span class="op">=</span> []</span>
+<span id="cb16-239"><a href="#cb16-239" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> test_run <span class="kw">in</span> <span class="bu">range</span>(n_runs):</span>
+<span id="cb16-240"><a href="#cb16-240" aria-hidden="true" tabindex="-1"></a>        train_runs <span class="op">=</span> [r <span class="cf">for</span> r <span class="kw">in</span> <span class="bu">range</span>(n_runs) <span class="cf">if</span> r <span class="op">!=</span> test_run]</span>
+<span id="cb16-241"><a href="#cb16-241" aria-hidden="true" tabindex="-1"></a>        train_residuals <span class="op">=</span> np.vstack([residuals[r] <span class="cf">for</span> r <span class="kw">in</span> train_runs])</span>
+<span id="cb16-242"><a href="#cb16-242" aria-hidden="true" tabindex="-1"></a>        cov_train <span class="op">=</span> np.cov(train_residuals.T)</span>
+<span id="cb16-243"><a href="#cb16-243" aria-hidden="true" tabindex="-1"></a>        prec_train <span class="op">=</span> np.linalg.inv(cov_train <span class="op">+</span> <span class="fl">0.01</span> <span class="op">*</span> np.eye(n_features))</span>
+<span id="cb16-244"><a href="#cb16-244" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-245"><a href="#cb16-245" aria-hidden="true" tabindex="-1"></a>        d_fold <span class="op">=</span> mahalanobis_distance_squared(</span>
+<span id="cb16-246"><a href="#cb16-246" aria-hidden="true" tabindex="-1"></a>            patterns[test_run, <span class="dv">0</span>], patterns[test_run, <span class="dv">1</span>], prec_train)</span>
+<span id="cb16-247"><a href="#cb16-247" aria-hidden="true" tabindex="-1"></a>        d_cv_folds.append(d_fold)</span>
+<span id="cb16-248"><a href="#cb16-248" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-249"><a href="#cb16-249" aria-hidden="true" tabindex="-1"></a>    d_cv <span class="op">=</span> np.mean(d_cv_folds)</span>
+<span id="cb16-250"><a href="#cb16-250" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> d_biased, d_cv</span>
+<span id="cb16-251"><a href="#cb16-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-252"><a href="#cb16-252" aria-hidden="true" tabindex="-1"></a><span class="co"># Simulate under null (no true effect)</span></span>
+<span id="cb16-253"><a href="#cb16-253" aria-hidden="true" tabindex="-1"></a>n_simulations <span class="op">=</span> <span class="dv">200</span></span>
+<span id="cb16-254"><a href="#cb16-254" aria-hidden="true" tabindex="-1"></a>biased_distances <span class="op">=</span> []</span>
+<span id="cb16-255"><a href="#cb16-255" aria-hidden="true" tabindex="-1"></a>cv_distances <span class="op">=</span> []</span>
+<span id="cb16-256"><a href="#cb16-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-257"><a href="#cb16-257" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_simulations):</span>
+<span id="cb16-258"><a href="#cb16-258" aria-hidden="true" tabindex="-1"></a>    d_biased, d_cv <span class="op">=</span> crossnobis_demo(true_effect<span class="op">=</span><span class="fl">0.0</span>)</span>
+<span id="cb16-259"><a href="#cb16-259" aria-hidden="true" tabindex="-1"></a>    biased_distances.append(d_biased)</span>
+<span id="cb16-260"><a href="#cb16-260" aria-hidden="true" tabindex="-1"></a>    cv_distances.append(d_cv)</span>
+<span id="cb16-261"><a href="#cb16-261" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-262"><a href="#cb16-262" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">2</span>, figsize<span class="op">=</span>(<span class="dv">14</span>, <span class="dv">5</span>))</span>
+<span id="cb16-263"><a href="#cb16-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-264"><a href="#cb16-264" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].hist(biased_distances, bins<span class="op">=</span><span class="dv">30</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, color<span class="op">=</span><span class="st">'red'</span>)</span>
+<span id="cb16-265"><a href="#cb16-265" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'True value = 0'</span>)</span>
+<span id="cb16-266"><a href="#cb16-266" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].axvline(np.mean(biased_distances), color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>,</span>
+<span id="cb16-267"><a href="#cb16-267" aria-hidden="true" tabindex="-1"></a>                linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean = </span><span class="sc">{</span>np<span class="sc">.</span>mean(biased_distances)<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb16-268"><a href="#cb16-268" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xlabel(<span class="st">'Squared Mahalanobis Distance'</span>)</span>
+<span id="cb16-269"><a href="#cb16-269" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_ylabel(<span class="st">'Count'</span>)</span>
+<span id="cb16-270"><a href="#cb16-270" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'BIASED Method'</span>)</span>
+<span id="cb16-271"><a href="#cb16-271" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].legend()</span>
+<span id="cb16-272"><a href="#cb16-272" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-273"><a href="#cb16-273" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].hist(cv_distances, bins<span class="op">=</span><span class="dv">30</span>, alpha<span class="op">=</span><span class="fl">0.7</span>, color<span class="op">=</span><span class="st">'green'</span>)</span>
+<span id="cb16-274"><a href="#cb16-274" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, label<span class="op">=</span><span class="st">'True value = 0'</span>)</span>
+<span id="cb16-275"><a href="#cb16-275" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].axvline(np.mean(cv_distances), color<span class="op">=</span><span class="st">'green'</span>, linestyle<span class="op">=</span><span class="st">'-'</span>,</span>
+<span id="cb16-276"><a href="#cb16-276" aria-hidden="true" tabindex="-1"></a>                linewidth<span class="op">=</span><span class="dv">2</span>, label<span class="op">=</span><span class="ss">f'Mean = </span><span class="sc">{</span>np<span class="sc">.</span>mean(cv_distances)<span class="sc">:.2f}</span><span class="ss">'</span>)</span>
+<span id="cb16-277"><a href="#cb16-277" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xlabel(<span class="st">'Squared Mahalanobis Distance'</span>)</span>
+<span id="cb16-278"><a href="#cb16-278" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_ylabel(<span class="st">'Count'</span>)</span>
+<span id="cb16-279"><a href="#cb16-279" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'CROSS-VALIDATED Method'</span>)</span>
+<span id="cb16-280"><a href="#cb16-280" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].legend()</span>
+<span id="cb16-281"><a href="#cb16-281" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-282"><a href="#cb16-282" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb16-283"><a href="#cb16-283" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb16-284"><a href="#cb16-284" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-285"><a href="#cb16-285" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-286"><a href="#cb16-286" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb16-287"><a href="#cb16-287" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key Points about Crossnobis</span></span>
+<span id="cb16-288"><a href="#cb16-288" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-289"><a href="#cb16-289" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Can be negative**: Unlike standard Mahalanobis, crossnobis can be negative under the null</span>
+<span id="cb16-290"><a href="#cb16-290" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Expected value under null = 0**: Perfect for hypothesis testing</span>
+<span id="cb16-291"><a href="#cb16-291" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Requires multiple runs**: We use 3 runs for leave-one-out CV</span>
+<span id="cb16-292"><a href="#cb16-292" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb16-293"><a href="#cb16-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-294"><a href="#cb16-294" aria-hidden="true" tabindex="-1"></a><span class="fu">## Part 4: Representational Dissimilarity Matrices (RDMs)</span></span>
+<span id="cb16-295"><a href="#cb16-295" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-296"><a href="#cb16-296" aria-hidden="true" tabindex="-1"></a><span class="fu">### What is an RDM?</span></span>
+<span id="cb16-297"><a href="#cb16-297" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-298"><a href="#cb16-298" aria-hidden="true" tabindex="-1"></a>An RDM is a symmetric matrix where each cell contains the dissimilarity (distance) between two conditions.</span>
+<span id="cb16-299"><a href="#cb16-299" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-300"><a href="#cb16-300" aria-hidden="true" tabindex="-1"></a>For our 6 conditions:</span>
+<span id="cb16-301"><a href="#cb16-301" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-302"><a href="#cb16-302" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>FaceSingle</span>
+<span id="cb16-303"><a href="#cb16-303" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>FaceRepeatFirst</span>
+<span id="cb16-304"><a href="#cb16-304" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>FaceRepeatSubsequent</span>
+<span id="cb16-305"><a href="#cb16-305" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>ObjectSingle</span>
+<span id="cb16-306"><a href="#cb16-306" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>ObjectRepeatFirst</span>
+<span id="cb16-307"><a href="#cb16-307" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>ObjectRepeatSubsequent</span>
+<span id="cb16-308"><a href="#cb16-308" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-311"><a href="#cb16-311" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-312"><a href="#cb16-312" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: rdm-example</span></span>
+<span id="cb16-313"><a href="#cb16-313" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Example RDM showing category structure"</span></span>
+<span id="cb16-314"><a href="#cb16-314" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-315"><a href="#cb16-315" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_example_rdm():</span>
+<span id="cb16-316"><a href="#cb16-316" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create a realistic example RDM."""</span></span>
+<span id="cb16-317"><a href="#cb16-317" aria-hidden="true" tabindex="-1"></a>    rdm <span class="op">=</span> np.array([</span>
+<span id="cb16-318"><a href="#cb16-318" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.00</span>, <span class="fl">0.10</span>, <span class="fl">0.15</span>, <span class="fl">0.60</span>, <span class="fl">0.65</span>, <span class="fl">0.70</span>],</span>
+<span id="cb16-319"><a href="#cb16-319" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.10</span>, <span class="fl">0.00</span>, <span class="fl">0.12</span>, <span class="fl">0.58</span>, <span class="fl">0.62</span>, <span class="fl">0.68</span>],</span>
+<span id="cb16-320"><a href="#cb16-320" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.15</span>, <span class="fl">0.12</span>, <span class="fl">0.00</span>, <span class="fl">0.55</span>, <span class="fl">0.58</span>, <span class="fl">0.65</span>],</span>
+<span id="cb16-321"><a href="#cb16-321" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.60</span>, <span class="fl">0.58</span>, <span class="fl">0.55</span>, <span class="fl">0.00</span>, <span class="fl">0.08</span>, <span class="fl">0.13</span>],</span>
+<span id="cb16-322"><a href="#cb16-322" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.65</span>, <span class="fl">0.62</span>, <span class="fl">0.58</span>, <span class="fl">0.08</span>, <span class="fl">0.00</span>, <span class="fl">0.10</span>],</span>
+<span id="cb16-323"><a href="#cb16-323" aria-hidden="true" tabindex="-1"></a>        [<span class="fl">0.70</span>, <span class="fl">0.68</span>, <span class="fl">0.65</span>, <span class="fl">0.13</span>, <span class="fl">0.10</span>, <span class="fl">0.00</span>],</span>
+<span id="cb16-324"><a href="#cb16-324" aria-hidden="true" tabindex="-1"></a>    ])</span>
+<span id="cb16-325"><a href="#cb16-325" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> rdm</span>
+<span id="cb16-326"><a href="#cb16-326" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-327"><a href="#cb16-327" aria-hidden="true" tabindex="-1"></a>condition_names <span class="op">=</span> [<span class="st">'FaceSingle'</span>, <span class="st">'FaceRepeatFirst'</span>, <span class="st">'FaceRepeatSubsequent'</span>,</span>
+<span id="cb16-328"><a href="#cb16-328" aria-hidden="true" tabindex="-1"></a>                   <span class="st">'ObjectSingle'</span>, <span class="st">'ObjectRepeatFirst'</span>, <span class="st">'ObjectRepeatSubsequent'</span>]</span>
+<span id="cb16-329"><a href="#cb16-329" aria-hidden="true" tabindex="-1"></a>rdm <span class="op">=</span> create_example_rdm()</span>
+<span id="cb16-330"><a href="#cb16-330" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-331"><a href="#cb16-331" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">8</span>))</span>
+<span id="cb16-332"><a href="#cb16-332" aria-hidden="true" tabindex="-1"></a>im <span class="op">=</span> ax.imshow(rdm, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb16-333"><a href="#cb16-333" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb16-334"><a href="#cb16-334" aria-hidden="true" tabindex="-1"></a>ax.set_yticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb16-335"><a href="#cb16-335" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(condition_names, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
+<span id="cb16-336"><a href="#cb16-336" aria-hidden="true" tabindex="-1"></a>ax.set_yticklabels(condition_names)</span>
+<span id="cb16-337"><a href="#cb16-337" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Representational Dissimilarity Matrix (RDM)'</span>)</span>
+<span id="cb16-338"><a href="#cb16-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-339"><a href="#cb16-339" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb16-340"><a href="#cb16-340" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> j <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">6</span>):</span>
+<span id="cb16-341"><a href="#cb16-341" aria-hidden="true" tabindex="-1"></a>        ax.text(j, i, <span class="ss">f'</span><span class="sc">{</span>rdm[i,j]<span class="sc">:.2f}</span><span class="ss">'</span>, ha<span class="op">=</span><span class="st">'center'</span>, va<span class="op">=</span><span class="st">'center'</span>,</span>
+<span id="cb16-342"><a href="#cb16-342" aria-hidden="true" tabindex="-1"></a>                color<span class="op">=</span><span class="st">'white'</span> <span class="cf">if</span> rdm[i,j] <span class="op">&gt;</span> <span class="fl">0.3</span> <span class="cf">else</span> <span class="st">'black'</span>)</span>
+<span id="cb16-343"><a href="#cb16-343" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-344"><a href="#cb16-344" aria-hidden="true" tabindex="-1"></a>plt.colorbar(im, label<span class="op">=</span><span class="st">'Squared Mahalanobis Distance'</span>)</span>
+<span id="cb16-345"><a href="#cb16-345" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb16-346"><a href="#cb16-346" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb16-347"><a href="#cb16-347" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-348"><a href="#cb16-348" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-349"><a href="#cb16-349" aria-hidden="true" tabindex="-1"></a>Notice the **block structure**:</span>
+<span id="cb16-350"><a href="#cb16-350" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-351"><a href="#cb16-351" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Face conditions (top-left 3x3): LOW distances</span>
+<span id="cb16-352"><a href="#cb16-352" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Object conditions (bottom-right 3x3): LOW distances</span>
+<span id="cb16-353"><a href="#cb16-353" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Face vs Object (off-diagonal): HIGH distances</span>
+<span id="cb16-354"><a href="#cb16-354" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-355"><a href="#cb16-355" aria-hidden="true" tabindex="-1"></a><span class="fu">## Part 5: RSA - Representational Similarity Analysis</span></span>
+<span id="cb16-356"><a href="#cb16-356" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-357"><a href="#cb16-357" aria-hidden="true" tabindex="-1"></a>RSA tests whether the **observed RDM** matches a **theoretical model RDM**.</span>
+<span id="cb16-358"><a href="#cb16-358" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-359"><a href="#cb16-359" aria-hidden="true" tabindex="-1"></a><span class="fu">### Category Model</span></span>
+<span id="cb16-360"><a href="#cb16-360" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-361"><a href="#cb16-361" aria-hidden="true" tabindex="-1"></a>Predicts:</span>
+<span id="cb16-362"><a href="#cb16-362" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-363"><a href="#cb16-363" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Within-category distance = 0 (all faces similar, all objects similar)</span>
+<span id="cb16-364"><a href="#cb16-364" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Between-category distance = 1 (faces different from objects)</span>
+<span id="cb16-365"><a href="#cb16-365" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-368"><a href="#cb16-368" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-369"><a href="#cb16-369" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: rsa-demo</span></span>
+<span id="cb16-370"><a href="#cb16-370" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "Comparing 6-condition and 4-condition RSA models"</span></span>
+<span id="cb16-371"><a href="#cb16-371" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-372"><a href="#cb16-372" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> model_rdm_category(n_conditions):</span>
+<span id="cb16-373"><a href="#cb16-373" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Create category model RDM."""</span></span>
+<span id="cb16-374"><a href="#cb16-374" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> n_conditions <span class="op">==</span> <span class="dv">6</span>:</span>
+<span id="cb16-375"><a href="#cb16-375" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> np.array([</span>
+<span id="cb16-376"><a href="#cb16-376" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb16-377"><a href="#cb16-377" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb16-378"><a href="#cb16-378" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb16-379"><a href="#cb16-379" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb16-380"><a href="#cb16-380" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb16-381"><a href="#cb16-381" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb16-382"><a href="#cb16-382" aria-hidden="true" tabindex="-1"></a>        ], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb16-383"><a href="#cb16-383" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> n_conditions <span class="op">==</span> <span class="dv">4</span>:</span>
+<span id="cb16-384"><a href="#cb16-384" aria-hidden="true" tabindex="-1"></a>        model <span class="op">=</span> np.array([</span>
+<span id="cb16-385"><a href="#cb16-385" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb16-386"><a href="#cb16-386" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">1</span>],</span>
+<span id="cb16-387"><a href="#cb16-387" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb16-388"><a href="#cb16-388" aria-hidden="true" tabindex="-1"></a>            [<span class="dv">1</span>, <span class="dv">1</span>, <span class="dv">0</span>, <span class="dv">0</span>],</span>
+<span id="cb16-389"><a href="#cb16-389" aria-hidden="true" tabindex="-1"></a>        ], dtype<span class="op">=</span><span class="bu">float</span>)</span>
+<span id="cb16-390"><a href="#cb16-390" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> model</span>
+<span id="cb16-391"><a href="#cb16-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-392"><a href="#cb16-392" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> compute_rsa(empirical_rdm, model_rdm):</span>
+<span id="cb16-393"><a href="#cb16-393" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Compute RSA correlation."""</span></span>
+<span id="cb16-394"><a href="#cb16-394" aria-hidden="true" tabindex="-1"></a>    n <span class="op">=</span> empirical_rdm.shape[<span class="dv">0</span>]</span>
+<span id="cb16-395"><a href="#cb16-395" aria-hidden="true" tabindex="-1"></a>    tril_indices <span class="op">=</span> np.tril_indices(n, k<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb16-396"><a href="#cb16-396" aria-hidden="true" tabindex="-1"></a>    empirical_vec <span class="op">=</span> empirical_rdm[tril_indices]</span>
+<span id="cb16-397"><a href="#cb16-397" aria-hidden="true" tabindex="-1"></a>    model_vec <span class="op">=</span> model_rdm[tril_indices]</span>
+<span id="cb16-398"><a href="#cb16-398" aria-hidden="true" tabindex="-1"></a>    r, p <span class="op">=</span> stats.spearmanr(empirical_vec, model_vec)</span>
+<span id="cb16-399"><a href="#cb16-399" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> r, p</span>
+<span id="cb16-400"><a href="#cb16-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-401"><a href="#cb16-401" aria-hidden="true" tabindex="-1"></a><span class="co"># Show models</span></span>
+<span id="cb16-402"><a href="#cb16-402" aria-hidden="true" tabindex="-1"></a>fig, axes <span class="op">=</span> plt.subplots(<span class="dv">1</span>, <span class="dv">3</span>, figsize<span class="op">=</span>(<span class="dv">15</span>, <span class="dv">4</span>))</span>
+<span id="cb16-403"><a href="#cb16-403" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-404"><a href="#cb16-404" aria-hidden="true" tabindex="-1"></a>model_6 <span class="op">=</span> model_rdm_category(<span class="dv">6</span>)</span>
+<span id="cb16-405"><a href="#cb16-405" aria-hidden="true" tabindex="-1"></a>model_4 <span class="op">=</span> model_rdm_category(<span class="dv">4</span>)</span>
+<span id="cb16-406"><a href="#cb16-406" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-407"><a href="#cb16-407" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].imshow(rdm, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb16-408"><a href="#cb16-408" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_title(<span class="st">'Empirical RDM'</span>)</span>
+<span id="cb16-409"><a href="#cb16-409" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb16-410"><a href="#cb16-410" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">0</span>].set_xticklabels([<span class="st">'FS'</span>,<span class="st">'FRF'</span>,<span class="st">'FRS'</span>,<span class="st">'OS'</span>,<span class="st">'ORF'</span>,<span class="st">'ORS'</span>], fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb16-411"><a href="#cb16-411" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-412"><a href="#cb16-412" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].imshow(model_6, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb16-413"><a href="#cb16-413" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_title(<span class="st">'6-Condition Model'</span>)</span>
+<span id="cb16-414"><a href="#cb16-414" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticks(<span class="bu">range</span>(<span class="dv">6</span>))</span>
+<span id="cb16-415"><a href="#cb16-415" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">1</span>].set_xticklabels([<span class="st">'FS'</span>,<span class="st">'FRF'</span>,<span class="st">'FRS'</span>,<span class="st">'OS'</span>,<span class="st">'ORF'</span>,<span class="st">'ORS'</span>], fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb16-416"><a href="#cb16-416" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-417"><a href="#cb16-417" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].imshow(model_4, cmap<span class="op">=</span><span class="st">'viridis'</span>)</span>
+<span id="cb16-418"><a href="#cb16-418" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_title(<span class="st">'4-Condition Model</span><span class="ch">\n</span><span class="st">(RECOMMENDED)'</span>)</span>
+<span id="cb16-419"><a href="#cb16-419" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xticks(<span class="bu">range</span>(<span class="dv">4</span>))</span>
+<span id="cb16-420"><a href="#cb16-420" aria-hidden="true" tabindex="-1"></a>axes[<span class="dv">2</span>].set_xticklabels([<span class="st">'FS'</span>,<span class="st">'FRF'</span>,<span class="st">'OS'</span>,<span class="st">'ORF'</span>], fontsize<span class="op">=</span><span class="dv">8</span>)</span>
+<span id="cb16-421"><a href="#cb16-421" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-422"><a href="#cb16-422" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb16-423"><a href="#cb16-423" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb16-424"><a href="#cb16-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-425"><a href="#cb16-425" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute RSA</span></span>
+<span id="cb16-426"><a href="#cb16-426" aria-hidden="true" tabindex="-1"></a>r_6, p_6 <span class="op">=</span> compute_rsa(rdm, model_6)</span>
+<span id="cb16-427"><a href="#cb16-427" aria-hidden="true" tabindex="-1"></a>rdm_4 <span class="op">=</span> rdm[np.ix_([<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>], [<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">3</span>,<span class="dv">4</span>])]</span>
+<span id="cb16-428"><a href="#cb16-428" aria-hidden="true" tabindex="-1"></a>r_4, p_4 <span class="op">=</span> compute_rsa(rdm_4, model_4)</span>
+<span id="cb16-429"><a href="#cb16-429" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-430"><a href="#cb16-430" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"6-condition RSA: r = </span><span class="sc">{</span>r_6<span class="sc">:.3f}</span><span class="ss">, p = </span><span class="sc">{</span>p_6<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb16-431"><a href="#cb16-431" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"4-condition RSA: r = </span><span class="sc">{</span>r_4<span class="sc">:.3f}</span><span class="ss">, p = </span><span class="sc">{</span>p_4<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb16-432"><a href="#cb16-432" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-433"><a href="#cb16-433" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-434"><a href="#cb16-434" aria-hidden="true" tabindex="-1"></a><span class="fu">## Part 6: The N-back Confound (Critical!)</span></span>
+<span id="cb16-435"><a href="#cb16-435" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-436"><a href="#cb16-436" aria-hidden="true" tabindex="-1"></a><span class="fu">### Why We Use 4 Conditions Instead of 6</span></span>
+<span id="cb16-437"><a href="#cb16-437" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-438"><a href="#cb16-438" aria-hidden="true" tabindex="-1"></a>The **RepeatSubsequent** conditions are **confounded** by N-back task demands:</span>
+<span id="cb16-439"><a href="#cb16-439" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-440"><a href="#cb16-440" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Process <span class="pp">|</span> RepeatSubsequent <span class="pp">|</span> Single/RepeatFirst <span class="pp">|</span></span>
+<span id="cb16-441"><a href="#cb16-441" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------|------------------|-------------------|</span></span>
+<span id="cb16-442"><a href="#cb16-442" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Stimulus encoding <span class="pp">|</span> Yes <span class="pp">|</span> Yes <span class="pp">|</span></span>
+<span id="cb16-443"><a href="#cb16-443" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Working memory retrieval <span class="pp">|</span> **Yes** <span class="pp">|</span> No <span class="pp">|</span></span>
+<span id="cb16-444"><a href="#cb16-444" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Match/mismatch decision <span class="pp">|</span> **Yes** <span class="pp">|</span> No <span class="pp">|</span></span>
+<span id="cb16-445"><a href="#cb16-445" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Motor response <span class="pp">|</span> **Yes** <span class="pp">|</span> No <span class="pp">|</span></span>
+<span id="cb16-446"><a href="#cb16-446" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-447"><a href="#cb16-447" aria-hidden="true" tabindex="-1"></a>::: {.callout-warning}</span>
+<span id="cb16-448"><a href="#cb16-448" aria-hidden="true" tabindex="-1"></a><span class="fu">## The Problem</span></span>
+<span id="cb16-449"><a href="#cb16-449" aria-hidden="true" tabindex="-1"></a>If we include RepeatSubsequent conditions, we might be measuring task-related differences (WM, decision, motor) **NOT** pure category representations.</span>
+<span id="cb16-450"><a href="#cb16-450" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb16-451"><a href="#cb16-451" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-452"><a href="#cb16-452" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Solution</span></span>
+<span id="cb16-453"><a href="#cb16-453" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-454"><a href="#cb16-454" aria-hidden="true" tabindex="-1"></a>Use the **4-condition model** that excludes RepeatSubsequent:</span>
+<span id="cb16-455"><a href="#cb16-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-456"><a href="#cb16-456" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>FaceSingle</span>
+<span id="cb16-457"><a href="#cb16-457" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>FaceRepeatFirst</span>
+<span id="cb16-458"><a href="#cb16-458" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>ObjectSingle</span>
+<span id="cb16-459"><a href="#cb16-459" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>ObjectRepeatFirst</span>
+<span id="cb16-460"><a href="#cb16-460" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-463"><a href="#cb16-463" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-464"><a href="#cb16-464" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: confound-viz</span></span>
+<span id="cb16-465"><a href="#cb16-465" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-cap: "N-back task confound across conditions"</span></span>
+<span id="cb16-466"><a href="#cb16-466" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-467"><a href="#cb16-467" aria-hidden="true" tabindex="-1"></a>conditions <span class="op">=</span> [<span class="st">'FaceSingle'</span>, <span class="st">'FaceRepeatFirst'</span>, <span class="st">'FaceRepeatSubsequent'</span>,</span>
+<span id="cb16-468"><a href="#cb16-468" aria-hidden="true" tabindex="-1"></a>              <span class="st">'ObjectSingle'</span>, <span class="st">'ObjectRepeatFirst'</span>, <span class="st">'ObjectRepeatSubsequent'</span>]</span>
+<span id="cb16-469"><a href="#cb16-469" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-470"><a href="#cb16-470" aria-hidden="true" tabindex="-1"></a>category_signal <span class="op">=</span> [<span class="fl">0.8</span>, <span class="fl">0.7</span>, <span class="fl">0.4</span>, <span class="fl">0.8</span>, <span class="fl">0.7</span>, <span class="fl">0.4</span>]</span>
+<span id="cb16-471"><a href="#cb16-471" aria-hidden="true" tabindex="-1"></a>task_signal <span class="op">=</span> [<span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span>, <span class="fl">0.1</span>, <span class="fl">0.2</span>, <span class="fl">0.5</span>]</span>
+<span id="cb16-472"><a href="#cb16-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-473"><a href="#cb16-473" aria-hidden="true" tabindex="-1"></a>x <span class="op">=</span> np.arange(<span class="bu">len</span>(conditions))</span>
+<span id="cb16-474"><a href="#cb16-474" aria-hidden="true" tabindex="-1"></a>width <span class="op">=</span> <span class="fl">0.35</span></span>
+<span id="cb16-475"><a href="#cb16-475" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-476"><a href="#cb16-476" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">12</span>, <span class="dv">6</span>))</span>
+<span id="cb16-477"><a href="#cb16-477" aria-hidden="true" tabindex="-1"></a>ax.bar(x <span class="op">-</span> width<span class="op">/</span><span class="dv">2</span>, category_signal, width, label<span class="op">=</span><span class="st">'Category Signal'</span>, color<span class="op">=</span><span class="st">'steelblue'</span>)</span>
+<span id="cb16-478"><a href="#cb16-478" aria-hidden="true" tabindex="-1"></a>ax.bar(x <span class="op">+</span> width<span class="op">/</span><span class="dv">2</span>, task_signal, width, label<span class="op">=</span><span class="st">'Task Confound'</span>, color<span class="op">=</span><span class="st">'coral'</span>)</span>
+<span id="cb16-479"><a href="#cb16-479" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-480"><a href="#cb16-480" aria-hidden="true" tabindex="-1"></a>ax.set_ylabel(<span class="st">'Relative Signal Contribution'</span>)</span>
+<span id="cb16-481"><a href="#cb16-481" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'N-back Task Confound in Different Conditions'</span>)</span>
+<span id="cb16-482"><a href="#cb16-482" aria-hidden="true" tabindex="-1"></a>ax.set_xticks(x)</span>
+<span id="cb16-483"><a href="#cb16-483" aria-hidden="true" tabindex="-1"></a>ax.set_xticklabels(conditions, rotation<span class="op">=</span><span class="dv">45</span>, ha<span class="op">=</span><span class="st">'right'</span>)</span>
+<span id="cb16-484"><a href="#cb16-484" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb16-485"><a href="#cb16-485" aria-hidden="true" tabindex="-1"></a>ax.axhline(y<span class="op">=</span><span class="fl">0.5</span>, color<span class="op">=</span><span class="st">'red'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>, alpha<span class="op">=</span><span class="fl">0.5</span>)</span>
+<span id="cb16-486"><a href="#cb16-486" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-487"><a href="#cb16-487" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight clean conditions</span></span>
+<span id="cb16-488"><a href="#cb16-488" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i <span class="kw">in</span> [<span class="dv">0</span>, <span class="dv">1</span>, <span class="dv">3</span>, <span class="dv">4</span>]:</span>
+<span id="cb16-489"><a href="#cb16-489" aria-hidden="true" tabindex="-1"></a>    ax.get_xticklabels()[i].set_weight(<span class="st">'bold'</span>)</span>
+<span id="cb16-490"><a href="#cb16-490" aria-hidden="true" tabindex="-1"></a>    ax.get_xticklabels()[i].set_color(<span class="st">'darkgreen'</span>)</span>
+<span id="cb16-491"><a href="#cb16-491" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-492"><a href="#cb16-492" aria-hidden="true" tabindex="-1"></a>plt.tight_layout()</span>
+<span id="cb16-493"><a href="#cb16-493" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb16-494"><a href="#cb16-494" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-495"><a href="#cb16-495" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"GREEN labels = Clean conditions (used in 4-condition model)"</span>)</span>
+<span id="cb16-496"><a href="#cb16-496" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-497"><a href="#cb16-497" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-498"><a href="#cb16-498" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary</span></span>
+<span id="cb16-499"><a href="#cb16-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-500"><a href="#cb16-500" aria-hidden="true" tabindex="-1"></a><span class="fu">### Key Concepts</span></span>
+<span id="cb16-501"><a href="#cb16-501" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-502"><a href="#cb16-502" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Concept <span class="pp">|</span> Description <span class="pp">|</span></span>
+<span id="cb16-503"><a href="#cb16-503" aria-hidden="true" tabindex="-1"></a><span class="pp">|---------|-------------|</span></span>
+<span id="cb16-504"><a href="#cb16-504" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Mahalanobis distance <span class="pp">|</span> Normalizes by noise covariance (SD units) <span class="pp">|</span></span>
+<span id="cb16-505"><a href="#cb16-505" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Cross-validation <span class="pp">|</span> Prevents inflated estimates (crossnobis) <span class="pp">|</span></span>
+<span id="cb16-506"><a href="#cb16-506" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> RDM <span class="pp">|</span> Captures all pairwise condition distances <span class="pp">|</span></span>
+<span id="cb16-507"><a href="#cb16-507" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> RSA <span class="pp">|</span> Tests if RDM matches theoretical model <span class="pp">|</span></span>
+<span id="cb16-508"><a href="#cb16-508" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> 4-condition model <span class="pp">|</span> Avoids N-back task confounds <span class="pp">|</span></span>
+<span id="cb16-509"><a href="#cb16-509" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-510"><a href="#cb16-510" aria-hidden="true" tabindex="-1"></a><span class="fu">### Primary Metrics</span></span>
+<span id="cb16-511"><a href="#cb16-511" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-512"><a href="#cb16-512" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> Metric <span class="pp">|</span> Description <span class="pp">|</span> Use <span class="pp">|</span></span>
+<span id="cb16-513"><a href="#cb16-513" aria-hidden="true" tabindex="-1"></a><span class="pp">|--------|-------------|-----|</span></span>
+<span id="cb16-514"><a href="#cb16-514" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`D_single`</span> <span class="pp">|</span> FaceSingle vs ObjectSingle d² <span class="pp">|</span> **PRIMARY** <span class="pp">|</span></span>
+<span id="cb16-515"><a href="#cb16-515" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`model_category_4cond_r`</span> <span class="pp">|</span> RSA with 4-condition model <span class="pp">|</span> Secondary <span class="pp">|</span></span>
+<span id="cb16-516"><a href="#cb16-516" aria-hidden="true" tabindex="-1"></a><span class="pp">|</span> <span class="in">`sqrt(D_single)`</span> <span class="pp">|</span> Distance in SD units <span class="pp">|</span> Reporting <span class="pp">|</span></span>
+<span id="cb16-517"><a href="#cb16-517" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-518"><a href="#cb16-518" aria-hidden="true" tabindex="-1"></a><span class="fu">## Exercises</span></span>
+<span id="cb16-519"><a href="#cb16-519" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-520"><a href="#cb16-520" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 1: Effect of Noise Correlation</span></span>
+<span id="cb16-521"><a href="#cb16-521" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-522"><a href="#cb16-522" aria-hidden="true" tabindex="-1"></a>Modify the correlation and observe how Mahalanobis changes:</span>
+<span id="cb16-523"><a href="#cb16-523" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-526"><a href="#cb16-526" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-527"><a href="#cb16-527" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: exercise-1</span></span>
+<span id="cb16-528"><a href="#cb16-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-529"><a href="#cb16-529" aria-hidden="true" tabindex="-1"></a>correlations <span class="op">=</span> [<span class="fl">0.0</span>, <span class="fl">0.5</span>, <span class="fl">0.9</span>, <span class="fl">0.99</span>]</span>
+<span id="cb16-530"><a href="#cb16-530" aria-hidden="true" tabindex="-1"></a>diff <span class="op">=</span> np.array([<span class="dv">1</span>, <span class="dv">1</span>])</span>
+<span id="cb16-531"><a href="#cb16-531" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-532"><a href="#cb16-532" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> corr <span class="kw">in</span> correlations:</span>
+<span id="cb16-533"><a href="#cb16-533" aria-hidden="true" tabindex="-1"></a>    cov_test <span class="op">=</span> np.array([[<span class="dv">1</span>, corr], [corr, <span class="dv">1</span>]])</span>
+<span id="cb16-534"><a href="#cb16-534" aria-hidden="true" tabindex="-1"></a>    precision_test <span class="op">=</span> np.linalg.inv(cov_test)</span>
+<span id="cb16-535"><a href="#cb16-535" aria-hidden="true" tabindex="-1"></a>    d_mahal <span class="op">=</span> diff <span class="op">@</span> precision_test <span class="op">@</span> diff</span>
+<span id="cb16-536"><a href="#cb16-536" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Correlation = </span><span class="sc">{</span>corr<span class="sc">:.2f}</span><span class="ss">: Mahalanobis d² = </span><span class="sc">{</span>d_mahal<span class="sc">:.3f}</span><span class="ss">"</span>)</span>
+<span id="cb16-537"><a href="#cb16-537" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb16-538"><a href="#cb16-538" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-539"><a href="#cb16-539" aria-hidden="true" tabindex="-1"></a><span class="fu">### Exercise 2: Null Distribution</span></span>
+<span id="cb16-540"><a href="#cb16-540" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-541"><a href="#cb16-541" aria-hidden="true" tabindex="-1"></a>Verify crossnobis is centered at 0 under the null, shifted with true effect:</span>
+<span id="cb16-542"><a href="#cb16-542" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-545"><a href="#cb16-545" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb16-546"><a href="#cb16-546" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: exercise-2</span></span>
+<span id="cb16-547"><a href="#cb16-547" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-548"><a href="#cb16-548" aria-hidden="true" tabindex="-1"></a>n_sims <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb16-549"><a href="#cb16-549" aria-hidden="true" tabindex="-1"></a>null_distances <span class="op">=</span> [crossnobis_demo(true_effect<span class="op">=</span><span class="fl">0.0</span>)[<span class="dv">1</span>] <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_sims)]</span>
+<span id="cb16-550"><a href="#cb16-550" aria-hidden="true" tabindex="-1"></a>effect_distances <span class="op">=</span> [crossnobis_demo(true_effect<span class="op">=</span><span class="fl">1.0</span>)[<span class="dv">1</span>] <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(n_sims)]</span>
+<span id="cb16-551"><a href="#cb16-551" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-552"><a href="#cb16-552" aria-hidden="true" tabindex="-1"></a>fig, ax <span class="op">=</span> plt.subplots(figsize<span class="op">=</span>(<span class="dv">10</span>, <span class="dv">5</span>))</span>
+<span id="cb16-553"><a href="#cb16-553" aria-hidden="true" tabindex="-1"></a>ax.hist(null_distances, bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="ss">f'Null (mean=</span><span class="sc">{</span>np<span class="sc">.</span>mean(null_distances)<span class="sc">:.2f}</span><span class="ss">)'</span>)</span>
+<span id="cb16-554"><a href="#cb16-554" aria-hidden="true" tabindex="-1"></a>ax.hist(effect_distances, bins<span class="op">=</span><span class="dv">20</span>, alpha<span class="op">=</span><span class="fl">0.6</span>, label<span class="op">=</span><span class="ss">f'Effect=1 (mean=</span><span class="sc">{</span>np<span class="sc">.</span>mean(effect_distances)<span class="sc">:.2f}</span><span class="ss">)'</span>)</span>
+<span id="cb16-555"><a href="#cb16-555" aria-hidden="true" tabindex="-1"></a>ax.axvline(<span class="dv">0</span>, color<span class="op">=</span><span class="st">'black'</span>, linestyle<span class="op">=</span><span class="st">'--'</span>)</span>
+<span id="cb16-556"><a href="#cb16-556" aria-hidden="true" tabindex="-1"></a>ax.legend()</span>
+<span id="cb16-557"><a href="#cb16-557" aria-hidden="true" tabindex="-1"></a>ax.set_xlabel(<span class="st">'Cross-validated Mahalanobis d²'</span>)</span>
+<span id="cb16-558"><a href="#cb16-558" aria-hidden="true" tabindex="-1"></a>ax.set_title(<span class="st">'Null vs True Effect Distribution'</span>)</span>
+<span id="cb16-559"><a href="#cb16-559" aria-hidden="true" tabindex="-1"></a>plt.show()</span>
+<span id="cb16-560"><a href="#cb16-560" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
