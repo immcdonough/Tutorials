@@ -1,0 +1,1803 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lesson 3: Types of PLS Methods – Understanding PLS: A Beginner’s Guide</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-8b4baf804e461d9b72633f0de59a0cac.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-dfa86c539056bde6ee4442729cbb5590.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<link href="site_libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="site_libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN" && texText && texText.data) {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
+
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">Understanding PLS: A Beginner’s Guide</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./lesson-01-multivariate.html"> 
+<span class="menu-text">1. Multivariate Basics</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./lesson-02-pls-algorithm.html"> 
+<span class="menu-text">2. PLS Algorithm</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link active" href="./lesson-03-pls-types.html" aria-current="page"> 
+<span class="menu-text">3. PLS Variants</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./lesson-04-comparisons.html"> 
+<span class="menu-text">4. PLS vs CCA</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="./lesson-05-choosing.html"> 
+<span class="menu-text">5. Choosing Methods</span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  <li><a href="#the-pls-family-tree" id="toc-the-pls-family-tree" class="nav-link" data-scroll-target="#the-pls-family-tree">The PLS Family Tree</a></li>
+  <li><a href="#pls-regression-pls-r" id="toc-pls-regression-pls-r" class="nav-link" data-scroll-target="#pls-regression-pls-r">PLS Regression (PLS-R)</a>
+  <ul class="collapse">
+  <li><a href="#the-prediction-goal" id="toc-the-prediction-goal" class="nav-link" data-scroll-target="#the-prediction-goal">The Prediction Goal</a></li>
+  <li><a href="#how-pls-r-works" id="toc-how-pls-r-works" class="nav-link" data-scroll-target="#how-pls-r-works">How PLS-R Works</a></li>
+  <li><a href="#mathematical-formulation" id="toc-mathematical-formulation" class="nav-link" data-scroll-target="#mathematical-formulation">Mathematical Formulation</a></li>
+  <li><a href="#when-to-use-pls-r" id="toc-when-to-use-pls-r" class="nav-link" data-scroll-target="#when-to-use-pls-r">When to Use PLS-R</a></li>
+  </ul></li>
+  <li><a href="#pls-correlation-pls-c" id="toc-pls-correlation-pls-c" class="nav-link" data-scroll-target="#pls-correlation-pls-c">PLS Correlation (PLS-C)</a>
+  <ul class="collapse">
+  <li><a href="#the-pattern-finding-goal" id="toc-the-pattern-finding-goal" class="nav-link" data-scroll-target="#the-pattern-finding-goal">The Pattern-Finding Goal</a></li>
+  <li><a href="#how-pls-c-works" id="toc-how-pls-c-works" class="nav-link" data-scroll-target="#how-pls-c-works">How PLS-C Works</a></li>
+  <li><a href="#mathematical-formulation-1" id="toc-mathematical-formulation-1" class="nav-link" data-scroll-target="#mathematical-formulation-1">Mathematical Formulation</a></li>
+  <li><a href="#when-to-use-pls-c" id="toc-when-to-use-pls-c" class="nav-link" data-scroll-target="#when-to-use-pls-c">When to Use PLS-C</a></li>
+  </ul></li>
+  <li><a href="#pls-r-vs-pls-c-comparison" id="toc-pls-r-vs-pls-c-comparison" class="nav-link" data-scroll-target="#pls-r-vs-pls-c-comparison">PLS-R vs PLS-C Comparison</a></li>
+  <li><a href="#neuroimaging-pls-variants" id="toc-neuroimaging-pls-variants" class="nav-link" data-scroll-target="#neuroimaging-pls-variants">Neuroimaging PLS Variants</a>
+  <ul class="collapse">
+  <li><a href="#mean-centered-pls-task-pls" id="toc-mean-centered-pls-task-pls" class="nav-link" data-scroll-target="#mean-centered-pls-task-pls">Mean-Centered PLS (Task PLS)</a></li>
+  <li><a href="#behavior-pls" id="toc-behavior-pls" class="nav-link" data-scroll-target="#behavior-pls">Behavior PLS</a></li>
+  <li><a href="#task-pls" id="toc-task-pls" class="nav-link" data-scroll-target="#task-pls">Task PLS</a></li>
+  </ul></li>
+  <li><a href="#choosing-between-variants" id="toc-choosing-between-variants" class="nav-link" data-scroll-target="#choosing-between-variants">Choosing Between Variants</a></li>
+  <li><a href="#summary-table" id="toc-summary-table" class="nav-link" data-scroll-target="#summary-table">Summary Table</a></li>
+  <li><a href="#key-takeaways" id="toc-key-takeaways" class="nav-link" data-scroll-target="#key-takeaways">Key Takeaways</a></li>
+  <li><a href="#next-lesson" id="toc-next-lesson" class="nav-link" data-scroll-target="#next-lesson">Next Lesson</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<div class="quarto-title-block"><div><h1 class="title">Lesson 3: Types of PLS Methods</h1><button type="button" class="btn code-tools-button dropdown-toggle" id="quarto-code-tools-menu" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi"></i> Code</button><ul class="dropdown-menu dropdown-menu-end" aria-labelelledby="quarto-code-tools-menu"><li><a id="quarto-show-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Show All Code</a></li><li><a id="quarto-hide-all-code" class="dropdown-item" href="javascript:void(0)" role="button">Hide All Code</a></li><li><hr class="dropdown-divider"></li><li><a id="quarto-view-source" class="dropdown-item" href="javascript:void(0)" role="button">View Source</a></li></ul></div></div>
+<p class="subtitle lead">Understanding PLS-R, PLS-C, and other variants</p>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="learning-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
+<p>By the end of this lesson, you will understand:</p>
+<ol type="1">
+<li>The difference between <strong>PLS Regression</strong> and <strong>PLS Correlation</strong></li>
+<li>How <strong>Mean-Centered PLS</strong>, <strong>Behavior PLS</strong>, and <strong>Task PLS</strong> differ</li>
+<li>When to use each variant</li>
+<li>How the choice affects interpretation</li>
+</ol>
+</section>
+<section id="the-pls-family-tree" class="level2">
+<h2 class="anchored" data-anchor-id="the-pls-family-tree">The PLS Family Tree</h2>
+<p>PLS isn’t one method - it’s a family of related techniques. The key differences are:</p>
+<ol type="1">
+<li><strong>What matrix is decomposed</strong> (covariance vs correlation)</li>
+<li><strong>What the second dataset contains</strong> (behaviors, tasks, groups)</li>
+<li><strong>Whether prediction or pattern-finding is the goal</strong></li>
+</ol>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson-03-pls-types_files/figure-html/family-tree-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="pls-regression-pls-r" class="level2">
+<h2 class="anchored" data-anchor-id="pls-regression-pls-r">PLS Regression (PLS-R)</h2>
+<section id="the-prediction-goal" class="level3">
+<h3 class="anchored" data-anchor-id="the-prediction-goal">The Prediction Goal</h3>
+<p><strong>PLS Regression</strong> was developed in chemometrics for <strong>prediction</strong>. The goal is to predict Y from X.</p>
+<p>Key characteristics:</p>
+<ul>
+<li>Iterative algorithm (NIPALS)</li>
+<li>Extracts components from X that best predict Y</li>
+<li>Can handle more predictors than observations</li>
+<li>Output includes regression coefficients</li>
+</ul>
+</section>
+<section id="how-pls-r-works" class="level3">
+<h3 class="anchored" data-anchor-id="how-pls-r-works">How PLS-R Works</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson-03-pls-types_files/figure-html/pls-r-concept-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="mathematical-formulation" class="level3">
+<h3 class="anchored" data-anchor-id="mathematical-formulation">Mathematical Formulation</h3>
+<p>PLS-R iteratively finds:</p>
+<ol type="1">
+<li><strong>Weight vectors</strong> w that maximize cov(Xw, Y)</li>
+<li><strong>Scores</strong> t = Xw</li>
+<li><strong>Loadings</strong> p that relate t back to X</li>
+<li><strong>Regression of Y on t</strong></li>
+</ol>
+<p>Then deflates X and repeats for more components.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Simplified PLS-R demonstration (1 component)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">50</span>; p <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p), n, p)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> X[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> X[, <span class="dv">2</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)  <span class="co"># Y depends on X1, X2</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Center</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>X_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(X, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>Y_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(Y, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co"># NIPALS algorithm (simplified, 1 iteration)</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> <span class="fu">t</span>(X_c) <span class="sc">%*%</span> Y_c</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> w <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(w<span class="sc">^</span><span class="dv">2</span>))  <span class="co"># Normalize</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute scores</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>t_scores <span class="ot">&lt;-</span> X_c <span class="sc">%*%</span> w</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute loadings</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>p_load <span class="ot">&lt;-</span> <span class="fu">t</span>(X_c) <span class="sc">%*%</span> t_scores <span class="sc">/</span> <span class="fu">sum</span>(t_scores<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Regression coefficient for Y</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>c_coef <span class="ot">&lt;-</span> <span class="fu">sum</span>(Y_c <span class="sc">*</span> t_scores) <span class="sc">/</span> <span class="fu">sum</span>(t_scores<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"PLS-R Results (1 component):</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>PLS-R Results (1 component):</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Weights (w) - showing top 3 predictors:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Weights (w) - showing top 3 predictors:</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>top3 <span class="ot">&lt;-</span> <span class="fu">order</span>(<span class="fu">abs</span>(w), <span class="at">decreasing =</span> <span class="cn">TRUE</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> top3) {</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"  X%d: %.3f</span><span class="sc">\n</span><span class="st">"</span>, i, w[i]))</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>  X1: 0.933
+  X9: 0.226
+  X4: 0.156</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">R² with 1 component:"</span>, <span class="fu">round</span>(<span class="fu">cor</span>(t_scores <span class="sc">*</span> c_coef, Y_c)<span class="sc">^</span><span class="dv">2</span>, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+R² with 1 component: 0.69 </code></pre>
+</div>
+</div>
+</section>
+<section id="when-to-use-pls-r" class="level3">
+<h3 class="anchored" data-anchor-id="when-to-use-pls-r">When to Use PLS-R</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Use PLS-R When:
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Your goal is <strong>prediction</strong></li>
+<li>You have more predictors than observations (p &gt; n)</li>
+<li>You want <strong>regression coefficients</strong></li>
+<li>You’re coming from a chemometrics/machine learning context</li>
+</ul>
+</div>
+</div>
+</section>
+</section>
+<section id="pls-correlation-pls-c" class="level2">
+<h2 class="anchored" data-anchor-id="pls-correlation-pls-c">PLS Correlation (PLS-C)</h2>
+<section id="the-pattern-finding-goal" class="level3">
+<h3 class="anchored" data-anchor-id="the-pattern-finding-goal">The Pattern-Finding Goal</h3>
+<p><strong>PLS Correlation</strong> (often just called “PLS” in neuroimaging) focuses on finding <strong>symmetric patterns</strong> between two variable sets.</p>
+<p>Key characteristics:</p>
+<ul>
+<li>Single SVD operation</li>
+<li>Treats X and Y symmetrically</li>
+<li>Finds patterns that maximally covary</li>
+<li>No prediction coefficients</li>
+</ul>
+</section>
+<section id="how-pls-c-works" class="level3">
+<h3 class="anchored" data-anchor-id="how-pls-c-works">How PLS-C Works</h3>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson-03-pls-types_files/figure-html/pls-c-concept-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="mathematical-formulation-1" class="level3">
+<h3 class="anchored" data-anchor-id="mathematical-formulation-1">Mathematical Formulation</h3>
+<p>PLS-C performs SVD on the cross-covariance (or cross-correlation) matrix:</p>
+<p><span class="math display">\[R = X^T Y \quad \text{(or standardized)}\]</span> <span class="math display">\[R = U S V^T\]</span></p>
+<p>Then computes scores:</p>
+<ul>
+<li>Brain scores: <span class="math inline">\(X \cdot U\)</span></li>
+<li>Behavior scores: <span class="math inline">\(Y \cdot V\)</span></li>
+</ul>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># PLS-C demonstration</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">50</span>; p1 <span class="ot">&lt;-</span> <span class="dv">10</span>; p2 <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p1), n, p1)</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p2), n, p2)</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Create relationship</span></span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>latent <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>X[, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="ot">&lt;-</span> X[, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="sc">+</span> <span class="fu">outer</span>(latent, <span class="fu">c</span>(<span class="fl">0.8</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span>))</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>Y[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>] <span class="ot">&lt;-</span> Y[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>] <span class="sc">+</span> <span class="fu">outer</span>(latent, <span class="fu">c</span>(<span class="fl">0.7</span>, <span class="fl">0.4</span>))</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Center</span></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>X_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(X, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>Y_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(Y, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Cross-covariance</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="fu">t</span>(X_c) <span class="sc">%*%</span> Y_c <span class="sc">/</span> (n <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="co"># SVD</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a>svd_r <span class="ot">&lt;-</span> <span class="fu">svd</span>(R)</span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"PLS-C Results:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>PLS-C Results:</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Singular values:"</span>, <span class="fu">round</span>(svd_r<span class="sc">$</span>d, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Singular values: 1.368 0.58 0.479 0.322 0.32 </code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Variance explained:"</span>, <span class="fu">round</span>((svd_r<span class="sc">$</span>d<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="fu">sum</span>(svd_r<span class="sc">$</span>d<span class="sc">^</span><span class="dv">2</span>)<span class="sc">*</span><span class="dv">100</span>, <span class="dv">1</span>), <span class="st">"%</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Variance explained: 70.8 12.7 8.7 3.9 3.9 %</code></pre>
+</div>
+</div>
+</section>
+<section id="when-to-use-pls-c" class="level3">
+<h3 class="anchored" data-anchor-id="when-to-use-pls-c">When to Use PLS-C</h3>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>Use PLS-C When:
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ul>
+<li>Your goal is <strong>understanding relationships</strong></li>
+<li>Both variable sets are equally important</li>
+<li>You want to know which variables <strong>on both sides</strong> contribute</li>
+<li>You’re in a neuroimaging/psychology context</li>
+</ul>
+</div>
+</div>
+</section>
+</section>
+<section id="pls-r-vs-pls-c-comparison" class="level2">
+<h2 class="anchored" data-anchor-id="pls-r-vs-pls-c-comparison">PLS-R vs PLS-C Comparison</h2>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>PLS-R vs PLS-C Comparison</caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Aspect</th>
+<th style="text-align: left;">PLS Regression</th>
+<th style="text-align: left;">PLS Correlation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Primary goal</td>
+<td style="text-align: left;">Prediction</td>
+<td style="text-align: left;">Pattern finding</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Algorithm</td>
+<td style="text-align: left;">Iterative (NIPALS)</td>
+<td style="text-align: left;">Single SVD</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">X and Y role</td>
+<td style="text-align: left;">X predicts Y</td>
+<td style="text-align: left;">Symmetric</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Output</td>
+<td style="text-align: left;">Regression coefficients</td>
+<td style="text-align: left;">Saliences for both</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Interpretation</td>
+<td style="text-align: left;">Which X’s predict Y</td>
+<td style="text-align: left;">Joint patterns in X and Y</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Typical field</td>
+<td style="text-align: left;">Chemometrics, ML</td>
+<td style="text-align: left;">Neuroimaging</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="neuroimaging-pls-variants" class="level2">
+<h2 class="anchored" data-anchor-id="neuroimaging-pls-variants">Neuroimaging PLS Variants</h2>
+<p>In neuroimaging, PLS-C is further specialized based on the <strong>design matrix</strong> (Y):</p>
+<section id="mean-centered-pls-task-pls" class="level3">
+<h3 class="anchored" data-anchor-id="mean-centered-pls-task-pls">Mean-Centered PLS (Task PLS)</h3>
+<p>The simplest form. Y is a <strong>design matrix</strong> indicating group/condition membership.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: 2 conditions, 3 subjects each</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>n_per_cond <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>n_cond <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> n_per_cond <span class="sc">*</span> n_cond</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Design matrix (dummy coded)</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>Y_design <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n, n_cond)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>Y_design[<span class="dv">1</span><span class="sc">:</span>n_per_cond, <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>Y_design[(n_per_cond<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>n, <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a>design_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="at">Subject =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="at">Condition =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>), <span class="at">each =</span> n_per_cond)</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(design_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(Subject), <span class="at">y =</span> <span class="dv">1</span>, <span class="at">fill =</span> Condition)) <span class="sc">+</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">height =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"A"</span> <span class="ot">=</span> <span class="st">"#4575b4"</span>, <span class="st">"B"</span> <span class="ot">=</span> <span class="st">"#d73027"</span>)) <span class="sc">+</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Design Matrix Y"</span>,</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Subjects in two conditions"</span>,</span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Subject"</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb16-24"><a href="#cb16-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb16-25"><a href="#cb16-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-26"><a href="#cb16-26" aria-hidden="true" tabindex="-1"></a><span class="co"># What Mean-Centered PLS finds</span></span>
+<span id="cb16-27"><a href="#cb16-27" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Mean-Centered PLS asks:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Mean-Centered PLS asks:</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Which brain regions differ between conditions?</span><span class="sc">\n\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Which brain regions differ between conditions?</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson-03-pls-types_files/figure-html/mean-centered-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Use when</strong>: Comparing groups or conditions</p>
+</section>
+<section id="behavior-pls" class="level3">
+<h3 class="anchored" data-anchor-id="behavior-pls">Behavior PLS</h3>
+<p>Y contains <strong>continuous behavioral measures</strong> for each subject.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: 3 behavioral measures</span></span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>Y_behav <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">Subject =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">Memory =</span> <span class="fu">rnorm</span>(n, <span class="dv">100</span>, <span class="dv">15</span>),</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">Attention =</span> <span class="fu">rnorm</span>(n, <span class="dv">50</span>, <span class="dv">10</span>),</span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">Speed =</span> <span class="fu">rnorm</span>(n, <span class="dv">200</span>, <span class="dv">30</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-10"><a href="#cb21-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb21-11"><a href="#cb21-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb21-12"><a href="#cb21-12" aria-hidden="true" tabindex="-1"></a>Y_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(Y_behav, <span class="at">cols =</span> <span class="sc">-</span>Subject, <span class="at">names_to =</span> <span class="st">"Measure"</span>, <span class="at">values_to =</span> <span class="st">"Score"</span>)</span>
+<span id="cb21-13"><a href="#cb21-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-14"><a href="#cb21-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Y_long, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(Subject), <span class="at">y =</span> Score, <span class="at">fill =</span> Measure)) <span class="sc">+</span></span>
+<span id="cb21-15"><a href="#cb21-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb21-16"><a href="#cb21-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Behavior Matrix Y"</span>,</span>
+<span id="cb21-17"><a href="#cb21-17" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Continuous behavioral measures per subject"</span>,</span>
+<span id="cb21-18"><a href="#cb21-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Subject"</span>) <span class="sc">+</span></span>
+<span id="cb21-19"><a href="#cb21-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb21-20"><a href="#cb21-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson-03-pls-types_files/figure-html/behavior-pls-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Use when</strong>: Relating brain patterns to continuous behavioral measures</p>
+</section>
+<section id="task-pls" class="level3">
+<h3 class="anchored" data-anchor-id="task-pls">Task PLS</h3>
+<p>Combines both: Subjects have multiple conditions, and the analysis finds patterns that differ across conditions.</p>
+<div class="cell">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Task PLS structure:</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Rows = subjects × conditions (stacked)</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Y = condition indicators</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>n_subj <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>n_cond <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Task PLS Data Structure:</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Task PLS Data Structure:</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"========================</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>========================</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb26"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Brain data (X): "</span>, n_subj <span class="sc">*</span> n_cond, <span class="st">"rows ("</span>, n_subj, <span class="st">"subjects ×"</span>,</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a>    n_cond, <span class="st">"conditions)</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Brain data (X):  30 rows ( 10 subjects × 3 conditions)</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb28"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Design matrix (Y):"</span>, n_cond, <span class="st">"columns (condition indicators)</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Design matrix (Y): 3 columns (condition indicators)</code></pre>
+</div>
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb30"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Finds: Brain patterns that characterize each condition</span><span class="sc">\n</span><span class="st">"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Finds: Brain patterns that characterize each condition</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="choosing-between-variants" class="level2">
+<h2 class="anchored" data-anchor-id="choosing-between-variants">Choosing Between Variants</h2>
+<div class="cell">
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="lesson-03-pls-types_files/figure-html/decision-diagram-1.png" class="img-fluid figure-img" width="960"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+<section id="summary-table" class="level2">
+<h2 class="anchored" data-anchor-id="summary-table">Summary Table</h2>
+<div class="cell">
+<div class="cell-output-display">
+<table class="caption-top table table-sm table-striped small">
+<caption>PLS Variants Summary</caption>
+<colgroup>
+<col style="width: 14%">
+<col style="width: 21%">
+<col style="width: 35%">
+<col style="width: 28%">
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Variant</th>
+<th style="text-align: left;">Y_Contains</th>
+<th style="text-align: left;">Question</th>
+<th style="text-align: left;">Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">PLS Regression</td>
+<td style="text-align: left;">Outcomes to predict</td>
+<td style="text-align: left;">Which X’s predict Y?</td>
+<td style="text-align: left;">Regression coefficients</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Mean-Centered PLS</td>
+<td style="text-align: left;">Group/condition codes</td>
+<td style="text-align: left;">Which brain regions differ between groups?</td>
+<td style="text-align: left;">Brain saliences per condition</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Behavior PLS</td>
+<td style="text-align: left;">Continuous measures</td>
+<td style="text-align: left;">What brain pattern relates to behaviors?</td>
+<td style="text-align: left;">Brain &amp; behavior saliences</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Task PLS</td>
+<td style="text-align: left;">Condition codes (stacked)</td>
+<td style="text-align: left;">What characterizes each condition?</td>
+<td style="text-align: left;">Brain saliences, condition scores</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</section>
+<section id="key-takeaways" class="level2">
+<h2 class="anchored" data-anchor-id="key-takeaways">Key Takeaways</h2>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Remember
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<ol type="1">
+<li><p><strong>PLS-R</strong> is for prediction; <strong>PLS-C</strong> is for pattern discovery</p></li>
+<li><p>Within PLS-C, the variant depends on <strong>what Y contains</strong></p></li>
+<li><p><strong>Mean-Centered PLS</strong>: Compare groups/conditions</p></li>
+<li><p><strong>Behavior PLS</strong>: Relate brain to continuous measures</p></li>
+<li><p><strong>Task PLS</strong>: Characterize conditions with repeated measures</p></li>
+<li><p>The core math (SVD on cross-product) is the same - the input differs!</p></li>
+</ol>
+</div>
+</div>
+</section>
+<section id="next-lesson" class="level2">
+<h2 class="anchored" data-anchor-id="next-lesson">Next Lesson</h2>
+<p>In <a href="./lesson-04-comparisons.html">Lesson 4</a>, we’ll compare PLS to related methods:</p>
+<ul>
+<li>Canonical Correlation Analysis (CCA)</li>
+<li>Principal Component Regression (PCR)</li>
+<li>Reduced Rank Regression (RRR)</li>
+</ul>
+<p>You’ll learn when each method is most appropriate!</p>
+
+
+<!-- -->
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+    const viewSource = window.document.getElementById('quarto-view-source') ||
+                       window.document.getElementById('quarto-code-tools-source');
+    if (viewSource) {
+      const sourceUrl = viewSource.getAttribute("data-quarto-source-url");
+      viewSource.addEventListener("click", function(e) {
+        if (sourceUrl) {
+          // rstudio viewer pane
+          if (/\bcapabilities=\b/.test(window.location)) {
+            window.open(sourceUrl);
+          } else {
+            window.location.href = sourceUrl;
+          }
+        } else {
+          const modal = new bootstrap.Modal(document.getElementById('quarto-embedded-source-code-modal'));
+          modal.show();
+        }
+        return false;
+      });
+    }
+    function toggleCodeHandler(show) {
+      return function(e) {
+        const detailsSrc = window.document.querySelectorAll(".cell > details > .sourceCode");
+        for (let i=0; i<detailsSrc.length; i++) {
+          const details = detailsSrc[i].parentElement;
+          if (show) {
+            details.open = true;
+          } else {
+            details.removeAttribute("open");
+          }
+        }
+        const cellCodeDivs = window.document.querySelectorAll(".cell > .sourceCode");
+        const fromCls = show ? "hidden" : "unhidden";
+        const toCls = show ? "unhidden" : "hidden";
+        for (let i=0; i<cellCodeDivs.length; i++) {
+          const codeDiv = cellCodeDivs[i];
+          if (codeDiv.classList.contains(fromCls)) {
+            codeDiv.classList.remove(fromCls);
+            codeDiv.classList.add(toCls);
+          } 
+        }
+        return false;
+      }
+    }
+    const hideAllCode = window.document.getElementById("quarto-hide-all-code");
+    if (hideAllCode) {
+      hideAllCode.addEventListener("click", toggleCodeHandler(false));
+    }
+    const showAllCode = window.document.getElementById("quarto-show-all-code");
+    if (showAllCode) {
+      showAllCode.addEventListener("click", toggleCodeHandler(true));
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><div class="modal fade" id="quarto-embedded-source-code-modal" tabindex="-1" aria-labelledby="quarto-embedded-source-code-modal-label" aria-hidden="true"><div class="modal-dialog modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="quarto-embedded-source-code-modal-label">Source Code</h5><button class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="">
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb32" data-shortcodes="false"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a><span class="an">title:</span><span class="co"> "Lesson 3: Types of PLS Methods"</span></span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="an">subtitle:</span><span class="co"> "Understanding PLS-R, PLS-C, and other variants"</span></span>
+<span id="cb32-4"><a href="#cb32-4" aria-hidden="true" tabindex="-1"></a><span class="co">---</span></span>
+<span id="cb32-5"><a href="#cb32-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-6"><a href="#cb32-6" aria-hidden="true" tabindex="-1"></a><span class="fu">## Learning Objectives</span></span>
+<span id="cb32-7"><a href="#cb32-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-8"><a href="#cb32-8" aria-hidden="true" tabindex="-1"></a>By the end of this lesson, you will understand:</span>
+<span id="cb32-9"><a href="#cb32-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-10"><a href="#cb32-10" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>The difference between **PLS Regression** and **PLS Correlation**</span>
+<span id="cb32-11"><a href="#cb32-11" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>How **Mean-Centered PLS**, **Behavior PLS**, and **Task PLS** differ</span>
+<span id="cb32-12"><a href="#cb32-12" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>When to use each variant</span>
+<span id="cb32-13"><a href="#cb32-13" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>How the choice affects interpretation</span>
+<span id="cb32-14"><a href="#cb32-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-15"><a href="#cb32-15" aria-hidden="true" tabindex="-1"></a><span class="fu">## The PLS Family Tree</span></span>
+<span id="cb32-16"><a href="#cb32-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-17"><a href="#cb32-17" aria-hidden="true" tabindex="-1"></a>PLS isn't one method - it's a family of related techniques. The key differences are:</span>
+<span id="cb32-18"><a href="#cb32-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-19"><a href="#cb32-19" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**What matrix is decomposed** (covariance vs correlation)</span>
+<span id="cb32-20"><a href="#cb32-20" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**What the second dataset contains** (behaviors, tasks, groups)</span>
+<span id="cb32-21"><a href="#cb32-21" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Whether prediction or pattern-finding is the goal**</span>
+<span id="cb32-22"><a href="#cb32-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-25"><a href="#cb32-25" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-26"><a href="#cb32-26" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: setup</span></span>
+<span id="cb32-27"><a href="#cb32-27" aria-hidden="true" tabindex="-1"></a><span class="co">#| message: false</span></span>
+<span id="cb32-28"><a href="#cb32-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-29"><a href="#cb32-29" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb32-30"><a href="#cb32-30" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(patchwork)</span>
+<span id="cb32-31"><a href="#cb32-31" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">42</span>)</span>
+<span id="cb32-32"><a href="#cb32-32" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-33"><a href="#cb32-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-36"><a href="#cb32-36" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-37"><a href="#cb32-37" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: family-tree</span></span>
+<span id="cb32-38"><a href="#cb32-38" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb32-39"><a href="#cb32-39" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb32-40"><a href="#cb32-40" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 7</span></span>
+<span id="cb32-41"><a href="#cb32-41" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-42"><a href="#cb32-42" aria-hidden="true" tabindex="-1"></a><span class="co"># Family tree diagram</span></span>
+<span id="cb32-43"><a href="#cb32-43" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb32-44"><a href="#cb32-44" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Root</span></span>
+<span id="cb32-45"><a href="#cb32-45" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">4</span>, <span class="at">xmax =</span> <span class="dv">6</span>, <span class="at">ymin =</span> <span class="dv">6</span>, <span class="at">ymax =</span> <span class="dv">7</span>,</span>
+<span id="cb32-46"><a href="#cb32-46" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#4575b4"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-47"><a href="#cb32-47" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="fl">6.5</span>, <span class="at">label =</span> <span class="st">"PLS</span><span class="sc">\n</span><span class="st">(General)"</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb32-48"><a href="#cb32-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-49"><a href="#cb32-49" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Branches</span></span>
+<span id="cb32-50"><a href="#cb32-50" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">4.5</span>, <span class="at">xend =</span> <span class="fl">2.5</span>, <span class="at">y =</span> <span class="dv">6</span>, <span class="at">yend =</span> <span class="dv">5</span>), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-51"><a href="#cb32-51" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">5.5</span>, <span class="at">xend =</span> <span class="fl">7.5</span>, <span class="at">y =</span> <span class="dv">6</span>, <span class="at">yend =</span> <span class="dv">5</span>), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-52"><a href="#cb32-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-53"><a href="#cb32-53" aria-hidden="true" tabindex="-1"></a>  <span class="co"># PLS-R branch</span></span>
+<span id="cb32-54"><a href="#cb32-54" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">1</span>, <span class="at">xmax =</span> <span class="dv">4</span>, <span class="at">ymin =</span> <span class="dv">4</span>, <span class="at">ymax =</span> <span class="dv">5</span>,</span>
+<span id="cb32-55"><a href="#cb32-55" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#d73027"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-56"><a href="#cb32-56" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">2.5</span>, <span class="at">y =</span> <span class="fl">4.5</span>, <span class="at">label =</span> <span class="st">"PLS Regression</span><span class="sc">\n</span><span class="st">(Prediction focus)"</span>, <span class="at">size =</span> <span class="fl">3.5</span>) <span class="sc">+</span></span>
+<span id="cb32-57"><a href="#cb32-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-58"><a href="#cb32-58" aria-hidden="true" tabindex="-1"></a>  <span class="co"># PLS-C branch</span></span>
+<span id="cb32-59"><a href="#cb32-59" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">6</span>, <span class="at">xmax =</span> <span class="dv">9</span>, <span class="at">ymin =</span> <span class="dv">4</span>, <span class="at">ymax =</span> <span class="dv">5</span>,</span>
+<span id="cb32-60"><a href="#cb32-60" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#91cf60"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-61"><a href="#cb32-61" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">7.5</span>, <span class="at">y =</span> <span class="fl">4.5</span>, <span class="at">label =</span> <span class="st">"PLS Correlation</span><span class="sc">\n</span><span class="st">(Pattern focus)"</span>, <span class="at">size =</span> <span class="fl">3.5</span>) <span class="sc">+</span></span>
+<span id="cb32-62"><a href="#cb32-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-63"><a href="#cb32-63" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Sub-branches of PLS-C</span></span>
+<span id="cb32-64"><a href="#cb32-64" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">6.5</span>, <span class="at">xend =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="dv">3</span>), <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-65"><a href="#cb32-65" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">7.5</span>, <span class="at">xend =</span> <span class="fl">7.5</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="dv">3</span>), <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-66"><a href="#cb32-66" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">8.5</span>, <span class="at">xend =</span> <span class="dv">10</span>, <span class="at">y =</span> <span class="dv">4</span>, <span class="at">yend =</span> <span class="dv">3</span>), <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-67"><a href="#cb32-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-68"><a href="#cb32-68" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">3.5</span>, <span class="at">xmax =</span> <span class="fl">6.5</span>, <span class="at">ymin =</span> <span class="dv">2</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-69"><a href="#cb32-69" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#fee08b"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-70"><a href="#cb32-70" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">label =</span> <span class="st">"Mean-Centered</span><span class="sc">\n</span><span class="st">PLS"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-71"><a href="#cb32-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-72"><a href="#cb32-72" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">6</span>, <span class="at">xmax =</span> <span class="dv">9</span>, <span class="at">ymin =</span> <span class="dv">2</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-73"><a href="#cb32-73" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#fee08b"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-74"><a href="#cb32-74" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">7.5</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">label =</span> <span class="st">"Behavior</span><span class="sc">\n</span><span class="st">PLS"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-75"><a href="#cb32-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-76"><a href="#cb32-76" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">8.5</span>, <span class="at">xmax =</span> <span class="fl">11.5</span>, <span class="at">ymin =</span> <span class="dv">2</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-77"><a href="#cb32-77" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#fee08b"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-78"><a href="#cb32-78" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">10</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">label =</span> <span class="st">"Task</span><span class="sc">\n</span><span class="st">PLS"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-79"><a href="#cb32-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-80"><a href="#cb32-80" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">12</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">1</span>, <span class="dv">8</span>) <span class="sc">+</span></span>
+<span id="cb32-81"><a href="#cb32-81" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb32-82"><a href="#cb32-82" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"The PLS Family of Methods"</span>)</span>
+<span id="cb32-83"><a href="#cb32-83" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-84"><a href="#cb32-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-85"><a href="#cb32-85" aria-hidden="true" tabindex="-1"></a><span class="fu">## PLS Regression (PLS-R)</span></span>
+<span id="cb32-86"><a href="#cb32-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-87"><a href="#cb32-87" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Prediction Goal</span></span>
+<span id="cb32-88"><a href="#cb32-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-89"><a href="#cb32-89" aria-hidden="true" tabindex="-1"></a>**PLS Regression** was developed in chemometrics for **prediction**. The goal is to predict Y from X.</span>
+<span id="cb32-90"><a href="#cb32-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-91"><a href="#cb32-91" aria-hidden="true" tabindex="-1"></a>Key characteristics:</span>
+<span id="cb32-92"><a href="#cb32-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-93"><a href="#cb32-93" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Iterative algorithm (NIPALS)</span>
+<span id="cb32-94"><a href="#cb32-94" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Extracts components from X that best predict Y</span>
+<span id="cb32-95"><a href="#cb32-95" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Can handle more predictors than observations</span>
+<span id="cb32-96"><a href="#cb32-96" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Output includes regression coefficients</span>
+<span id="cb32-97"><a href="#cb32-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-98"><a href="#cb32-98" aria-hidden="true" tabindex="-1"></a><span class="fu">### How PLS-R Works</span></span>
+<span id="cb32-99"><a href="#cb32-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-102"><a href="#cb32-102" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-103"><a href="#cb32-103" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pls-r-concept</span></span>
+<span id="cb32-104"><a href="#cb32-104" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb32-105"><a href="#cb32-105" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb32-106"><a href="#cb32-106" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb32-107"><a href="#cb32-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-108"><a href="#cb32-108" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb32-109"><a href="#cb32-109" aria-hidden="true" tabindex="-1"></a>  <span class="co"># X data</span></span>
+<span id="cb32-110"><a href="#cb32-110" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">0.5</span>, <span class="at">xmax =</span> <span class="fl">2.5</span>, <span class="at">ymin =</span> <span class="dv">1</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-111"><a href="#cb32-111" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#4575b4"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb32-112"><a href="#cb32-112" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">1.5</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"X</span><span class="sc">\n</span><span class="st">(Predictors)"</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb32-113"><a href="#cb32-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-114"><a href="#cb32-114" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Extract</span></span>
+<span id="cb32-115"><a href="#cb32-115" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">2.7</span>, <span class="at">xend =</span> <span class="fl">3.8</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">yend =</span> <span class="dv">2</span>),</span>
+<span id="cb32-116"><a href="#cb32-116" aria-hidden="true" tabindex="-1"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-117"><a href="#cb32-117" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">3.25</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">label =</span> <span class="st">"Extract</span><span class="sc">\n</span><span class="st">components"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-118"><a href="#cb32-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-119"><a href="#cb32-119" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Components</span></span>
+<span id="cb32-120"><a href="#cb32-120" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">4</span>, <span class="at">xmax =</span> <span class="fl">5.5</span>, <span class="at">ymin =</span> <span class="fl">1.5</span>, <span class="at">ymax =</span> <span class="fl">2.5</span>,</span>
+<span id="cb32-121"><a href="#cb32-121" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#91cf60"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb32-122"><a href="#cb32-122" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">4.75</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"T</span><span class="sc">\n</span><span class="st">(scores)"</span>, <span class="at">size =</span> <span class="fl">3.5</span>) <span class="sc">+</span></span>
+<span id="cb32-123"><a href="#cb32-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-124"><a href="#cb32-124" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Predict</span></span>
+<span id="cb32-125"><a href="#cb32-125" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">5.7</span>, <span class="at">xend =</span> <span class="fl">6.8</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">yend =</span> <span class="dv">2</span>),</span>
+<span id="cb32-126"><a href="#cb32-126" aria-hidden="true" tabindex="-1"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-127"><a href="#cb32-127" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">6.25</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">label =</span> <span class="st">"Predict"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-128"><a href="#cb32-128" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-129"><a href="#cb32-129" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Y predicted</span></span>
+<span id="cb32-130"><a href="#cb32-130" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">7</span>, <span class="at">xmax =</span> <span class="dv">9</span>, <span class="at">ymin =</span> <span class="dv">1</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-131"><a href="#cb32-131" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#d73027"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb32-132"><a href="#cb32-132" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"Y</span><span class="sc">\n</span><span class="st">(Response)"</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb32-133"><a href="#cb32-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-134"><a href="#cb32-134" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">10</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">0</span>, <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb32-135"><a href="#cb32-135" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb32-136"><a href="#cb32-136" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"PLS Regression: Extract components that predict Y"</span>)</span>
+<span id="cb32-137"><a href="#cb32-137" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-138"><a href="#cb32-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-139"><a href="#cb32-139" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mathematical Formulation</span></span>
+<span id="cb32-140"><a href="#cb32-140" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-141"><a href="#cb32-141" aria-hidden="true" tabindex="-1"></a>PLS-R iteratively finds:</span>
+<span id="cb32-142"><a href="#cb32-142" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-143"><a href="#cb32-143" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**Weight vectors** w that maximize cov(Xw, Y)</span>
+<span id="cb32-144"><a href="#cb32-144" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>**Scores** t = Xw</span>
+<span id="cb32-145"><a href="#cb32-145" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Loadings** p that relate t back to X</span>
+<span id="cb32-146"><a href="#cb32-146" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Regression of Y on t**</span>
+<span id="cb32-147"><a href="#cb32-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-148"><a href="#cb32-148" aria-hidden="true" tabindex="-1"></a>Then deflates X and repeats for more components.</span>
+<span id="cb32-149"><a href="#cb32-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-152"><a href="#cb32-152" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-153"><a href="#cb32-153" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pls-r-demo</span></span>
+<span id="cb32-154"><a href="#cb32-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-155"><a href="#cb32-155" aria-hidden="true" tabindex="-1"></a><span class="co"># Simplified PLS-R demonstration (1 component)</span></span>
+<span id="cb32-156"><a href="#cb32-156" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">50</span>; p <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb32-157"><a href="#cb32-157" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p), n, p)</span>
+<span id="cb32-158"><a href="#cb32-158" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> X[, <span class="dv">1</span>] <span class="sc">+</span> <span class="fl">0.5</span> <span class="sc">*</span> X[, <span class="dv">2</span>] <span class="sc">+</span> <span class="fu">rnorm</span>(n, <span class="at">sd =</span> <span class="fl">0.5</span>)  <span class="co"># Y depends on X1, X2</span></span>
+<span id="cb32-159"><a href="#cb32-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-160"><a href="#cb32-160" aria-hidden="true" tabindex="-1"></a><span class="co"># Center</span></span>
+<span id="cb32-161"><a href="#cb32-161" aria-hidden="true" tabindex="-1"></a>X_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(X, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb32-162"><a href="#cb32-162" aria-hidden="true" tabindex="-1"></a>Y_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(Y, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb32-163"><a href="#cb32-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-164"><a href="#cb32-164" aria-hidden="true" tabindex="-1"></a><span class="co"># NIPALS algorithm (simplified, 1 iteration)</span></span>
+<span id="cb32-165"><a href="#cb32-165" aria-hidden="true" tabindex="-1"></a><span class="co"># Initialize</span></span>
+<span id="cb32-166"><a href="#cb32-166" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> <span class="fu">t</span>(X_c) <span class="sc">%*%</span> Y_c</span>
+<span id="cb32-167"><a href="#cb32-167" aria-hidden="true" tabindex="-1"></a>w <span class="ot">&lt;-</span> w <span class="sc">/</span> <span class="fu">sqrt</span>(<span class="fu">sum</span>(w<span class="sc">^</span><span class="dv">2</span>))  <span class="co"># Normalize</span></span>
+<span id="cb32-168"><a href="#cb32-168" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-169"><a href="#cb32-169" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute scores</span></span>
+<span id="cb32-170"><a href="#cb32-170" aria-hidden="true" tabindex="-1"></a>t_scores <span class="ot">&lt;-</span> X_c <span class="sc">%*%</span> w</span>
+<span id="cb32-171"><a href="#cb32-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-172"><a href="#cb32-172" aria-hidden="true" tabindex="-1"></a><span class="co"># Compute loadings</span></span>
+<span id="cb32-173"><a href="#cb32-173" aria-hidden="true" tabindex="-1"></a>p_load <span class="ot">&lt;-</span> <span class="fu">t</span>(X_c) <span class="sc">%*%</span> t_scores <span class="sc">/</span> <span class="fu">sum</span>(t_scores<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb32-174"><a href="#cb32-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-175"><a href="#cb32-175" aria-hidden="true" tabindex="-1"></a><span class="co"># Regression coefficient for Y</span></span>
+<span id="cb32-176"><a href="#cb32-176" aria-hidden="true" tabindex="-1"></a>c_coef <span class="ot">&lt;-</span> <span class="fu">sum</span>(Y_c <span class="sc">*</span> t_scores) <span class="sc">/</span> <span class="fu">sum</span>(t_scores<span class="sc">^</span><span class="dv">2</span>)</span>
+<span id="cb32-177"><a href="#cb32-177" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-178"><a href="#cb32-178" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"PLS-R Results (1 component):</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-179"><a href="#cb32-179" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Weights (w) - showing top 3 predictors:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-180"><a href="#cb32-180" aria-hidden="true" tabindex="-1"></a>top3 <span class="ot">&lt;-</span> <span class="fu">order</span>(<span class="fu">abs</span>(w), <span class="at">decreasing =</span> <span class="cn">TRUE</span>)[<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>]</span>
+<span id="cb32-181"><a href="#cb32-181" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> top3) {</span>
+<span id="cb32-182"><a href="#cb32-182" aria-hidden="true" tabindex="-1"></a>  <span class="fu">cat</span>(<span class="fu">sprintf</span>(<span class="st">"  X%d: %.3f</span><span class="sc">\n</span><span class="st">"</span>, i, w[i]))</span>
+<span id="cb32-183"><a href="#cb32-183" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb32-184"><a href="#cb32-184" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">R² with 1 component:"</span>, <span class="fu">round</span>(<span class="fu">cor</span>(t_scores <span class="sc">*</span> c_coef, Y_c)<span class="sc">^</span><span class="dv">2</span>, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-185"><a href="#cb32-185" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-186"><a href="#cb32-186" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-187"><a href="#cb32-187" aria-hidden="true" tabindex="-1"></a><span class="fu">### When to Use PLS-R</span></span>
+<span id="cb32-188"><a href="#cb32-188" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-189"><a href="#cb32-189" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb32-190"><a href="#cb32-190" aria-hidden="true" tabindex="-1"></a><span class="fu">## Use PLS-R When:</span></span>
+<span id="cb32-191"><a href="#cb32-191" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-192"><a href="#cb32-192" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Your goal is **prediction**</span>
+<span id="cb32-193"><a href="#cb32-193" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>You have more predictors than observations (p &gt; n)</span>
+<span id="cb32-194"><a href="#cb32-194" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>You want **regression coefficients**</span>
+<span id="cb32-195"><a href="#cb32-195" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>You're coming from a chemometrics/machine learning context</span>
+<span id="cb32-196"><a href="#cb32-196" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-197"><a href="#cb32-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-198"><a href="#cb32-198" aria-hidden="true" tabindex="-1"></a><span class="fu">## PLS Correlation (PLS-C)</span></span>
+<span id="cb32-199"><a href="#cb32-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-200"><a href="#cb32-200" aria-hidden="true" tabindex="-1"></a><span class="fu">### The Pattern-Finding Goal</span></span>
+<span id="cb32-201"><a href="#cb32-201" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-202"><a href="#cb32-202" aria-hidden="true" tabindex="-1"></a>**PLS Correlation** (often just called "PLS" in neuroimaging) focuses on finding **symmetric patterns** between two variable sets.</span>
+<span id="cb32-203"><a href="#cb32-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-204"><a href="#cb32-204" aria-hidden="true" tabindex="-1"></a>Key characteristics:</span>
+<span id="cb32-205"><a href="#cb32-205" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-206"><a href="#cb32-206" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Single SVD operation</span>
+<span id="cb32-207"><a href="#cb32-207" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Treats X and Y symmetrically</span>
+<span id="cb32-208"><a href="#cb32-208" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Finds patterns that maximally covary</span>
+<span id="cb32-209"><a href="#cb32-209" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>No prediction coefficients</span>
+<span id="cb32-210"><a href="#cb32-210" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-211"><a href="#cb32-211" aria-hidden="true" tabindex="-1"></a><span class="fu">### How PLS-C Works</span></span>
+<span id="cb32-212"><a href="#cb32-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-215"><a href="#cb32-215" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-216"><a href="#cb32-216" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pls-c-concept</span></span>
+<span id="cb32-217"><a href="#cb32-217" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb32-218"><a href="#cb32-218" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb32-219"><a href="#cb32-219" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb32-220"><a href="#cb32-220" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-221"><a href="#cb32-221" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb32-222"><a href="#cb32-222" aria-hidden="true" tabindex="-1"></a>  <span class="co"># X data</span></span>
+<span id="cb32-223"><a href="#cb32-223" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">0.5</span>, <span class="at">xmax =</span> <span class="fl">2.5</span>, <span class="at">ymin =</span> <span class="dv">1</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-224"><a href="#cb32-224" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#4575b4"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb32-225"><a href="#cb32-225" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">1.5</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"X</span><span class="sc">\n</span><span class="st">(Brain)"</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb32-226"><a href="#cb32-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-227"><a href="#cb32-227" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Cross-cov</span></span>
+<span id="cb32-228"><a href="#cb32-228" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">2.7</span>, <span class="at">xend =</span> <span class="fl">3.8</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">yend =</span> <span class="fl">2.5</span>),</span>
+<span id="cb32-229"><a href="#cb32-229" aria-hidden="true" tabindex="-1"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-230"><a href="#cb32-230" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">6.2</span>, <span class="at">xend =</span> <span class="fl">5.1</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">yend =</span> <span class="fl">2.5</span>),</span>
+<span id="cb32-231"><a href="#cb32-231" aria-hidden="true" tabindex="-1"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-232"><a href="#cb32-232" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-233"><a href="#cb32-233" aria-hidden="true" tabindex="-1"></a>  <span class="co"># R matrix</span></span>
+<span id="cb32-234"><a href="#cb32-234" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">4</span>, <span class="at">xmax =</span> <span class="dv">5</span>, <span class="at">ymin =</span> <span class="dv">2</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-235"><a href="#cb32-235" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#91cf60"</span>, <span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb32-236"><a href="#cb32-236" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">4.5</span>, <span class="at">y =</span> <span class="fl">2.5</span>, <span class="at">label =</span> <span class="st">"R"</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb32-237"><a href="#cb32-237" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">4.5</span>, <span class="at">y =</span> <span class="fl">1.7</span>, <span class="at">label =</span> <span class="st">"SVD"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-238"><a href="#cb32-238" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-239"><a href="#cb32-239" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Y data</span></span>
+<span id="cb32-240"><a href="#cb32-240" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">6.5</span>, <span class="at">xmax =</span> <span class="fl">8.5</span>, <span class="at">ymin =</span> <span class="dv">1</span>, <span class="at">ymax =</span> <span class="dv">3</span>,</span>
+<span id="cb32-241"><a href="#cb32-241" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#d73027"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>) <span class="sc">+</span></span>
+<span id="cb32-242"><a href="#cb32-242" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">7.5</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"Y</span><span class="sc">\n</span><span class="st">(Behavior)"</span>, <span class="at">size =</span> <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb32-243"><a href="#cb32-243" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-244"><a href="#cb32-244" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Both contribute to pattern</span></span>
+<span id="cb32-245"><a href="#cb32-245" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">2.7</span>, <span class="at">xend =</span> <span class="fl">3.8</span>, <span class="at">y =</span> <span class="fl">1.5</span>, <span class="at">yend =</span> <span class="fl">1.5</span>),</span>
+<span id="cb32-246"><a href="#cb32-246" aria-hidden="true" tabindex="-1"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb32-247"><a href="#cb32-247" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">6.2</span>, <span class="at">xend =</span> <span class="fl">5.1</span>, <span class="at">y =</span> <span class="fl">1.5</span>, <span class="at">yend =</span> <span class="fl">1.5</span>),</span>
+<span id="cb32-248"><a href="#cb32-248" aria-hidden="true" tabindex="-1"></a>               <span class="at">arrow =</span> <span class="fu">arrow</span>(<span class="at">length =</span> <span class="fu">unit</span>(<span class="fl">0.2</span>, <span class="st">"cm"</span>)), <span class="at">linewidth =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb32-249"><a href="#cb32-249" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-250"><a href="#cb32-250" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">4.5</span>, <span class="at">y =</span> <span class="fl">1.2</span>, <span class="at">label =</span> <span class="st">"Symmetric</span><span class="sc">\n</span><span class="st">Relationship"</span>, <span class="at">size =</span> <span class="dv">3</span>, <span class="at">fontface =</span> <span class="st">"italic"</span>) <span class="sc">+</span></span>
+<span id="cb32-251"><a href="#cb32-251" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-252"><a href="#cb32-252" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">10</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="fl">0.5</span>, <span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb32-253"><a href="#cb32-253" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb32-254"><a href="#cb32-254" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"PLS Correlation: Find patterns that maximally covary"</span>)</span>
+<span id="cb32-255"><a href="#cb32-255" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-256"><a href="#cb32-256" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-257"><a href="#cb32-257" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mathematical Formulation</span></span>
+<span id="cb32-258"><a href="#cb32-258" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-259"><a href="#cb32-259" aria-hidden="true" tabindex="-1"></a>PLS-C performs SVD on the cross-covariance (or cross-correlation) matrix:</span>
+<span id="cb32-260"><a href="#cb32-260" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-261"><a href="#cb32-261" aria-hidden="true" tabindex="-1"></a>$$R = X^T Y \quad \text{(or standardized)}$$</span>
+<span id="cb32-262"><a href="#cb32-262" aria-hidden="true" tabindex="-1"></a>$$R = U S V^T$$</span>
+<span id="cb32-263"><a href="#cb32-263" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-264"><a href="#cb32-264" aria-hidden="true" tabindex="-1"></a>Then computes scores:</span>
+<span id="cb32-265"><a href="#cb32-265" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-266"><a href="#cb32-266" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Brain scores: $X \cdot U$</span>
+<span id="cb32-267"><a href="#cb32-267" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Behavior scores: $Y \cdot V$</span>
+<span id="cb32-268"><a href="#cb32-268" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-271"><a href="#cb32-271" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-272"><a href="#cb32-272" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: pls-c-demo</span></span>
+<span id="cb32-273"><a href="#cb32-273" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-274"><a href="#cb32-274" aria-hidden="true" tabindex="-1"></a><span class="co"># PLS-C demonstration</span></span>
+<span id="cb32-275"><a href="#cb32-275" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">50</span>; p1 <span class="ot">&lt;-</span> <span class="dv">10</span>; p2 <span class="ot">&lt;-</span> <span class="dv">5</span></span>
+<span id="cb32-276"><a href="#cb32-276" aria-hidden="true" tabindex="-1"></a>X <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p1), n, p1)</span>
+<span id="cb32-277"><a href="#cb32-277" aria-hidden="true" tabindex="-1"></a>Y <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="fu">rnorm</span>(n <span class="sc">*</span> p2), n, p2)</span>
+<span id="cb32-278"><a href="#cb32-278" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-279"><a href="#cb32-279" aria-hidden="true" tabindex="-1"></a><span class="co"># Create relationship</span></span>
+<span id="cb32-280"><a href="#cb32-280" aria-hidden="true" tabindex="-1"></a>latent <span class="ot">&lt;-</span> <span class="fu">rnorm</span>(n)</span>
+<span id="cb32-281"><a href="#cb32-281" aria-hidden="true" tabindex="-1"></a>X[, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="ot">&lt;-</span> X[, <span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="sc">+</span> <span class="fu">outer</span>(latent, <span class="fu">c</span>(<span class="fl">0.8</span>, <span class="fl">0.5</span>, <span class="fl">0.3</span>))</span>
+<span id="cb32-282"><a href="#cb32-282" aria-hidden="true" tabindex="-1"></a>Y[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>] <span class="ot">&lt;-</span> Y[, <span class="dv">1</span><span class="sc">:</span><span class="dv">2</span>] <span class="sc">+</span> <span class="fu">outer</span>(latent, <span class="fu">c</span>(<span class="fl">0.7</span>, <span class="fl">0.4</span>))</span>
+<span id="cb32-283"><a href="#cb32-283" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-284"><a href="#cb32-284" aria-hidden="true" tabindex="-1"></a><span class="co"># Center</span></span>
+<span id="cb32-285"><a href="#cb32-285" aria-hidden="true" tabindex="-1"></a>X_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(X, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb32-286"><a href="#cb32-286" aria-hidden="true" tabindex="-1"></a>Y_c <span class="ot">&lt;-</span> <span class="fu">scale</span>(Y, <span class="at">center =</span> <span class="cn">TRUE</span>, <span class="at">scale =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb32-287"><a href="#cb32-287" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-288"><a href="#cb32-288" aria-hidden="true" tabindex="-1"></a><span class="co"># Cross-covariance</span></span>
+<span id="cb32-289"><a href="#cb32-289" aria-hidden="true" tabindex="-1"></a>R <span class="ot">&lt;-</span> <span class="fu">t</span>(X_c) <span class="sc">%*%</span> Y_c <span class="sc">/</span> (n <span class="sc">-</span> <span class="dv">1</span>)</span>
+<span id="cb32-290"><a href="#cb32-290" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-291"><a href="#cb32-291" aria-hidden="true" tabindex="-1"></a><span class="co"># SVD</span></span>
+<span id="cb32-292"><a href="#cb32-292" aria-hidden="true" tabindex="-1"></a>svd_r <span class="ot">&lt;-</span> <span class="fu">svd</span>(R)</span>
+<span id="cb32-293"><a href="#cb32-293" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-294"><a href="#cb32-294" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"PLS-C Results:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-295"><a href="#cb32-295" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Singular values:"</span>, <span class="fu">round</span>(svd_r<span class="sc">$</span>d, <span class="dv">3</span>), <span class="st">"</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-296"><a href="#cb32-296" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Variance explained:"</span>, <span class="fu">round</span>((svd_r<span class="sc">$</span>d<span class="sc">^</span><span class="dv">2</span>)<span class="sc">/</span><span class="fu">sum</span>(svd_r<span class="sc">$</span>d<span class="sc">^</span><span class="dv">2</span>)<span class="sc">*</span><span class="dv">100</span>, <span class="dv">1</span>), <span class="st">"%</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-297"><a href="#cb32-297" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-298"><a href="#cb32-298" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-299"><a href="#cb32-299" aria-hidden="true" tabindex="-1"></a><span class="fu">### When to Use PLS-C</span></span>
+<span id="cb32-300"><a href="#cb32-300" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-301"><a href="#cb32-301" aria-hidden="true" tabindex="-1"></a>::: {.callout-note}</span>
+<span id="cb32-302"><a href="#cb32-302" aria-hidden="true" tabindex="-1"></a><span class="fu">## Use PLS-C When:</span></span>
+<span id="cb32-303"><a href="#cb32-303" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-304"><a href="#cb32-304" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Your goal is **understanding relationships**</span>
+<span id="cb32-305"><a href="#cb32-305" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Both variable sets are equally important</span>
+<span id="cb32-306"><a href="#cb32-306" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>You want to know which variables **on both sides** contribute</span>
+<span id="cb32-307"><a href="#cb32-307" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>You're in a neuroimaging/psychology context</span>
+<span id="cb32-308"><a href="#cb32-308" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-309"><a href="#cb32-309" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-310"><a href="#cb32-310" aria-hidden="true" tabindex="-1"></a><span class="fu">## PLS-R vs PLS-C Comparison</span></span>
+<span id="cb32-311"><a href="#cb32-311" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-314"><a href="#cb32-314" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-315"><a href="#cb32-315" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: comparison-table</span></span>
+<span id="cb32-316"><a href="#cb32-316" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb32-317"><a href="#cb32-317" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-318"><a href="#cb32-318" aria-hidden="true" tabindex="-1"></a>comparison <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-319"><a href="#cb32-319" aria-hidden="true" tabindex="-1"></a>  <span class="at">Aspect =</span> <span class="fu">c</span>(<span class="st">"Primary goal"</span>, <span class="st">"Algorithm"</span>, <span class="st">"X and Y role"</span>, <span class="st">"Output"</span>,</span>
+<span id="cb32-320"><a href="#cb32-320" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Interpretation"</span>, <span class="st">"Typical field"</span>),</span>
+<span id="cb32-321"><a href="#cb32-321" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">PLS Regression</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Prediction"</span>, <span class="st">"Iterative (NIPALS)"</span>, <span class="st">"X predicts Y"</span>,</span>
+<span id="cb32-322"><a href="#cb32-322" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"Regression coefficients"</span>, <span class="st">"Which X's predict Y"</span>,</span>
+<span id="cb32-323"><a href="#cb32-323" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"Chemometrics, ML"</span>),</span>
+<span id="cb32-324"><a href="#cb32-324" aria-hidden="true" tabindex="-1"></a>  <span class="st">`</span><span class="at">PLS Correlation</span><span class="st">`</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="st">"Pattern finding"</span>, <span class="st">"Single SVD"</span>, <span class="st">"Symmetric"</span>,</span>
+<span id="cb32-325"><a href="#cb32-325" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"Saliences for both"</span>, <span class="st">"Joint patterns in X and Y"</span>,</span>
+<span id="cb32-326"><a href="#cb32-326" aria-hidden="true" tabindex="-1"></a>                        <span class="st">"Neuroimaging"</span>)</span>
+<span id="cb32-327"><a href="#cb32-327" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-328"><a href="#cb32-328" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-329"><a href="#cb32-329" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(comparison, <span class="at">col.names =</span> <span class="fu">c</span>(<span class="st">"Aspect"</span>, <span class="st">"PLS Regression"</span>, <span class="st">"PLS Correlation"</span>),</span>
+<span id="cb32-330"><a href="#cb32-330" aria-hidden="true" tabindex="-1"></a>              <span class="at">caption =</span> <span class="st">"PLS-R vs PLS-C Comparison"</span>)</span>
+<span id="cb32-331"><a href="#cb32-331" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-332"><a href="#cb32-332" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-333"><a href="#cb32-333" aria-hidden="true" tabindex="-1"></a><span class="fu">## Neuroimaging PLS Variants</span></span>
+<span id="cb32-334"><a href="#cb32-334" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-335"><a href="#cb32-335" aria-hidden="true" tabindex="-1"></a>In neuroimaging, PLS-C is further specialized based on the **design matrix** (Y):</span>
+<span id="cb32-336"><a href="#cb32-336" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-337"><a href="#cb32-337" aria-hidden="true" tabindex="-1"></a><span class="fu">### Mean-Centered PLS (Task PLS)</span></span>
+<span id="cb32-338"><a href="#cb32-338" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-339"><a href="#cb32-339" aria-hidden="true" tabindex="-1"></a>The simplest form. Y is a **design matrix** indicating group/condition membership.</span>
+<span id="cb32-340"><a href="#cb32-340" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-343"><a href="#cb32-343" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-344"><a href="#cb32-344" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: mean-centered</span></span>
+<span id="cb32-345"><a href="#cb32-345" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb32-346"><a href="#cb32-346" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb32-347"><a href="#cb32-347" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-348"><a href="#cb32-348" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: 2 conditions, 3 subjects each</span></span>
+<span id="cb32-349"><a href="#cb32-349" aria-hidden="true" tabindex="-1"></a>n_per_cond <span class="ot">&lt;-</span> <span class="dv">15</span></span>
+<span id="cb32-350"><a href="#cb32-350" aria-hidden="true" tabindex="-1"></a>n_cond <span class="ot">&lt;-</span> <span class="dv">2</span></span>
+<span id="cb32-351"><a href="#cb32-351" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> n_per_cond <span class="sc">*</span> n_cond</span>
+<span id="cb32-352"><a href="#cb32-352" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-353"><a href="#cb32-353" aria-hidden="true" tabindex="-1"></a><span class="co"># Design matrix (dummy coded)</span></span>
+<span id="cb32-354"><a href="#cb32-354" aria-hidden="true" tabindex="-1"></a>Y_design <span class="ot">&lt;-</span> <span class="fu">matrix</span>(<span class="dv">0</span>, n, n_cond)</span>
+<span id="cb32-355"><a href="#cb32-355" aria-hidden="true" tabindex="-1"></a>Y_design[<span class="dv">1</span><span class="sc">:</span>n_per_cond, <span class="dv">1</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb32-356"><a href="#cb32-356" aria-hidden="true" tabindex="-1"></a>Y_design[(n_per_cond<span class="sc">+</span><span class="dv">1</span>)<span class="sc">:</span>n, <span class="dv">2</span>] <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb32-357"><a href="#cb32-357" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-358"><a href="#cb32-358" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb32-359"><a href="#cb32-359" aria-hidden="true" tabindex="-1"></a>design_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-360"><a href="#cb32-360" aria-hidden="true" tabindex="-1"></a>  <span class="at">Subject =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb32-361"><a href="#cb32-361" aria-hidden="true" tabindex="-1"></a>  <span class="at">Condition =</span> <span class="fu">rep</span>(<span class="fu">c</span>(<span class="st">"A"</span>, <span class="st">"B"</span>), <span class="at">each =</span> n_per_cond)</span>
+<span id="cb32-362"><a href="#cb32-362" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-363"><a href="#cb32-363" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-364"><a href="#cb32-364" aria-hidden="true" tabindex="-1"></a>p1 <span class="ot">&lt;-</span> <span class="fu">ggplot</span>(design_df, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(Subject), <span class="at">y =</span> <span class="dv">1</span>, <span class="at">fill =</span> Condition)) <span class="sc">+</span></span>
+<span id="cb32-365"><a href="#cb32-365" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>, <span class="at">height =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-366"><a href="#cb32-366" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"A"</span> <span class="ot">=</span> <span class="st">"#4575b4"</span>, <span class="st">"B"</span> <span class="ot">=</span> <span class="st">"#d73027"</span>)) <span class="sc">+</span></span>
+<span id="cb32-367"><a href="#cb32-367" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Design Matrix Y"</span>,</span>
+<span id="cb32-368"><a href="#cb32-368" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Subjects in two conditions"</span>,</span>
+<span id="cb32-369"><a href="#cb32-369" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Subject"</span>, <span class="at">y =</span> <span class="st">""</span>) <span class="sc">+</span></span>
+<span id="cb32-370"><a href="#cb32-370" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb32-371"><a href="#cb32-371" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.y =</span> <span class="fu">element_blank</span>())</span>
+<span id="cb32-372"><a href="#cb32-372" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-373"><a href="#cb32-373" aria-hidden="true" tabindex="-1"></a><span class="co"># What Mean-Centered PLS finds</span></span>
+<span id="cb32-374"><a href="#cb32-374" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Mean-Centered PLS asks:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-375"><a href="#cb32-375" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Which brain regions differ between conditions?</span><span class="sc">\n\n</span><span class="st">"</span>)</span>
+<span id="cb32-376"><a href="#cb32-376" aria-hidden="true" tabindex="-1"></a><span class="fu">print</span>(p1)</span>
+<span id="cb32-377"><a href="#cb32-377" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-378"><a href="#cb32-378" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-379"><a href="#cb32-379" aria-hidden="true" tabindex="-1"></a>**Use when**: Comparing groups or conditions</span>
+<span id="cb32-380"><a href="#cb32-380" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-381"><a href="#cb32-381" aria-hidden="true" tabindex="-1"></a><span class="fu">### Behavior PLS</span></span>
+<span id="cb32-382"><a href="#cb32-382" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-383"><a href="#cb32-383" aria-hidden="true" tabindex="-1"></a>Y contains **continuous behavioral measures** for each subject.</span>
+<span id="cb32-384"><a href="#cb32-384" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-387"><a href="#cb32-387" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-388"><a href="#cb32-388" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: behavior-pls</span></span>
+<span id="cb32-389"><a href="#cb32-389" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb32-390"><a href="#cb32-390" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 5</span></span>
+<span id="cb32-391"><a href="#cb32-391" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-392"><a href="#cb32-392" aria-hidden="true" tabindex="-1"></a><span class="co"># Example: 3 behavioral measures</span></span>
+<span id="cb32-393"><a href="#cb32-393" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="dv">30</span></span>
+<span id="cb32-394"><a href="#cb32-394" aria-hidden="true" tabindex="-1"></a>Y_behav <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-395"><a href="#cb32-395" aria-hidden="true" tabindex="-1"></a>  <span class="at">Subject =</span> <span class="dv">1</span><span class="sc">:</span>n,</span>
+<span id="cb32-396"><a href="#cb32-396" aria-hidden="true" tabindex="-1"></a>  <span class="at">Memory =</span> <span class="fu">rnorm</span>(n, <span class="dv">100</span>, <span class="dv">15</span>),</span>
+<span id="cb32-397"><a href="#cb32-397" aria-hidden="true" tabindex="-1"></a>  <span class="at">Attention =</span> <span class="fu">rnorm</span>(n, <span class="dv">50</span>, <span class="dv">10</span>),</span>
+<span id="cb32-398"><a href="#cb32-398" aria-hidden="true" tabindex="-1"></a>  <span class="at">Speed =</span> <span class="fu">rnorm</span>(n, <span class="dv">200</span>, <span class="dv">30</span>)</span>
+<span id="cb32-399"><a href="#cb32-399" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-400"><a href="#cb32-400" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-401"><a href="#cb32-401" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
+<span id="cb32-402"><a href="#cb32-402" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
+<span id="cb32-403"><a href="#cb32-403" aria-hidden="true" tabindex="-1"></a>Y_long <span class="ot">&lt;-</span> <span class="fu">pivot_longer</span>(Y_behav, <span class="at">cols =</span> <span class="sc">-</span>Subject, <span class="at">names_to =</span> <span class="st">"Measure"</span>, <span class="at">values_to =</span> <span class="st">"Score"</span>)</span>
+<span id="cb32-404"><a href="#cb32-404" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-405"><a href="#cb32-405" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(Y_long, <span class="fu">aes</span>(<span class="at">x =</span> <span class="fu">factor</span>(Subject), <span class="at">y =</span> Score, <span class="at">fill =</span> Measure)) <span class="sc">+</span></span>
+<span id="cb32-406"><a href="#cb32-406" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">stat =</span> <span class="st">"identity"</span>, <span class="at">position =</span> <span class="st">"dodge"</span>) <span class="sc">+</span></span>
+<span id="cb32-407"><a href="#cb32-407" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Behavior Matrix Y"</span>,</span>
+<span id="cb32-408"><a href="#cb32-408" aria-hidden="true" tabindex="-1"></a>       <span class="at">subtitle =</span> <span class="st">"Continuous behavioral measures per subject"</span>,</span>
+<span id="cb32-409"><a href="#cb32-409" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Subject"</span>) <span class="sc">+</span></span>
+<span id="cb32-410"><a href="#cb32-410" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb32-411"><a href="#cb32-411" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">size =</span> <span class="dv">7</span>))</span>
+<span id="cb32-412"><a href="#cb32-412" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-413"><a href="#cb32-413" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-414"><a href="#cb32-414" aria-hidden="true" tabindex="-1"></a>**Use when**: Relating brain patterns to continuous behavioral measures</span>
+<span id="cb32-415"><a href="#cb32-415" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-416"><a href="#cb32-416" aria-hidden="true" tabindex="-1"></a><span class="fu">### Task PLS</span></span>
+<span id="cb32-417"><a href="#cb32-417" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-418"><a href="#cb32-418" aria-hidden="true" tabindex="-1"></a>Combines both: Subjects have multiple conditions, and the analysis finds patterns that differ across conditions.</span>
+<span id="cb32-419"><a href="#cb32-419" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-422"><a href="#cb32-422" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-423"><a href="#cb32-423" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: task-pls</span></span>
+<span id="cb32-424"><a href="#cb32-424" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-425"><a href="#cb32-425" aria-hidden="true" tabindex="-1"></a><span class="co"># Task PLS structure:</span></span>
+<span id="cb32-426"><a href="#cb32-426" aria-hidden="true" tabindex="-1"></a><span class="co"># Rows = subjects × conditions (stacked)</span></span>
+<span id="cb32-427"><a href="#cb32-427" aria-hidden="true" tabindex="-1"></a><span class="co"># Y = condition indicators</span></span>
+<span id="cb32-428"><a href="#cb32-428" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-429"><a href="#cb32-429" aria-hidden="true" tabindex="-1"></a>n_subj <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb32-430"><a href="#cb32-430" aria-hidden="true" tabindex="-1"></a>n_cond <span class="ot">&lt;-</span> <span class="dv">3</span></span>
+<span id="cb32-431"><a href="#cb32-431" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-432"><a href="#cb32-432" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Task PLS Data Structure:</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-433"><a href="#cb32-433" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"========================</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-434"><a href="#cb32-434" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Brain data (X): "</span>, n_subj <span class="sc">*</span> n_cond, <span class="st">"rows ("</span>, n_subj, <span class="st">"subjects ×"</span>,</span>
+<span id="cb32-435"><a href="#cb32-435" aria-hidden="true" tabindex="-1"></a>    n_cond, <span class="st">"conditions)</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-436"><a href="#cb32-436" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"Design matrix (Y):"</span>, n_cond, <span class="st">"columns (condition indicators)</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-437"><a href="#cb32-437" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(<span class="st">"</span><span class="sc">\n</span><span class="st">Finds: Brain patterns that characterize each condition</span><span class="sc">\n</span><span class="st">"</span>)</span>
+<span id="cb32-438"><a href="#cb32-438" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-439"><a href="#cb32-439" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-440"><a href="#cb32-440" aria-hidden="true" tabindex="-1"></a><span class="fu">## Choosing Between Variants</span></span>
+<span id="cb32-441"><a href="#cb32-441" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-444"><a href="#cb32-444" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-445"><a href="#cb32-445" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: decision-diagram</span></span>
+<span id="cb32-446"><a href="#cb32-446" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb32-447"><a href="#cb32-447" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-width: 10</span></span>
+<span id="cb32-448"><a href="#cb32-448" aria-hidden="true" tabindex="-1"></a><span class="co">#| fig-height: 8</span></span>
+<span id="cb32-449"><a href="#cb32-449" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-450"><a href="#cb32-450" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb32-451"><a href="#cb32-451" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Question 1</span></span>
+<span id="cb32-452"><a href="#cb32-452" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="dv">3</span>, <span class="at">xmax =</span> <span class="dv">7</span>, <span class="at">ymin =</span> <span class="dv">7</span>, <span class="at">ymax =</span> <span class="dv">8</span>,</span>
+<span id="cb32-453"><a href="#cb32-453" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#f0f0f0"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-454"><a href="#cb32-454" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="fl">7.5</span>, <span class="at">label =</span> <span class="st">"What is your goal?"</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb32-455"><a href="#cb32-455" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-456"><a href="#cb32-456" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Branches</span></span>
+<span id="cb32-457"><a href="#cb32-457" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">4</span>, <span class="at">xend =</span> <span class="dv">2</span>, <span class="at">y =</span> <span class="dv">7</span>, <span class="at">yend =</span> <span class="dv">6</span>), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-458"><a href="#cb32-458" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">2.5</span>, <span class="at">y =</span> <span class="fl">6.7</span>, <span class="at">label =</span> <span class="st">"Predict Y</span><span class="sc">\n</span><span class="st">from X"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-459"><a href="#cb32-459" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-460"><a href="#cb32-460" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">6</span>, <span class="at">xend =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="dv">7</span>, <span class="at">yend =</span> <span class="dv">6</span>), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-461"><a href="#cb32-461" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">7.5</span>, <span class="at">y =</span> <span class="fl">6.7</span>, <span class="at">label =</span> <span class="st">"Find patterns</span><span class="sc">\n</span><span class="st">between X &amp; Y"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-462"><a href="#cb32-462" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-463"><a href="#cb32-463" aria-hidden="true" tabindex="-1"></a>  <span class="co"># PLS-R</span></span>
+<span id="cb32-464"><a href="#cb32-464" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">0.5</span>, <span class="at">xmax =</span> <span class="fl">3.5</span>, <span class="at">ymin =</span> <span class="dv">5</span>, <span class="at">ymax =</span> <span class="dv">6</span>,</span>
+<span id="cb32-465"><a href="#cb32-465" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#d73027"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-466"><a href="#cb32-466" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">2</span>, <span class="at">y =</span> <span class="fl">5.5</span>, <span class="at">label =</span> <span class="st">"PLS Regression"</span>, <span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb32-467"><a href="#cb32-467" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-468"><a href="#cb32-468" aria-hidden="true" tabindex="-1"></a>  <span class="co"># PLS-C branch</span></span>
+<span id="cb32-469"><a href="#cb32-469" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">6.5</span>, <span class="at">xmax =</span> <span class="fl">9.5</span>, <span class="at">ymin =</span> <span class="dv">5</span>, <span class="at">ymax =</span> <span class="dv">6</span>,</span>
+<span id="cb32-470"><a href="#cb32-470" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#91cf60"</span>, <span class="at">alpha =</span> <span class="fl">0.3</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-471"><a href="#cb32-471" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="fl">5.5</span>, <span class="at">label =</span> <span class="st">"PLS Correlation"</span>, <span class="at">size =</span> <span class="fl">3.5</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb32-472"><a href="#cb32-472" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-473"><a href="#cb32-473" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Question 2</span></span>
+<span id="cb32-474"><a href="#cb32-474" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">8</span>, <span class="at">xend =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="dv">5</span>, <span class="at">yend =</span> <span class="fl">4.2</span>), <span class="at">linewidth =</span> <span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb32-475"><a href="#cb32-475" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">5.5</span>, <span class="at">xmax =</span> <span class="fl">10.5</span>, <span class="at">ymin =</span> <span class="fl">3.2</span>, <span class="at">ymax =</span> <span class="fl">4.2</span>,</span>
+<span id="cb32-476"><a href="#cb32-476" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#f0f0f0"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-477"><a href="#cb32-477" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="fl">3.7</span>, <span class="at">label =</span> <span class="st">"What is in Y?"</span>, <span class="at">size =</span> <span class="dv">4</span>, <span class="at">fontface =</span> <span class="st">"bold"</span>) <span class="sc">+</span></span>
+<span id="cb32-478"><a href="#cb32-478" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-479"><a href="#cb32-479" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Final branches</span></span>
+<span id="cb32-480"><a href="#cb32-480" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">6.5</span>, <span class="at">xend =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="fl">3.2</span>, <span class="at">yend =</span> <span class="fl">2.5</span>), <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-481"><a href="#cb32-481" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="dv">8</span>, <span class="at">xend =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="fl">3.2</span>, <span class="at">yend =</span> <span class="fl">2.5</span>), <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-482"><a href="#cb32-482" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_segment</span>(<span class="fu">aes</span>(<span class="at">x =</span> <span class="fl">9.5</span>, <span class="at">xend =</span> <span class="dv">11</span>, <span class="at">y =</span> <span class="fl">3.2</span>, <span class="at">yend =</span> <span class="fl">2.5</span>), <span class="at">linewidth =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb32-483"><a href="#cb32-483" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-484"><a href="#cb32-484" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">5.2</span>, <span class="at">y =</span> <span class="fl">2.9</span>, <span class="at">label =</span> <span class="st">"Group/condition</span><span class="sc">\n</span><span class="st">indicators"</span>, <span class="at">size =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
+<span id="cb32-485"><a href="#cb32-485" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="fl">2.9</span>, <span class="at">label =</span> <span class="st">"Continuous</span><span class="sc">\n</span><span class="st">behaviors"</span>, <span class="at">size =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
+<span id="cb32-486"><a href="#cb32-486" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="fl">10.8</span>, <span class="at">y =</span> <span class="fl">2.9</span>, <span class="at">label =</span> <span class="st">"Both: subjects</span><span class="sc">\n</span><span class="st">× conditions"</span>, <span class="at">size =</span> <span class="fl">2.5</span>) <span class="sc">+</span></span>
+<span id="cb32-487"><a href="#cb32-487" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-488"><a href="#cb32-488" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">3.5</span>, <span class="at">xmax =</span> <span class="fl">6.5</span>, <span class="at">ymin =</span> <span class="fl">1.5</span>, <span class="at">ymax =</span> <span class="fl">2.5</span>,</span>
+<span id="cb32-489"><a href="#cb32-489" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#fee08b"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-490"><a href="#cb32-490" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">5</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"Mean-Centered</span><span class="sc">\n</span><span class="st">PLS"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-491"><a href="#cb32-491" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-492"><a href="#cb32-492" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">6.5</span>, <span class="at">xmax =</span> <span class="fl">9.5</span>, <span class="at">ymin =</span> <span class="fl">1.5</span>, <span class="at">ymax =</span> <span class="fl">2.5</span>,</span>
+<span id="cb32-493"><a href="#cb32-493" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#fee08b"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-494"><a href="#cb32-494" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">8</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"Behavior</span><span class="sc">\n</span><span class="st">PLS"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-495"><a href="#cb32-495" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-496"><a href="#cb32-496" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"rect"</span>, <span class="at">xmin =</span> <span class="fl">9.5</span>, <span class="at">xmax =</span> <span class="fl">12.5</span>, <span class="at">ymin =</span> <span class="fl">1.5</span>, <span class="at">ymax =</span> <span class="fl">2.5</span>,</span>
+<span id="cb32-497"><a href="#cb32-497" aria-hidden="true" tabindex="-1"></a>           <span class="at">fill =</span> <span class="st">"#fee08b"</span>, <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb32-498"><a href="#cb32-498" aria-hidden="true" tabindex="-1"></a>  <span class="fu">annotate</span>(<span class="st">"text"</span>, <span class="at">x =</span> <span class="dv">11</span>, <span class="at">y =</span> <span class="dv">2</span>, <span class="at">label =</span> <span class="st">"Task</span><span class="sc">\n</span><span class="st">PLS"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb32-499"><a href="#cb32-499" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-500"><a href="#cb32-500" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="dv">0</span>, <span class="dv">13</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="dv">1</span>, <span class="dv">9</span>) <span class="sc">+</span></span>
+<span id="cb32-501"><a href="#cb32-501" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_void</span>() <span class="sc">+</span></span>
+<span id="cb32-502"><a href="#cb32-502" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Choosing the Right PLS Variant"</span>)</span>
+<span id="cb32-503"><a href="#cb32-503" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-504"><a href="#cb32-504" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-505"><a href="#cb32-505" aria-hidden="true" tabindex="-1"></a><span class="fu">## Summary Table</span></span>
+<span id="cb32-506"><a href="#cb32-506" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-509"><a href="#cb32-509" aria-hidden="true" tabindex="-1"></a><span class="in">```{r}</span></span>
+<span id="cb32-510"><a href="#cb32-510" aria-hidden="true" tabindex="-1"></a><span class="co">#| label: summary-table</span></span>
+<span id="cb32-511"><a href="#cb32-511" aria-hidden="true" tabindex="-1"></a><span class="co">#| echo: false</span></span>
+<span id="cb32-512"><a href="#cb32-512" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-513"><a href="#cb32-513" aria-hidden="true" tabindex="-1"></a>summary_df <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(</span>
+<span id="cb32-514"><a href="#cb32-514" aria-hidden="true" tabindex="-1"></a>  <span class="at">Variant =</span> <span class="fu">c</span>(<span class="st">"PLS Regression"</span>, <span class="st">"Mean-Centered PLS"</span>, <span class="st">"Behavior PLS"</span>, <span class="st">"Task PLS"</span>),</span>
+<span id="cb32-515"><a href="#cb32-515" aria-hidden="true" tabindex="-1"></a>  <span class="at">Y_Contains =</span> <span class="fu">c</span>(<span class="st">"Outcomes to predict"</span>, <span class="st">"Group/condition codes"</span>,</span>
+<span id="cb32-516"><a href="#cb32-516" aria-hidden="true" tabindex="-1"></a>                 <span class="st">"Continuous measures"</span>, <span class="st">"Condition codes (stacked)"</span>),</span>
+<span id="cb32-517"><a href="#cb32-517" aria-hidden="true" tabindex="-1"></a>  <span class="at">Question =</span> <span class="fu">c</span>(<span class="st">"Which X's predict Y?"</span>, <span class="st">"Which brain regions differ between groups?"</span>,</span>
+<span id="cb32-518"><a href="#cb32-518" aria-hidden="true" tabindex="-1"></a>               <span class="st">"What brain pattern relates to behaviors?"</span>,</span>
+<span id="cb32-519"><a href="#cb32-519" aria-hidden="true" tabindex="-1"></a>               <span class="st">"What characterizes each condition?"</span>),</span>
+<span id="cb32-520"><a href="#cb32-520" aria-hidden="true" tabindex="-1"></a>  <span class="at">Output =</span> <span class="fu">c</span>(<span class="st">"Regression coefficients"</span>, <span class="st">"Brain saliences per condition"</span>,</span>
+<span id="cb32-521"><a href="#cb32-521" aria-hidden="true" tabindex="-1"></a>             <span class="st">"Brain &amp; behavior saliences"</span>, <span class="st">"Brain saliences, condition scores"</span>)</span>
+<span id="cb32-522"><a href="#cb32-522" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb32-523"><a href="#cb32-523" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-524"><a href="#cb32-524" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">kable</span>(summary_df, <span class="at">caption =</span> <span class="st">"PLS Variants Summary"</span>)</span>
+<span id="cb32-525"><a href="#cb32-525" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span>
+<span id="cb32-526"><a href="#cb32-526" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-527"><a href="#cb32-527" aria-hidden="true" tabindex="-1"></a><span class="fu">## Key Takeaways</span></span>
+<span id="cb32-528"><a href="#cb32-528" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-529"><a href="#cb32-529" aria-hidden="true" tabindex="-1"></a>::: {.callout-tip}</span>
+<span id="cb32-530"><a href="#cb32-530" aria-hidden="true" tabindex="-1"></a><span class="fu">## Remember</span></span>
+<span id="cb32-531"><a href="#cb32-531" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-532"><a href="#cb32-532" aria-hidden="true" tabindex="-1"></a><span class="ss">1. </span>**PLS-R** is for prediction; **PLS-C** is for pattern discovery</span>
+<span id="cb32-533"><a href="#cb32-533" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-534"><a href="#cb32-534" aria-hidden="true" tabindex="-1"></a><span class="ss">2. </span>Within PLS-C, the variant depends on **what Y contains**</span>
+<span id="cb32-535"><a href="#cb32-535" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-536"><a href="#cb32-536" aria-hidden="true" tabindex="-1"></a><span class="ss">3. </span>**Mean-Centered PLS**: Compare groups/conditions</span>
+<span id="cb32-537"><a href="#cb32-537" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-538"><a href="#cb32-538" aria-hidden="true" tabindex="-1"></a><span class="ss">4. </span>**Behavior PLS**: Relate brain to continuous measures</span>
+<span id="cb32-539"><a href="#cb32-539" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-540"><a href="#cb32-540" aria-hidden="true" tabindex="-1"></a><span class="ss">5. </span>**Task PLS**: Characterize conditions with repeated measures</span>
+<span id="cb32-541"><a href="#cb32-541" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-542"><a href="#cb32-542" aria-hidden="true" tabindex="-1"></a><span class="ss">6. </span>The core math (SVD on cross-product) is the same - the input differs!</span>
+<span id="cb32-543"><a href="#cb32-543" aria-hidden="true" tabindex="-1"></a>:::</span>
+<span id="cb32-544"><a href="#cb32-544" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-545"><a href="#cb32-545" aria-hidden="true" tabindex="-1"></a><span class="fu">## Next Lesson</span></span>
+<span id="cb32-546"><a href="#cb32-546" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-547"><a href="#cb32-547" aria-hidden="true" tabindex="-1"></a>In <span class="co">[</span><span class="ot">Lesson 4</span><span class="co">](lesson-04-comparisons.qmd)</span>, we'll compare PLS to related methods:</span>
+<span id="cb32-548"><a href="#cb32-548" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-549"><a href="#cb32-549" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Canonical Correlation Analysis (CCA)</span>
+<span id="cb32-550"><a href="#cb32-550" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Principal Component Regression (PCR)</span>
+<span id="cb32-551"><a href="#cb32-551" aria-hidden="true" tabindex="-1"></a><span class="ss">- </span>Reduced Rank Regression (RRR)</span>
+<span id="cb32-552"><a href="#cb32-552" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb32-553"><a href="#cb32-553" aria-hidden="true" tabindex="-1"></a>You'll learn when each method is most appropriate!</span>
+</code></pre></div><button title="Copy to Clipboard" class="code-copy-button" data-in-quarto-modal=""><i class="bi"></i></button></div>
+</div></div></div></div></div>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+      &nbsp;
+    </div>   
+    <div class="nav-footer-center">
+<p>PLS Fundamentals Course</p>
+</div>
+    <div class="nav-footer-right">
+      &nbsp;
+    </div>
+  </div>
+</footer>
+
+
+
+
+</body></html>
