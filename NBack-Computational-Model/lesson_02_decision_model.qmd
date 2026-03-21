@@ -1,0 +1,468 @@
+---
+title: "Lesson 2: From Activations to Decisions"
+subtitle: "Signal detection, the probit model, and why lures are hard"
+format:
+  html:
+    code-fold: show
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    theme: cosmo
+    highlight-style: github
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+## Overview
+
+The buffer from Lesson 1 tells us *how strongly* items are activated. This lesson answers:
+**how does that activation become a "match" or "no-match" response?**
+
+We will build the complete decision model, including the probit transformation, the response
+criterion, baseline noise, and the key insight that lure interference is fundamentally
+different from simple forgetting.
+
+---
+
+## 1. Signal Detection Theory in 60 Seconds
+
+In SDT, a participant's response on each trial is determined by whether an internal evidence
+signal exceeds a criterion. For the n-back task:
+
+- **Signal trials (match):** the n-back item matches → high evidence
+- **Noise trials (non-match):** no match → low evidence
+
+Both distributions are modelled as Gaussians:
+
+$$p(\text{evidence} \mid \text{match}) = \mathcal{N}(\mu_S, \sigma^2)$$
+$$p(\text{evidence} \mid \text{non-match}) = \mathcal{N}(\mu_N, \sigma^2)$$
+
+The participant responds "match" if evidence $> \beta$ (criterion). This produces:
+
+$$d' = \frac{\mu_S - \mu_N}{\sigma} \qquad \text{(sensitivity)}$$
+
+Our model is SDT but with **mechanistically derived evidence**: instead of free $\mu_S$ and
+$\mu_N$, the signal is built from buffer activations.
+
+```{python}
+import numpy as np
+from scipy import stats
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+x = np.linspace(-3, 5, 400)
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=x, y=stats.norm.pdf(x, 0, 1),
+                         fill="tozeroy", name="Non-match distribution",
+                         line=dict(color="steelblue"), fillcolor="rgba(70,130,180,0.3)"))
+fig.add_trace(go.Scatter(x=x, y=stats.norm.pdf(x, 2, 1),
+                         fill="tozeroy", name="Match distribution (d'=2)",
+                         line=dict(color="tomato"), fillcolor="rgba(220,80,60,0.3)"))
+fig.add_vline(x=1.0, line_dash="dash", line_color="black",
+              annotation_text="criterion β", annotation_position="top")
+fig.add_annotation(x=0, y=0.45, text="Hits →", showarrow=False,
+                   font=dict(color="tomato"))
+fig.add_annotation(x=1.5, y=0.12, text="← FA", showarrow=False,
+                   font=dict(color="steelblue"))
+fig.update_layout(xaxis_title="Internal evidence",
+                  yaxis_title="Probability density",
+                  title="SDT: signal and noise distributions",
+                  height=380)
+fig.show()
+```
+
+---
+
+## 2. The Decision Variable in Our Model
+
+Instead of free-floating signal/noise distributions, our model derives the decision variable
+from buffer contents. For a given trial, the **weighted evidence** in favour of "match" is:
+
+$$WE = A_{\text{target}} + (1 - \alpha) \cdot L$$
+
+where:
+
+- $A_{\text{target}} = A_n \cdot \mathbb{1}[\text{match}]$: activation at the n-back slot
+  (zero on non-match trials)
+- $L$: lure evidence (activation from items at wrong positions that match the current
+  stimulus)
+- $\alpha \in [0,1]$: attentional control — how well the participant suppresses lure bleed
+
+The participant's match probability is:
+
+$$p_{\text{match}} = \Phi\!\left(\frac{WE - \beta}{\text{noise\_adj}}\right)$$
+
+where $\Phi$ is the standard normal CDF (probit function), $\beta$ is the response criterion,
+and $\text{noise\_adj}$ is an adjusted noise term (more on this in Lesson 3).
+
+For now, let's set $\alpha = 1$ (perfect control) and $L = 0$ to see the basic relationship:
+
+```{python}
+from scipy.special import expit   # logistic / sigmoid
+
+def p_match_simple(a_target, beta, sigma):
+    """
+    Simplified decision: no lure interference, no alpha.
+    d = (A_target - beta) / sigma
+    p_match = Phi(d)
+    """
+    d = (a_target - beta) / sigma
+    return stats.norm.cdf(d)
+
+a_vals = np.linspace(0, 1.2, 200)
+fig = make_subplots(rows=1, cols=2,
+                    subplot_titles=["Effect of β (sigma=0.4 fixed)",
+                                    "Effect of σ (beta=0.0 fixed)"])
+
+for beta, col in zip([-0.3, 0.0, 0.3, 0.6],
+                     ["#1f77b4","#ff7f0e","#2ca02c","#d62728"]):
+    pm = p_match_simple(a_vals, beta=beta, sigma=0.4)
+    fig.add_trace(go.Scatter(x=a_vals, y=pm, mode="lines",
+                             name=f"β={beta}", line=dict(color=col)),
+                  row=1, col=1)
+
+for sigma, col in zip([0.1, 0.3, 0.6, 1.0],
+                      ["#1f77b4","#ff7f0e","#2ca02c","#d62728"]):
+    pm = p_match_simple(a_vals, beta=0.0, sigma=sigma)
+    fig.add_trace(go.Scatter(x=a_vals, y=pm, mode="lines",
+                             name=f"σ={sigma}", line=dict(color=col)),
+                  row=1, col=2)
+
+fig.update_xaxes(title_text="Target activation A_target")
+fig.update_yaxes(title_text="p(respond match)", range=[0, 1])
+fig.update_layout(height=420, title_text="How β and σ shape the psychometric function")
+fig.show()
+```
+
+**What to notice:**
+
+- $\beta > 0$: conservative criterion — needs stronger evidence before responding "match"
+  (lower hit rate AND lower false alarm rate)
+- $\sigma$ (baseline noise): wider noise → shallower psychometric function → lower
+  discriminability
+
+---
+
+## 3. Trial Types and Their Predictions
+
+The model makes qualitatively distinct predictions for four trial types. Let's compute
+$p_{\text{match}}$ for each.
+
+```{python}
+def compute_p_match(a_target, lure_evidence, alpha, beta, sigma):
+    """
+    Full decision model (simplified: no interference normalisation yet).
+    WE = A_target + (1 - alpha) * lure_evidence
+    noise = sigma
+    p_match = Phi((WE - beta) / noise)
+    """
+    WE = a_target + (1 - alpha) * lure_evidence
+    noise = max(sigma, 1e-6)
+    d = (WE - beta) / noise
+    p = stats.norm.cdf(d)
+    return np.clip(p, 1e-10, 1 - 1e-10)
+
+# Parameters
+delta, mu, n = 0.8, 0.4, 2
+alpha, beta, sigma = 0.7, 0.1, 0.35
+
+# Compute activations for each trial type
+a_n    = delta * np.exp(-mu * n)       # target slot activation (lag 2)
+a_lure = delta * np.exp(-mu * 1)       # lag-1 lure (strongest possible lure)
+
+print(f"Parameters: δ={delta}, μ={mu}, n={n}, α={alpha}, β={beta}, σ={sigma}")
+print(f"\nActivation at lag-{n} (target slot): {a_n:.3f}")
+print(f"Activation at lag-1  (lure slot):   {a_lure:.3f}")
+
+trial_types = [
+    ("Match, no lure",     a_n,  0.0),
+    ("Match + lure",       a_n,  a_lure),
+    ("Lure non-match",     0.0,  a_lure),
+    ("Novel non-match",    0.0,  0.0),
+]
+
+print(f"\n{'Trial type':<22} {'WE':>6} {'p_match':>9}")
+print("-" * 42)
+for name, a_t, l in trial_types:
+    WE = a_t + (1 - alpha) * l
+    pm = compute_p_match(a_t, l, alpha, beta, sigma)
+    print(f"{name:<22} {WE:>6.3f} {pm:>9.3f}")
+```
+
+```{python}
+# Visual comparison of trial type predictions
+trial_names = [t[0] for t in trial_types]
+p_vals = [compute_p_match(a_t, l, alpha, beta, sigma) for _, a_t, l in trial_types]
+
+bar_colors = ["#2ca02c", "#98df8a", "#d62728", "#aec7e8"]
+
+fig = go.Figure(go.Bar(x=trial_names, y=p_vals,
+                        marker_color=bar_colors,
+                        text=[f"{v:.3f}" for v in p_vals],
+                        textposition="outside"))
+fig.add_hline(y=0.5, line_dash="dot", line_color="gray",
+              annotation_text="chance", annotation_position="right")
+fig.update_layout(yaxis=dict(range=[0, 1.05], title="p(respond match)"),
+                  xaxis_title="Trial type",
+                  title=f"Model predictions by trial type (α={alpha}, β={beta}, σ={sigma})",
+                  height=420)
+fig.show()
+```
+
+The **lure non-match** bar is the key feature: the model predicts elevated false alarms
+specifically on lure trials (not on novel non-match trials), which matches the empirical
+pattern found in the data.
+
+---
+
+## 4. How α Changes the Pattern
+
+The attentional control parameter $\alpha$ is *identifiable* specifically because it moves
+lure and novel non-match false alarms differently.
+
+```{python}
+alpha_range = np.linspace(0, 1, 50)
+
+pm_match   = [compute_p_match(a_n,   0.0,    a, beta, sigma) for a in alpha_range]
+pm_lure_nm = [compute_p_match(0.0,   a_lure, a, beta, sigma) for a in alpha_range]
+pm_novel   = [compute_p_match(0.0,   0.0,    a, beta, sigma) for a in alpha_range]
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=alpha_range, y=pm_match,
+                         name="Match (no lure)", line=dict(color="green", width=2)))
+fig.add_trace(go.Scatter(x=alpha_range, y=pm_lure_nm,
+                         name="Lure non-match", line=dict(color="tomato", width=2)))
+fig.add_trace(go.Scatter(x=alpha_range, y=pm_novel,
+                         name="Novel non-match", line=dict(color="steelblue", width=2,
+                                                            dash="dash")))
+
+fig.add_vline(x=0.7, line_dash="dot", line_color="gray",
+              annotation_text="α=0.7", annotation_position="top")
+
+fig.update_layout(
+    xaxis_title="α (attentional control)",
+    yaxis_title="p(respond match)",
+    title="Effect of α on each trial type",
+    height=420,
+    legend=dict(x=0.65, y=0.95)
+)
+fig.show()
+```
+
+**Critical point:** Novel non-match p_match is *flat* with respect to $\alpha$ — it doesn't
+depend on attentional control at all (there's nothing to suppress). This is how the model
+separates $\alpha$ from $\beta$ and $\sigma$: $\alpha$ is identified by the *gap* between
+lure FA rate and novel FA rate.
+
+---
+
+## 5. The Probit vs. Logit Decision
+
+We use $\Phi$ (normal CDF) rather than the logistic function (sigmoid). Both are S-shaped,
+but they have different tail behaviour.
+
+```{python}
+x_vals = np.linspace(-4, 4, 300)
+probit   = stats.norm.cdf(x_vals)
+logistic = expit(x_vals)
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=x_vals, y=probit,
+                         name="Probit Φ(x)", line=dict(color="steelblue", width=2)))
+fig.add_trace(go.Scatter(x=x_vals, y=logistic,
+                         name="Logistic σ(x)", line=dict(color="tomato", width=2,
+                                                          dash="dash")))
+
+diff = probit - logistic
+fig.add_trace(go.Scatter(x=x_vals, y=diff + 0.5,
+                         name="Difference (offset 0.5)", line=dict(color="gray", width=1,
+                                                                     dash="dot")))
+
+fig.update_layout(xaxis_title="Decision variable d",
+                  yaxis_title="p(respond match)",
+                  title="Probit vs. Logistic link functions",
+                  height=400)
+fig.show()
+```
+
+The probit is used because the model is derived from Gaussian evidence distributions (SDT
+theory), so $\Phi$ is the theoretically principled choice. The two are nearly
+interchangeable in practice — the probit has slightly heavier tails.
+
+---
+
+## 6. Load Effect: Why 2-back Is Harder
+
+With the decision model in place, we can now demonstrate the load effect mechanically.
+
+```{python}
+delta, mu, alpha, beta, sigma = 0.8, 0.4, 0.7, 0.1, 0.35
+
+fig = go.Figure()
+
+for n_back, col, dash in [(1, "steelblue", "solid"), (2, "tomato", "solid")]:
+    a_target = delta * np.exp(-mu * n_back)
+    pm = compute_p_match(a_target, 0.0, alpha, beta, sigma)
+    # Show over a range of delta to illustrate parameter dependence
+    delta_range = np.linspace(0.1, 1.0, 60)
+    pm_range = [compute_p_match(d * np.exp(-mu * n_back), 0.0, alpha, beta, sigma)
+                for d in delta_range]
+    fig.add_trace(go.Scatter(x=delta_range, y=pm_range,
+                             name=f"{n_back}-back",
+                             line=dict(color=col, dash=dash, width=2)))
+
+fig.update_layout(
+    xaxis_title="δ (encoding amplitude)",
+    yaxis_title="p(respond match | target trial)",
+    title="Match probability vs δ: 1-back easier because target is closer in time",
+    height=400
+)
+fig.show()
+```
+
+For any fixed $\delta$ and $\mu$, the 1-back target has higher activation ($e^{-\mu \cdot 1}
+> e^{-\mu \cdot 2}$) and therefore higher $p_{\text{match}}$. The load effect falls
+directly out of the exponential decay, requiring no additional assumptions.
+
+---
+
+## 7. Simulating a Full Block
+
+Let's run the full decision model on a synthetic trial sequence and examine the
+distribution of $p_{\text{match}}$ by trial type.
+
+```{python}
+rng = np.random.default_rng(99)
+
+def generate_sequence(n_trials, n_back, stim_pool_size=20, target_rate=0.25, seed=42):
+    rng = np.random.default_rng(seed)
+    pool = [f"s{i}" for i in range(stim_pool_size)]
+    stims = rng.choice(pool, size=n_trials).tolist()
+    for i in range(n_back, n_trials):
+        if rng.random() < target_rate:
+            stims[i] = stims[i - n_back]
+    is_target = [i >= n_back and stims[i] == stims[i - n_back]
+                 for i in range(n_trials)]
+    return stims, is_target
+
+def simulate_decisions(stims, is_target, n_back, delta, mu, alpha, beta, sigma):
+    from collections import deque
+    buf = deque()
+    max_depth = max(10, n_back + 5)
+    records = []
+
+    for t, stim in enumerate(stims):
+        buf.appendleft(stim)
+        if len(buf) > max_depth:
+            buf.pop()
+        depth = len(buf)
+
+        # Target activation
+        tgt_item = buf[n_back - 1] if depth >= n_back else None
+        match = (tgt_item == stim)
+        a_n = delta * np.exp(-mu * n_back)
+        a_target = a_n if match else 0.0
+
+        # Lure evidence: items at wrong positions that equal current stim
+        lure = sum(delta * np.exp(-mu * (k + 1))
+                   for k, s in enumerate(buf)
+                   if k + 1 != n_back and s == stim)
+
+        # Is lure? (non-match but same stim appears somewhere else in buffer)
+        is_lure = (not match) and (lure > 1e-4)
+
+        pm = compute_p_match(a_target, lure, alpha, beta, sigma)
+        records.append({
+            "trial": t,
+            "stim": stim,
+            "is_match": match,
+            "is_lure": is_lure,
+            "a_target": a_target,
+            "lure_evidence": lure,
+            "p_match": pm,
+        })
+    return records
+
+stims, is_target = generate_sequence(300, n_back=2, seed=7)
+recs = simulate_decisions(stims, is_target, n_back=2,
+                          delta=0.8, mu=0.4, alpha=0.7, beta=0.1, sigma=0.35)
+
+import pandas as pd
+df = pd.DataFrame(recs)
+
+# Classify trial type for plotting
+def trial_type(row):
+    if row["is_match"]:
+        return "Match"
+    elif row["is_lure"]:
+        return "Lure non-match"
+    else:
+        return "Novel non-match"
+
+df["trial_type"] = df.apply(trial_type, axis=1)
+
+import plotly.express as px
+fig = px.violin(df, x="trial_type", y="p_match", color="trial_type",
+                box=True, points="all",
+                color_discrete_map={
+                    "Match": "green",
+                    "Lure non-match": "tomato",
+                    "Novel non-match": "steelblue"
+                },
+                title="Distribution of p_match by trial type (300 trials, 2-back)",
+                labels={"p_match": "p(respond match)", "trial_type": ""})
+fig.update_traces(pointpos=-0.3, marker=dict(size=3, opacity=0.3))
+fig.update_layout(height=450, showlegend=False)
+fig.show()
+```
+
+```{python}
+# Summary statistics
+summary = df.groupby("trial_type")["p_match"].agg(["mean","std","count"])
+summary.columns = ["Mean p_match", "SD", "N trials"]
+print(summary.round(3).to_string())
+```
+
+The model recovers the empirically observed pattern: match > lure non-match > novel non-match.
+
+---
+
+## 8. Exercises
+
+::: {.callout-note title="Exercise 1 — Criterion shifts"}
+Set $\beta = 0.5$ (conservative) and $\beta = -0.3$ (liberal). How does each change the
+FA rate on novel non-match trials? How does it change the hit rate on match trials? Does
+it change the *gap* between lure FA and novel FA?
+:::
+
+::: {.callout-note title="Exercise 2 — α identifiability"}
+What happens to the lure vs. novel FA gap when $\alpha = 1.0$? When $\alpha = 0.0$? What
+does this imply for estimating $\alpha$ from a participant who makes very few lure false
+alarms?
+:::
+
+::: {.callout-note title="Exercise 3 — Connect to the codebase"}
+Open `scripts/nback_model.py` and find `compute_trial_signals`. Locate where `weighted_evidence`,
+`effective_noise`, and `p_match` are computed. Verify they match Equations (7), (8), and (13)
+from the methods section. Note what additional term (`encoding_variance`) appears — that is
+the topic of Lesson 3.
+:::
+
+---
+
+## Summary
+
+| Component | Formula | Role |
+|---|---|---|
+| Weighted evidence | $WE = A_n \cdot \mathbb{1}[\text{match}] + (1-\alpha) L$ | Evidence in favour of "match" |
+| Effective noise | $\text{noise} = \sigma + (1-\alpha) \tilde{G}$ | Decision variability |
+| Decision variable | $d = (WE - \beta) / \text{noise\_adj}$ | Normalised evidence |
+| Match probability | $p_{\text{match}} = \Phi(d)$ | Response probability |
+
+**Next lesson:** We dig into the interference terms — lure evidence $L$, general
+interference $G$, why they are normalised, and the probit-normal correction that makes
+$\delta$ affect not just signal amplitude but decision uncertainty.
