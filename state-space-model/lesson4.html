@@ -1,0 +1,1248 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lesson 4: GLM Design – JOL Internal Feedback Pipeline</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-6eaea6adeeda0261bc71ce20f0b5d80f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<!-- Pyodide CDN runner — no Quarto extension required.
+     Loaded via _quarto.yml include-in-header.
+     Cells are <div class="pycell" id="cell-..."> with a
+     <script type="text/python"> child holding the code.
+     JS converts each to a textarea + Run button at DOMContentLoaded. -->
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+
+<style>
+/* ── Pyodide cell chrome ─────────────────────────────────── */
+.pycell {
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  margin: 1.4em 0;
+  overflow: hidden;
+  background: #1e1e1e;
+  font-family: 'Consolas', 'Fira Mono', 'Monaco', monospace;
+}
+.pycell-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+}
+.pycell-label {
+  font-size: 0.72em;
+  color: #888;
+  flex: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.pycell-code {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.87em;
+  line-height: 1.5;
+  padding: 12px 16px;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  outline: none;
+  resize: vertical;
+  white-space: pre;
+  overflow-x: auto;
+  tab-size: 4;
+}
+.pycell-code::selection { background: #264f78; }
+.run-btn {
+  background: #0e639c;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 3px 12px;
+  font-size: 0.82em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.run-btn:hover  { background: #1177bb; }
+.run-btn:disabled { background: #444; cursor: wait; color: #aaa; }
+.clear-btn {
+  background: transparent;
+  color: #888;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 0.82em;
+  cursor: pointer;
+}
+.clear-btn:hover { color: #ccc; border-color: #888; }
+.pycell-output {
+  margin: 0;
+  padding: 10px 16px;
+  background: #f8f8f8;
+  min-height: 0;
+  font-size: 0.85em;
+  border-top: 1px solid #ddd;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #222;
+  display: none;  /* hidden until there is output */
+}
+.pycell-output:not(:empty) { display: block; }
+.pycell-output img { max-width: 100%; display: block; margin-top: 6px; }
+.pycell-err  { color: #c00; }
+.pycell-done { color: #2a7; font-style: italic; }
+
+/* Loading banner */
+#py-loading-banner {
+  position: fixed; bottom: 16px; right: 16px;
+  background: #0e639c; color: #fff;
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 0.85em; z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  display: none;
+}
+</style>
+
+</head><body class="nav-fixed quarto-light"><div id="py-loading-banner">⏳ Loading Python environment…</div>
+
+<script>
+/* ── State ─────────────────────────────────────────── */
+var _py    = null;
+var _pyOk  = false;
+var _pyPending = [];
+
+/* ── Bootstrap ─────────────────────────────────────── */
+async function _initPy() {
+  document.getElementById('py-loading-banner').style.display = 'block';
+  _py = await loadPyodide();
+  await _py.loadPackage(['numpy', 'scipy', 'matplotlib']);
+
+  // One-time Python setup: stdout capture + matplotlib figure capture
+  await _py.runPythonAsync(`
+import sys, io, base64, matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+class _Cap:
+    def __init__(self): self.buf = io.StringIO()
+    def write(self, s): self.buf.write(s)
+    def flush(self): pass
+    def getvalue(self): return self.buf.getvalue()
+    def reset(self): self.buf = io.StringIO()
+
+_cap = _Cap()
+sys.stdout = _cap
+sys.stderr = _cap
+
+_figs = []
+def _show():
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=120, bbox_inches='tight')
+    plt.close('all')
+    buf.seek(0)
+    _figs.append(base64.b64encode(buf.read()).decode())
+
+plt.show = _show
+`);
+
+  _pyOk = true;
+  document.getElementById('py-loading-banner').style.display = 'none';
+  _pyPending.forEach(fn => fn(_py));
+  _pyPending = [];
+}
+
+function _getPy() {
+  if (_pyOk) return Promise.resolve(_py);
+  if (!_py) _initPy();
+  return new Promise(r => _pyPending.push(r));
+}
+
+/* ── Cell runner ───────────────────────────────────── */
+async function pyRun(cellId) {
+  var cell   = document.getElementById(cellId);
+  var ta     = cell.querySelector('textarea.pycell-code');
+  var outEl  = document.getElementById('out-' + cellId);
+  var btn    = cell.querySelector('.run-btn');
+
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  outEl.style.display = 'block';
+  outEl.innerHTML = '<span style="color:#888">Running…</span>';
+
+  try {
+    var py = await _getPy();
+    py.runPython('_cap.reset(); _figs.clear()');
+    await py.runPythonAsync(ta.value);
+
+    var stdout   = py.runPython('_cap.getvalue()');
+    var figCount = py.runPython('len(_figs)');
+    var html = '';
+
+    if (stdout && stdout.trim())
+      html += '<pre style="margin:0">' + _esc(stdout) + '</pre>';
+
+    for (var i = 0; i < figCount; i++) {
+      var b64 = py.runPython('_figs[' + i + ']');
+      html += '<img src="data:image/png;base64,' + b64 + '">';
+    }
+    if (!html) html = '<span class="pycell-done">✓ (no output)</span>';
+    outEl.innerHTML = html;
+
+  } catch(e) {
+    outEl.innerHTML = '<pre class="pycell-err">' + _esc(e.message) + '</pre>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '▶ Run';
+}
+
+function pyClear(cellId) {
+  var el = document.getElementById('out-' + cellId);
+  el.innerHTML = '';
+  el.style.display = 'none';
+}
+
+function _esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+/* ── Convert <script type="text/python"> → <textarea> ─ */
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.pycell').forEach(function(cell) {
+    var sc = cell.querySelector('script[type="text/python"]');
+    if (!sc) return;
+    var code = sc.textContent.replace(/^\n/, '').replace(/\n$/, '');
+    var ta = document.createElement('textarea');
+    ta.className = 'pycell-code';
+    ta.value = code;
+    ta.rows  = Math.max(4, code.split('\n').length + 1);
+    ta.spellcheck   = false;
+    ta.autocomplete = 'off';
+    ta.setAttribute('autocorrect', 'off');
+    ta.addEventListener('input', function() {
+      this.rows = Math.max(4, this.value.split('\n').length + 1);
+    });
+    // Insert after toolbar, remove script tag
+    var toolbar = cell.querySelector('.pycell-toolbar');
+    cell.insertBefore(ta, toolbar ? toolbar.nextSibling : sc);
+    sc.remove();
+  });
+});
+</script>
+
+
+
+
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">JOL Internal Feedback Pipeline</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-lessons" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Lessons</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-lessons">    
+        <li>
+    <a class="dropdown-item" href="./lesson1.html">
+ <span class="dropdown-text">1. The Feedback Loop</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson2.html">
+ <span class="dropdown-text">2. Fitting Alpha</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson3.html">
+ <span class="dropdown-text">3. Metacognitive SDT</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson4.html">
+ <span class="dropdown-text">4. GLM Design</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson5.html">
+ <span class="dropdown-text">5. Bridge Analyses</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  <li><a href="#why-z-score-pms-within-subject" id="toc-why-z-score-pms-within-subject" class="nav-link" data-scroll-target="#why-z-score-pms-within-subject">4.1 Why Z-score PMs Within Subject?</a></li>
+  <li><a href="#the-six-glm-variants" id="toc-the-six-glm-variants" class="nav-link" data-scroll-target="#the-six-glm-variants">4.2 The Six GLM Variants</a></li>
+  <li><a href="#the-collinearity-problem-in-depth" id="toc-the-collinearity-problem-in-depth" class="nav-link" data-scroll-target="#the-collinearity-problem-in-depth">4.3 The Collinearity Problem in Depth</a></li>
+  <li><a href="#building-a-contrast-vector" id="toc-building-a-contrast-vector" class="nav-link" data-scroll-target="#building-a-contrast-vector">4.4 Building a Contrast Vector</a></li>
+  <li><a href="#sessreprepl-replicating-contrasts-across-runs" id="toc-sessreprepl-replicating-contrasts-across-runs" class="nav-link" data-scroll-target="#sessreprepl-replicating-contrasts-across-runs">4.5 sessrep=‘repl’ — Replicating Contrasts Across Runs</a></li>
+  <li><a href="#rsfa-scaling-vascular-correction" id="toc-rsfa-scaling-vascular-correction" class="nav-link" data-scroll-target="#rsfa-scaling-vascular-correction">4.6 RSFA Scaling: Vascular Correction</a></li>
+  <li><a href="#the-epit1-coordinate-problem" id="toc-the-epit1-coordinate-problem" class="nav-link" data-scroll-target="#the-epit1-coordinate-problem">4.7 The EPI–T1 Coordinate Problem</a></li>
+  <li><a href="#orthogonalization-why-its-off" id="toc-orthogonalization-why-its-off" class="nav-link" data-scroll-target="#orthogonalization-why-its-off">4.8 Orthogonalization: Why It’s OFF</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">Exercises</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lesson 4: GLM Design</h1>
+<p class="subtitle lead">From trial regressors to SPM batches, contrast vectors, collinearity, and RSFA scaling</p>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-left">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Interactive cells.</strong> Click <strong>▶ Run</strong>. Python loads in-browser — first run ~15 s.</p>
+</div>
+</div>
+<section id="learning-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
+<ol type="1">
+<li>Understand why z-scoring within-subject is required before entering PMs into a GLM</li>
+<li>Know the 6 GLM variants (3 PM × 2 timing) and why the Full model was dropped</li>
+<li>Build a contrast vector by hand, understanding regressor ordering</li>
+<li>Understand <code>sessrep='repl'</code> and why it matters for two-run designs</li>
+<li>Know the RSFA scaling rationale and the EPI–T1 coordinate issue</li>
+</ol>
+<hr>
+</section>
+<section id="why-z-score-pms-within-subject" class="level2">
+<h2 class="anchored" data-anchor-id="why-z-score-pms-within-subject">4.1 Why Z-score PMs Within Subject?</h2>
+<div class="pycell" id="cell-L4C1">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — z-scoring demonstration</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C1')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C1')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+def make_subject(n=64, jol_mean=2.0, jol_sd=0.7, seed=0):
+    rng = np.random.default_rng(seed)
+    state = rng.normal(jol_mean, 0.3, n).clip(1, 3)
+    jol   = np.round(rng.normal(state, jol_sd)).clip(1, 3)
+    pe    = jol - state
+    rt    = rng.lognormal(0.3, 0.3, n)
+    return jol, state, pe, rt
+
+def zscore(x): return (x-x.mean())/x.std() if x.std()>0 else np.zeros_like(x)
+
+# Subject A: uses whole scale (high SD)
+jol_A, _, pe_A, rt_A = make_subject(jol_sd=0.9, seed=1)
+# Subject B: mostly JOL=2 (low SD)
+jol_B, _, pe_B, rt_B = make_subject(jol_sd=0.2, seed=2)
+
+fig, axes = plt.subplots(2, 2, figsize=(12, 7))
+for row, (pe, label) in enumerate([(pe_A,'Subject A (high SD)'), (pe_B,'Subject B (low SD)')]):
+    pe_z = zscore(pe)
+    axes[row,0].hist(pe,   bins=20, alpha=0.7, color='steelblue', edgecolor='black')
+    axes[row,0].set_title(f'{label} — PE raw (SD={pe.std():.2f})')
+    axes[row,0].set_xlabel('PE')
+    axes[row,1].hist(pe_z, bins=20, alpha=0.7, color='crimson',   edgecolor='black')
+    axes[row,1].set_title(f'{label} — PE z-scored (SD=1.00)')
+    axes[row,1].set_xlabel('PE (z)')
+plt.suptitle("Before vs After Within-Subject Z-Scoring", y=1.01)
+plt.tight_layout(); plt.show()
+
+print("Without z-scoring: Subject A and B betas differ purely due to scale SD.")
+print("With z-scoring: both betas represent 1-SD change in PE — directly comparable.")
+print()
+print(f"Subject A PE SD: {pe_A.std():.3f}  |  Subject B PE SD: {pe_B.std():.3f}")
+print("Ratio A/B without z-scoring:", round(pe_A.std()/pe_B.std(), 2))
+print("=> Subject B's beta would appear ~{:.0f}x larger without z-scoring".format(pe_A.std()/pe_B.std()))
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C1"></pre>
+</div>
+<hr>
+</section>
+<section id="the-six-glm-variants" class="level2">
+<h2 class="anchored" data-anchor-id="the-six-glm-variants">4.2 The Six GLM Variants</h2>
+<div class="pycell" id="cell-L4C2">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — GLM variant summary</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C2')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C2')">×</button>
+  </div>
+  <script type="text/python">
+TR = 1.72  # seconds
+
+GLM_VARIANTS = {
+    'RedA':  {'pms': ['PE',     'RT'], 'desc': 'Cleanest PE test'},
+    'RedB':  {'pms': ['State',  'RT'], 'desc': 'Cleanest State test'},
+    'Naive': {'pms': ['NaivePE','RT'], 'desc': 'JOL - cat_mean (no dynamics)'},
+    # Full model DROPPED: JOL = State + PE => perfect collinearity
+}
+TIMING_VARIANTS = {
+    'Epoch':    {'duration': TR*3,   'offset': 0.0,    'desc': f'Full trial epoch ({TR*3:.2f}s)'},
+    'JOLstick': {'duration': 0.0,    'offset': TR*2,   'desc': f'Stick at JOL onset (+{TR*2:.2f}s)'},
+}
+
+print("All 6 GLM variants:\n")
+for pm_var, pm_info in GLM_VARIANTS.items():
+    for t_var, t_info in TIMING_VARIANTS.items():
+        name = f'GLM_JOL_FB_{pm_var}_{t_var}'
+        print(f"  {name}")
+        print(f"    PMs:    {pm_info['pms']}")
+        print(f"    Timing: {t_info['desc']}")
+        print()
+
+print("Primary GLM for DCM and gPPI: RedA_Epoch")
+print()
+print("Why Epoch vs JOLstick?")
+print("  Epoch:    models study+JOL window as one event — captures encoding + judgment")
+print("  JOLstick: stick at JOL moment — more temporally precise, less encoding signal")
+print()
+print("Why Naive?")
+print("  NaivePE = JOL - category_mean (no model dynamics)")
+print("  Tests how much RedA PE explains beyond simple JOL demeaning.")
+print("  Real data: PE vs NaivePE correlation ~ 0.91; unique variance ~ 15%")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C2"></pre>
+</div>
+<hr>
+</section>
+<section id="the-collinearity-problem-in-depth" class="level2">
+<h2 class="anchored" data-anchor-id="the-collinearity-problem-in-depth">4.3 The Collinearity Problem in Depth</h2>
+<div class="pycell" id="cell-L4C3">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — VIF demonstration</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C3')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C3')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from numpy.linalg import lstsq
+
+def compute_vif(X):
+    n_vars = X.shape[1]; vifs = []
+    for j in range(n_vars):
+        y = X[:,j]; X_o = np.delete(X, j, axis=1)
+        X_aug = np.column_stack([np.ones(len(y)), X_o])
+        b,*_ = lstsq(X_aug, y, rcond=None)
+        yhat  = X_aug @ b
+        ss_res = np.sum((y-yhat)**2); ss_tot = np.sum((y-y.mean())**2)
+        r2 = 1-ss_res/ss_tot if ss_tot>0 else 0
+        vifs.append(1/(1-r2) if r2<1 else float('inf'))
+    return np.array(vifs)
+
+def zscore(x): return (x-x.mean())/x.std() if x.std()>0 else np.zeros_like(x)
+
+np.random.seed(5); n = 64
+# Simulate realistic trial data
+state_raw = np.cumsum(np.random.normal(0, 0.1, n)).clip(1, 3)
+pe_raw    = np.random.normal(0, 0.5, n)
+jol_raw   = np.clip(state_raw + pe_raw, 1, 3)   # JOL = State + PE (by construction)
+rt_raw    = np.random.lognormal(0.3, 0.3, n)
+
+pe_z = zscore(pe_raw); state_z = zscore(state_raw)
+jol_z = zscore(jol_raw); rt_z = zscore(rt_raw)
+
+# Full model: JOL + PE + State + RT
+vif_full = compute_vif(np.column_stack([jol_z, pe_z, state_z, rt_z]))
+# RedA: PE + RT
+vif_redA = compute_vif(np.column_stack([pe_z, rt_z]))
+# RedB: State + RT
+vif_redB = compute_vif(np.column_stack([state_z, rt_z]))
+
+print("VIFs — Full model (JOL + PE + State + RT):")
+for name, v in zip(['JOL','PE','State','RT'], vif_full):
+    flag = ' <<< CRITICAL (near-infinite)' if v > 50 else (' << WARNING' if v > 5 else '')
+    print(f"  VIF({name:<6}) = {v:>10.2f}{flag}")
+
+print("\nVIFs — RedA (PE + RT):")
+for name, v in zip(['PE','RT'], vif_redA):
+    print(f"  VIF({name:<6}) = {v:>8.3f}  OK")
+
+print("\nVIFs — RedB (State + RT):")
+for name, v in zip(['State','RT'], vif_redB):
+    print(f"  VIF({name:<6}) = {v:>8.3f}  OK")
+
+print()
+print("The full model collinearity is ALGEBRAIC (JOL = State + PE by definition),")
+print("not just a high correlation. Perfect linear dependence => VIF = infinity.")
+print("This is why the Full model is dropped entirely.")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C3"></pre>
+</div>
+<hr>
+</section>
+<section id="building-a-contrast-vector" class="level2">
+<h2 class="anchored" data-anchor-id="building-a-contrast-vector">4.4 Building a Contrast Vector</h2>
+<div class="pycell" id="cell-L4C4">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — contrast vector construction</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C4')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C4')">×</button>
+  </div>
+  <script type="text/python">
+def make_blueprint(pm_list, conditions=('FS','FO')):
+    """Build regressor blueprint and index map for one session."""
+    blueprint = []; idx_map = {}; idx = 0
+    for cat in conditions:
+        blueprint.append(f'{cat}_cond'); idx_map[f'{cat}_cond'] = idx; idx += 1
+        for pm in pm_list:
+            blueprint.append(f'{cat}_PM_{pm}'); idx_map[f'{cat}_PM_{pm}'] = idx; idx += 1
+    return blueprint, idx_map
+
+pm_list   = ['PE', 'RT']
+blueprint, idx_map = make_blueprint(pm_list)
+n = len(blueprint)
+
+print(f"Regressor order per session ({n} experimental regressors):")
+for i, name in enumerate(blueprint):
+    print(f"  [{i}]  {name}")
+
+print()
+print("Example contrasts (sessrep='repl' replicates across both runs automatically):")
+print()
+
+def contrast(weights_dict, label):
+    w = [0.0]*n
+    for key, val in weights_dict.items():
+        if key in idx_map: w[idx_map[key]] = val
+    print(f"  {label}:")
+    print(f"    weights = {w}")
+    return w
+
+contrast({'FS_PM_PE': 1.0},                       'FS PE effect')
+contrast({'FS_PM_PE': 0.5, 'FO_PM_PE': 0.5},     'Pooled PE (FS+FO average)')
+contrast({'FS_PM_PE': 1.0, 'FO_PM_PE': -1.0},    'PE: FS > FO')
+contrast({'FS_PM_PE': 0.5, 'FO_PM_PE': 0.5,
+          'FS_PM_RT':-0.5, 'FO_PM_RT':-0.5},     'PE > RT (directional test)')
+
+print()
+print("These map to con_0001.nii, con_0002.nii, etc.")
+print("SPM appends zeros for motion regressors + session constants via sessrep='repl'.")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C4"></pre>
+</div>
+<hr>
+</section>
+<section id="sessreprepl-replicating-contrasts-across-runs" class="level2">
+<h2 class="anchored" data-anchor-id="sessreprepl-replicating-contrasts-across-runs">4.5 sessrep=‘repl’ — Replicating Contrasts Across Runs</h2>
+<div class="pycell" id="cell-L4C5">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — sessrep explanation</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C5')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C5')">×</button>
+  </div>
+  <script type="text/python">
+print("""
+Design matrix structure (schematic, 2 runs):
+
+  Run 1 columns:  [FS_cond | FS_PE | FS_RT | FO_cond | FO_PE | FO_RT | motion_R1 (N1 cols)]
+  Run 2 columns:  [FS_cond | FS_PE | FS_RT | FO_cond | FO_PE | FO_RT | motion_R2 (N2 cols)]
+
+  N1 and N2 vary per subject (ART detects different spike counts).
+
+  With sessrep='repl', you specify weights ONCE for the experimental block:
+    w = [0, 0.5, 0, 0, 0.5, 0]   (pooled PE)
+
+  SPM expands this to the full matrix:
+    full_c = [0, 0.5, 0, 0, 0.5, 0, 0...0(N1) | 0, 0.5, 0, 0, 0.5, 0, 0...0(N2)]
+
+  Key advantage: works regardless of how many motion columns each run has.
+  Without sessrep='repl': you'd need to know N1 and N2 for every subject
+                           and write subject-specific contrast vectors.
+
+  In s04_generate_firstlevel_spm.py:
+    matlabbatch{3}.spm.stats.con.consess{K}.tcon.sessrep = 'repl';
+""")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C5"></pre>
+</div>
+<hr>
+</section>
+<section id="rsfa-scaling-vascular-correction" class="level2">
+<h2 class="anchored" data-anchor-id="rsfa-scaling-vascular-correction">4.6 RSFA Scaling: Vascular Correction</h2>
+<div class="pycell" id="cell-L4C6">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — RSFA scaling demonstration</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C6')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C6')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+np.random.seed(5); n = 200
+true_neural = np.random.normal(0, 1, n)
+rsfa        = np.random.gamma(3, 0.5, n) + 0.5      # vascular sensitivity varies across voxels
+observed    = true_neural * rsfa + np.random.normal(0, 0.3, n)
+scaled      = observed / rsfa                        # divide by RSFA
+
+from scipy.stats import pearsonr
+r_raw,    _ = pearsonr(true_neural, observed)
+r_scaled, _ = pearsonr(true_neural, scaled)
+
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+for ax, vals, title, r in [
+    (axes[0], observed, f'Before RSFA scaling\nr = {r_raw:.3f}',    r_raw),
+    (axes[1], scaled,   f'After RSFA scaling\nr = {r_scaled:.3f}', r_scaled),
+]:
+    ax.scatter(true_neural, vals, alpha=0.4, s=15)
+    ax.set_xlabel('True Neural PE Effect')
+    ax.set_ylabel('BOLD value')
+    ax.set_title(title)
+plt.tight_layout(); plt.show()
+
+print("RSFA (Resting-State Fluctuation Amplitude) from resting-state data.")
+print("Captures vascular sensitivity: how much BOLD signal a given neural event produces.")
+print()
+print("Dividing con images by RSFA removes vascular amplitude variation,")
+print("making betas reflect neural signal more cleanly (Tsvetanov et al. 2021).")
+print()
+print("Why resting-state RSFA and not task-based?")
+print("  Task BOLD is contaminated by neural signal => biased vascular estimate.")
+print("  Resting-state RSFA is purely vascular baseline.")
+print()
+print(f"Recovery correlation: raw={r_raw:.3f}  =>  scaled={r_scaled:.3f}")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C6"></pre>
+</div>
+<hr>
+</section>
+<section id="the-epit1-coordinate-problem" class="level2">
+<h2 class="anchored" data-anchor-id="the-epit1-coordinate-problem">4.7 The EPI–T1 Coordinate Problem</h2>
+<div class="pycell" id="cell-L4C7">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — EPI-T1 coordinate explanation</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C7')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C7')">×</button>
+  </div>
+  <script type="text/python">
+print("""
+PROBLEM: EPI and T1 native spaces differ.
+
+After MELODIC denoising, s8u_denoised_data.nii is in EPI native space —
+but coregistration headers were NOT preserved by MELODIC.
+
+ANTs transforms go between:
+    T1 native space  <-->  Study template space
+
+NOT between:
+    EPI native space <-->  Study template space
+
+FORWARD WARPS (EPI -> template) work fine:
+  The warp field is evaluated at TEMPLATE coordinates.
+  ANTs samples the EPI at the right world locations regardless of header.
+
+INVERSE WARPS (template -> EPI) fail:
+  The InverseWarp is defined in T1 space.
+  If you use EPI as the reference, ANTs evaluates T1-space warp
+  at EPI voxel coordinates => WRONG mapping (spaces don't align).
+
+FIX (config.warp_roi_to_native):
+  Step 1: ANTs inverse warp  template -> T1  (using T1 as reference = CORRECT)
+  Step 2: nibabel resample   T1 -> EPI       (using NIfTI affines = CORRECT)
+
+This two-step approach is used in:
+  s00 (tSNR quality check)
+  s11 (gPPI setup: warp vmPFC seed to native EPI)
+  s17 (DCM VOI extraction: warp each ROI to native EPI)
+
+Safe with forward-only warps:
+  s05 (RSFA scale + warp con images to template)
+  s13 (gPPI warp PPI con images to template)
+""")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C7"></pre>
+</div>
+<hr>
+</section>
+<section id="orthogonalization-why-its-off" class="level2">
+<h2 class="anchored" data-anchor-id="orthogonalization-why-its-off">4.8 Orthogonalization: Why It’s OFF</h2>
+<div class="pycell" id="cell-L4C8">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — orth=0 demonstration</span>
+    <button class="run-btn" onclick="pyRun('cell-L4C8')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L4C8')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from numpy.linalg import lstsq
+
+# Simulate two correlated PMs (PE and RT with moderate correlation)
+np.random.seed(9); n = 64
+pe_z = np.random.normal(0, 1, n)
+rt_z = 0.2*pe_z + np.random.normal(0, 0.98, n)   # r~0.2 correlation
+# Simulated BOLD (PE has true effect, RT does not)
+bold = 0.5*pe_z + np.random.normal(0, 1, n)
+
+def ols(X, y):
+    X_aug = np.column_stack([np.ones(len(y)), X])
+    b,*_ = lstsq(X_aug, y, rcond=None)
+    return b[1:]
+
+# orth=0: PE and RT entered as-is
+betas_orth0 = ols(np.column_stack([pe_z, rt_z]), bold)
+
+# orth=1 (SPM default): residualize RT against PE first
+rt_res = rt_z - ols(pe_z[:,None], rt_z)[0]*pe_z   # RT residualized against PE
+betas_orth1_pe  = ols(np.column_stack([pe_z, rt_res]), bold)[0]   # PE gets all shared var
+# (order-reversed: residualize PE against RT first)
+pe_res = pe_z - ols(rt_z[:,None], pe_z)[0]*rt_z
+betas_orth1_rt_first_pe = ols(np.column_stack([pe_res, rt_z]), bold)[0]   # PE loses shared var
+
+print("True PE beta: 0.500   (RT beta: 0.000)")
+print()
+print(f"orth=0 (pipeline):       beta_PE = {betas_orth0[0]:.4f}  (closest to truth)")
+print(f"orth=1, PE listed first: beta_PE = {betas_orth1_pe:.4f}  (PE absorbs shared var)")
+print(f"orth=1, RT listed first: beta_PE = {betas_orth1_rt_first_pe:.4f}  (PE loses shared var)")
+print()
+print("With orth=1, the PE estimate depends on which PM is listed first.")
+print("In the pipeline, PE and RT are BOTH substantive — neither should dominate.")
+print("orth=0 gives each PM its unique contribution => correct interpretation.")
+print()
+print("Practical note: PE-RT correlation is ~0.05 in the real dataset,")
+print("so the choice of orth matters little numerically. But conceptually,")
+print("orth=0 is ALWAYS preferable for multiple substantive PMs.")
+  </script>
+  <pre class="pycell-output" id="out-cell-L4C8"></pre>
+</div>
+<hr>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">Exercises</h2>
+<p><strong>1.</strong> In cell 4, add a third PM (<code>NaivePE</code>) and rebuild the blueprint. What are the contrast weights for “Model PE &gt; Naive PE”?</p>
+<p><strong>2.</strong> A subject has 5 motion spikes in Run 1 and 2 in Run 2. How many total columns does the design matrix have? (Count experimental + motion + session constants.)</p>
+<p><strong>3.</strong> The <code>JOLstick</code> variant offsets onsets by 3.44 s. Sketch the expected HRF-convolved response at a PE-sensitive voxel. When would <code>JOLstick</code> give cleaner PE effects than <code>Epoch</code>?</p>
+<p><strong>4.</strong> Why must RSFA come from resting-state data rather than the task run itself?</p>
+<hr>
+<p><strong>Next:</strong> <a href="./lesson5.html">Lesson 5 — Bridge Analyses</a></p>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

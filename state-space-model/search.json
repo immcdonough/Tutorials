@@ -1,0 +1,408 @@
+[
+  {
+    "objectID": "lesson5.html",
+    "href": "lesson5.html",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "",
+    "text": "Tip\n\n\n\nInteractive cells. Click ▶ Run. Python loads in-browser — first run ~15 s."
+  },
+  {
+    "objectID": "lesson5.html#learning-objectives",
+    "href": "lesson5.html#learning-objectives",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "Learning Objectives",
+    "text": "Learning Objectives\n\nUnderstand what “bridge variable” means in a computational neuroscience pipeline\nRun bivariate correlations and partial correlations controlling for age\nRun multiple OLS regression and interpret standardized betas\nUnderstand why transition rate is a stronger age predictor than alpha\nConceptually connect bridge variables to fMRI second-level models, gPPI, and DCM"
+  },
+  {
+    "objectID": "lesson5.html#what-is-a-bridge-variable",
+    "href": "lesson5.html#what-is-a-bridge-variable",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.1 What Is a Bridge Variable?",
+    "text": "5.1 What Is a Bridge Variable?\nBridge variables are computational or behavioral summary statistics that bridge the state-space model to:\n\nTrait-level predictors (Age, depression, memory self-report) — behavioral Stage 2\nNeural activity — second-level fMRI regression (who has larger PE beta?)\nConnectivity patterns — gPPI and DCM PEB covariates\n\nThe design principle: extract model-based quantities from behavior first, test their neural correlates independently. This prevents double dipping.\n\n  \n    Python — simulate dataset\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#bivariate-correlations",
+    "href": "lesson5.html#bivariate-correlations",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.2 Bivariate Correlations",
+    "text": "5.2 Bivariate Correlations\n\n  \n    Python — bivariate correlation table\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#why-transition-rate-beats-alpha-as-an-age-predictor",
+    "href": "lesson5.html#why-transition-rate-beats-alpha-as-an-age-predictor",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.3 Why Transition Rate Beats Alpha as an Age Predictor",
+    "text": "5.3 Why Transition Rate Beats Alpha as an Age Predictor\n\n  \n    Python — age scatter plots\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#partial-correlations-controlling-for-age",
+    "href": "lesson5.html#partial-correlations-controlling-for-age",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.4 Partial Correlations — Controlling for Age",
+    "text": "5.4 Partial Correlations — Controlling for Age\nWhen testing bridge variable × self-report, you must control for age (it drives both):\n\n  \n    Python — partial correlation\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#multiple-regression-bridge-age-self-report-depression",
+    "href": "lesson5.html#multiple-regression-bridge-age-self-report-depression",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.5 Multiple Regression: Bridge ~ Age + Self-Report + Depression",
+    "text": "5.5 Multiple Regression: Bridge ~ Age + Self-Report + Depression\n\n  \n    Python — multiple regression (s09 style)\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#how-bridge-variables-flow-into-the-fmri-pipeline",
+    "href": "lesson5.html#how-bridge-variables-flow-into-the-fmri-pipeline",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.6 How Bridge Variables Flow Into the fMRI Pipeline",
+    "text": "5.6 How Bridge Variables Flow Into the fMRI Pipeline\n\n  \n    Python — pipeline flow summary\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#the-age-alpha-meta-d-interaction",
+    "href": "lesson5.html#the-age-alpha-meta-d-interaction",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.7 The Age × Alpha × Meta-d’ Interaction",
+    "text": "5.7 The Age × Alpha × Meta-d’ Interaction\n\n  \n    Python — interaction test (preregistered H8)\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#summary-visualization",
+    "href": "lesson5.html#summary-visualization",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "5.8 Summary Visualization",
+    "text": "5.8 Summary Visualization\n\n  \n    Python — bridge relationships figure\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson5.html#summary",
+    "href": "lesson5.html#summary",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "Summary",
+    "text": "Summary\n\n\n\n\n\n\n\n\nVariable\nSource\nKey finding in real data\n\n\n\n\nalpha\ns02 model fitting\nr=0.13 with age (n.s.); mediocre due to estimation error\n\n\njol_transition_rate\nDirect count\nr=−0.36 with age (p&lt;0.001); strongest bridge\n\n\nmeta_d\ns02d type-2 SDT\nSurvived DCM PEB+BMR; age-related decline\n\n\nthreshold_center\ns02b ordinal model\nr=0.23 with CESD9 (response bias ↔︎ depression)\n\n\n\nThe pipeline’s power comes from computing bridge variables from behavior before looking at the brain. This prevents circularity and maintains interpretive independence between computation and neural data."
+  },
+  {
+    "objectID": "lesson5.html#exercises",
+    "href": "lesson5.html#exercises",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "Exercises",
+    "text": "Exercises\n1. All second-level models control for Age. When would not controlling for Age be appropriate? Under what circumstances does age-control introduce collider bias?\n2. Compute inter-correlations among alpha, transition_rate, and meta_d. Which pairs are collinear enough to cause problems if entered together?\n3. In DCM PEB, covariates are centered. Why is centering important? What does the intercept represent in a centered PEB model?\n4. The gPPI peak at L SFG [-18,20,44] was 2.5 mm from the dlPFC border. Why does the pipeline treat this as “DECHA-consistent but not conclusive”? What additional evidence would be needed?"
+  },
+  {
+    "objectID": "lesson5.html#course-complete",
+    "href": "lesson5.html#course-complete",
+    "title": "Lesson 5: Bridge Analyses",
+    "section": "Course Complete",
+    "text": "Course Complete\n\n\n\n\n\n\n\nLesson\nCore insight\n\n\n\n\n1\nJOL ≡ State + PE is an algebraic identity — not a correlation, a definition\n\n\n2\nTransition rate has no estimation error; this is why it outperforms alpha\n\n\n3\nMeta-d’ separates task performance from metacognitive access; AUROC2 is the non-parametric check\n\n\n4\nThe Full GLM is mathematically impossible; RSFA correction removes vascular confounds\n\n\n5\nBridge variables connect behavior → brain via partial correlations, regression, and PEB covariates"
+  },
+  {
+    "objectID": "lesson3.html",
+    "href": "lesson3.html",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "",
+    "text": "Tip\n\n\n\nInteractive cells. Click ▶ Run. Python loads in-browser — first run ~15 s."
+  },
+  {
+    "objectID": "lesson3.html#learning-objectives",
+    "href": "lesson3.html#learning-objectives",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "Learning Objectives",
+    "text": "Learning Objectives\n\nDistinguish type-1 (task) and type-2 (metacognitive) sensitivity\nCompute d’ with log-linear correction for sparse cells\nBuild type-2 count matrices from JOL ratings × recall accuracy\nCompute Meta-d’, M-ratio, and AUROC2; know what each measures\nUnderstand why Gamma is reported as a supplement only"
+  },
+  {
+    "objectID": "lesson3.html#two-levels-of-sensitivity",
+    "href": "lesson3.html#two-levels-of-sensitivity",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.1 Two Levels of Sensitivity",
+    "text": "3.1 Two Levels of Sensitivity\nType-1 (object level): How well does recall discriminate remembered from forgotten items? Standard d’.\nType-2 (metacognitive level): How well does the participant’s confidence (JOL) discriminate their own correct from incorrect responses? Meta-d’.\nFrom Maniscalco & Lau (2012): meta-d’ is “what d’ would need to be if the observer’s sensitivity were perfectly aligned with their confidence.”\n\\[M\\text{-ratio} = \\frac{\\text{meta-}d'}{d'} \\qquad \\text{(metacognitive efficiency)}\\]\nM-ratio = 1.0 means perfect efficiency; &lt; 1.0 means suboptimal access to the internal signal."
+  },
+  {
+    "objectID": "lesson3.html#setting-up-count-matrices",
+    "href": "lesson3.html#setting-up-count-matrices",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.2 Setting Up Count Matrices",
+    "text": "3.2 Setting Up Count Matrices\n\n  \n    Python — type-2 count matrices\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson3.html#d-with-log-linear-correction",
+    "href": "lesson3.html#d-with-log-linear-correction",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.3 d’ with Log-Linear Correction",
+    "text": "3.3 d’ with Log-Linear Correction\n\n  \n    Python — d' computation\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson3.html#computing-meta-d",
+    "href": "lesson3.html#computing-meta-d",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.4 Computing Meta-d’",
+    "text": "3.4 Computing Meta-d’\n\n  \n    Python — meta-d' and M-ratio\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson3.html#the-type-2-roc-curve-and-auroc2",
+    "href": "lesson3.html#the-type-2-roc-curve-and-auroc2",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.5 The Type-2 ROC Curve and AUROC2",
+    "text": "3.5 The Type-2 ROC Curve and AUROC2\nAUROC2 is the non-parametric alternative — no Gaussian assumptions:\n\n  \n    Python — AUROC2 and type-2 ROC\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson3.html#why-gamma-is-only-supplementary",
+    "href": "lesson3.html#why-gamma-is-only-supplementary",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.6 Why Gamma is Only Supplementary",
+    "text": "3.6 Why Gamma is Only Supplementary\n\n  \n    Python — Gamma inflation demo\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson3.html#full-subject-summary",
+    "href": "lesson3.html#full-subject-summary",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "3.7 Full Subject Summary",
+    "text": "3.7 Full Subject Summary\n\n  \n    Python — full analysis for one subject\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson3.html#exercises",
+    "href": "lesson3.html#exercises",
+    "title": "Lesson 3: Metacognitive Accuracy",
+    "section": "Exercises",
+    "text": "Exercises\n1. What happens to M-ratio when d’ is very small (d’ = 0.1)? What does this mean for subjects who barely succeed at the memory task?\n2. Compute AUROC2 for a subject who always gives JOL=2. What is the expected value? Why?\n3. Why does the log-linear correction add 0.5 to all cells, not just the zero cell? Try a subject with 1 false alarm and 29 correct rejections and compare the correction approaches.\n4. Explain why AUROC2 properly handles tied pairs whereas Gamma does not.\n\nNext: Lesson 4 — GLM Design"
+  },
+  {
+    "objectID": "lesson1.html",
+    "href": "lesson1.html",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "",
+    "text": "Tip\n\n\n\nAll code cells are interactive. Click ▶ Run to execute. Python loads in-browser via Pyodide — first run takes ~15 s while packages download."
+  },
+  {
+    "objectID": "lesson1.html#learning-objectives",
+    "href": "lesson1.html#learning-objectives",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "Learning Objectives",
+    "text": "Learning Objectives\n\nUnderstand the delta-rule state-space model and why it captures an internal feedback loop\nKnow the three variables — State, JOL, PE — and the algebraic relationship that binds them\nSimulate state trajectories and prediction errors from scratch\nUnderstand why S0 must be the first-trial JOL, not the mean"
+  },
+  {
+    "objectID": "lesson1.html#why-a-feedback-loop",
+    "href": "lesson1.html#why-a-feedback-loop",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.1 Why a Feedback Loop?",
+    "text": "1.1 Why a Feedback Loop?\nIn most fMRI memory studies, parametric modulators are static stimulus properties. This pipeline takes a different approach: the regressors are outputs of a dynamical system that evolves over the experiment.\nParticipants form expectations. After ten face-scene pairs you have a sense of how well you’re learning. When a new pair surprises you — much easier or harder than expected — that surprise is a prediction error: the gap between what happened and what your internal model predicted.\nThis maps onto the delta-rule, adapted for metacognition where:\n\nThe state \\(S_t^{(c)}\\) is a running estimate of learning quality for category \\(c\\)\nThe observation is the JOL (1=Unlikely, 2=Maybe, 3=Likely)\nThere is no external feedback — the loop is entirely internal"
+  },
+  {
+    "objectID": "lesson1.html#the-model-equations",
+    "href": "lesson1.html#the-model-equations",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.2 The Model Equations",
+    "text": "1.2 The Model Equations\nTransition equation: \\[S_t^{(c)} = S_{t-1}^{(c)} + \\alpha \\cdot \\underbrace{(JOL_{t-1} - S_{t-1}^{(c)})}_{\\text{PE}_{t-1}}\\]\nPrediction error: \\[PE_t = JOL_t - S_t^{(c)}\\]\n\\(\\alpha \\in (0,1)\\) is the learning rate. High \\(\\alpha\\) = rapid adaptation; low \\(\\alpha\\) = stable slow-moving expectation. States are tracked separately per category, one shared \\(\\alpha\\) per participant."
+  },
+  {
+    "objectID": "lesson1.html#simulating-a-state-trajectory",
+    "href": "lesson1.html#simulating-a-state-trajectory",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.3 Simulating a State Trajectory",
+    "text": "1.3 Simulating a State Trajectory\nCore function from s02_fit_state_space_model.py. Run it and observe the trajectory:\n\n  \n    Python — state trajectory\n    ▶ Run\n    ×\n  \n  \n  \n\nWhat to notice: The state (red) is a smoothed prediction that lags behind rapid JOL changes. Positive PE (blue bar) = participant rated higher than predicted. The state slowly chases the actual JOL level."
+  },
+  {
+    "objectID": "lesson1.html#the-critical-identity-jol-state-pe",
+    "href": "lesson1.html#the-critical-identity-jol-state-pe",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.4 The Critical Identity: JOL = State + PE",
+    "text": "1.4 The Critical Identity: JOL = State + PE\nThis is the most important algebraic fact in the entire pipeline. It holds by construction at every trial:\n\\[JOL_t \\equiv S_t + PE_t\\]\n\n  \n    Python — identity check\n    ▶ Run\n    ×\n  \n  \n  \n\nThis isn’t a modeling choice — it is a mathematical inevitability. Understanding this identity is prerequisite for Lesson 4 on GLM design."
+  },
+  {
+    "objectID": "lesson1.html#why-s0-first-trial-jol-not-the-mean",
+    "href": "lesson1.html#why-s0-first-trial-jol-not-the-mean",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.5 Why S0 = First-Trial JOL (Not the Mean)",
+    "text": "1.5 Why S0 = First-Trial JOL (Not the Mean)\n\n  \n    Python — S0 initialization\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson1.html#two-categories-one-alpha-the-sse-landscape",
+    "href": "lesson1.html#two-categories-one-alpha-the-sse-landscape",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.6 Two Categories, One Alpha — the SSE Landscape",
+    "text": "1.6 Two Categories, One Alpha — the SSE Landscape\n\n  \n    Python — SSE landscape\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson1.html#what-alpha-means-psychologically",
+    "href": "lesson1.html#what-alpha-means-psychologically",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "1.7 What Alpha Means Psychologically",
+    "text": "1.7 What Alpha Means Psychologically\n\n\n\nAlpha\nMeaning\nParticipant profile\n\n\n\n\n≈ 0.05\nVery slow updater\nExpectations barely move\n\n\n≈ 0.20\nModerate updater\nState tracks gradual trends\n\n\n≈ 0.50\nFast updater\nState follows recent 2–3 trials\n\n\n≈ 0.90\nNear-unit updater\nState ≈ last JOL\n\n\n\nReal dataset: mean α = 0.188, median = 0.155. Older adults tend toward lower α, but the age correlation (r = 0.13) is not significant. JOL transition rate is the stronger age predictor (r = −0.36) — covered in Lesson 5."
+  },
+  {
+    "objectID": "lesson1.html#exercises",
+    "href": "lesson1.html#exercises",
+    "title": "Lesson 1: The Internal Feedback Loop",
+    "section": "Exercises",
+    "text": "Exercises\n1. Change alpha in cell 1 to 0.05 and 0.80. How does the state lag change?\n2. Set jols = np.ones(20) * 2 in cell 1. What is the optimal alpha and why?\n3. Run cell 3 for a participant whose JOLs are all identical (no variance). What happens?\n4. Prove algebraically: if \\(S_0 = \\bar{JOL}\\) and \\(\\alpha = 0\\), then \\(PE_t = JOL_t - \\bar{JOL}\\) for all \\(t\\). What familiar quantity is this?\n\nNext: Lesson 2 — Fitting Alpha"
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "JOL Internal Feedback Pipeline: A Practical Course",
+    "section": "",
+    "text": "This is a five-lesson course built directly from the code in the JOL computation pipeline. Each lesson explains why the code is designed the way it is, shows you the actual implementation, and gives you runnable examples you can modify in your browser.\nThe pipeline answers one scientific question: How do people build and update internal beliefs about their own learning performance, without any external feedback?"
+  },
+  {
+    "objectID": "index.html#what-this-course-is",
+    "href": "index.html#what-this-course-is",
+    "title": "JOL Internal Feedback Pipeline: A Practical Course",
+    "section": "",
+    "text": "This is a five-lesson course built directly from the code in the JOL computation pipeline. Each lesson explains why the code is designed the way it is, shows you the actual implementation, and gives you runnable examples you can modify in your browser.\nThe pipeline answers one scientific question: How do people build and update internal beliefs about their own learning performance, without any external feedback?"
+  },
+  {
+    "objectID": "index.html#the-big-picture",
+    "href": "index.html#the-big-picture",
+    "title": "JOL Internal Feedback Pipeline: A Practical Course",
+    "section": "The Big Picture",
+    "text": "The Big Picture\nParticipants study paired images (face-scene or face-object) and after each pair judge how likely they are to remember it later — a Judgment of Learning (JOL). There is no feedback. Then, in a later memory test, we see what they actually recalled.\nThe pipeline models this as a genuine feedback loop: internal states generate predictions, observations violate those predictions (creating errors), and those errors update the states. This loop is the computational engine of metacognition.\n     JOL observation\n          ↓\n    Prediction Error  ←──── State at time t\n     (JOL − State)               ↑\n          ↓                      │\n     Update Rule ────────────────┘\n   S_t = S_{t-1} + α × PE_{t-1}\nThis loop-based view — inspired by Nicole Rust’s work on neural feedback — is what separates this analysis from a simple GLM of confidence ratings."
+  },
+  {
+    "objectID": "index.html#lessons",
+    "href": "index.html#lessons",
+    "title": "JOL Internal Feedback Pipeline: A Practical Course",
+    "section": "Lessons",
+    "text": "Lessons\n\n\n\nLesson\nTopic\nCore Script\n\n\n\n\n1. The Feedback Loop\nState-space model math, why the loop matters\ns02_fit_state_space_model.py\n\n\n2. Fitting Alpha\nGrid search, optimization, S0 initialization\ns02_fit_state_space_model.py, s02c_parameter_recovery.py\n\n\n3. Metacognitive SDT\nd’, Meta-d’, M-ratio, AUROC2 from JOL × recall\ns02d_metacognitive_accuracy.py\n\n\n4. GLM Design\nTranslating trial regressors to SPM batches, collinearity\ns04_generate_firstlevel_spm.py, s03_check_collinearity.py\n\n\n5. Bridge Analyses\nIndividual differences, partial correlations, the Age story\ns09_alpha_bridge_analyses.py"
+  },
+  {
+    "objectID": "index.html#setup-run-locally",
+    "href": "index.html#setup-run-locally",
+    "title": "JOL Internal Feedback Pipeline: A Practical Course",
+    "section": "Setup (Run Locally)",
+    "text": "Setup (Run Locally)\nAll code cells run in your browser via Pyodide. To render the course yourself:\n# Install Quarto (https://quarto.org) then:\nquarto add coatless-professor/quarto-pyodide\nquarto render course/\nquarto preview course/\nDependencies loaded automatically in-browser: numpy, scipy, matplotlib, pandas."
+  },
+  {
+    "objectID": "index.html#key-equations-reference",
+    "href": "index.html#key-equations-reference",
+    "title": "JOL Internal Feedback Pipeline: A Practical Course",
+    "section": "Key Equations Reference",
+    "text": "Key Equations Reference\nState transition (delta rule): \\[S_t^{(c)} = S_{t-1}^{(c)} + \\alpha \\cdot \\underbrace{(JOL_{t-1} - S_{t-1}^{(c)})}_{\\text{Prediction Error}_{t-1}}\\]\nPrediction error: \\[PE_t = JOL_t - S_t\\]\nCritical identity (causes collinearity — Lesson 4): \\[JOL_t = S_t + PE_t \\quad \\forall t\\]\nMetacognitive efficiency (Lesson 3): \\[M\\text{-ratio} = \\frac{\\text{meta-}d'}{d'}\\]"
+  },
+  {
+    "objectID": "lesson2.html",
+    "href": "lesson2.html",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "",
+    "text": "Tip\n\n\n\nInteractive cells. Click ▶ Run. Python loads in-browser — first run ~15 s."
+  },
+  {
+    "objectID": "lesson2.html#learning-objectives",
+    "href": "lesson2.html#learning-objectives",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "Learning Objectives",
+    "text": "Learning Objectives\n\nUnderstand grid-search + bounded refinement as a robust fitting strategy\nCompute the bridge variables: transition rate, entropy, SD\nAppreciate what parameter recovery tests and why it matters\nUnderstand the ordinal threshold model and its extra bridge variables"
+  },
+  {
+    "objectID": "lesson2.html#the-two-phase-fitting-strategy",
+    "href": "lesson2.html#the-two-phase-fitting-strategy",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "2.1 The Two-Phase Fitting Strategy",
+    "text": "2.1 The Two-Phase Fitting Strategy\nFrom s02_fit_state_space_model.py:\n\nPhase 1 — Grid search: Evaluate SSE at 50 α values across (0.001, 0.999)\nPhase 2 — Refinement: minimize_scalar(method='bounded') starting from the grid region\n\nThe grid prevents boundary artifacts for subjects with flat or noisy SSE landscapes.\n\n  \n    Python — two-phase fitting\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson2.html#bridge-variables-beyond-alpha",
+    "href": "lesson2.html#bridge-variables-beyond-alpha",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "2.2 Bridge Variables: Beyond Alpha",
+    "text": "2.2 Bridge Variables: Beyond Alpha\nBridge variables are summary statistics that connect the computational model to individual differences. The others are computed directly from the raw JOL sequence — no optimization required:\n\n  \n    Python — bridge variables\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson2.html#parameter-recovery",
+    "href": "lesson2.html#parameter-recovery",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "2.3 Parameter Recovery",
+    "text": "2.3 Parameter Recovery\nRecovery asks: if we generate synthetic JOLs with a known true α, can we recover it?\n\n  \n    Python — parameter recovery (slow: ~20 s)\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson2.html#the-ordinal-threshold-model-s02b",
+    "href": "lesson2.html#the-ordinal-threshold-model-s02b",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "2.4 The Ordinal Threshold Model (s02b)",
+    "text": "2.4 The Ordinal Threshold Model (s02b)\nThe delta-rule assumes JOL is a noisy linear readout of state. An alternative: state generates ordinal probabilities through logistic thresholds.\n\\[P(JOL \\geq k) = \\sigma(S_t - \\theta_k)\\]\n\n  \n    Python — ordinal model\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson2.html#naive-pe-baseline",
+    "href": "lesson2.html#naive-pe-baseline",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "2.5 Naive PE Baseline",
+    "text": "2.5 Naive PE Baseline\n\n  \n    Python — naive PE comparison\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson2.html#exercises",
+    "href": "lesson2.html#exercises",
+    "title": "Lesson 2: Fitting Alpha",
+    "section": "Exercises",
+    "text": "Exercises\n1. In cell 3, change n=32 to n=16 (half the real data per category). How does recovery quality change? What does this imply for power?\n2. Fit the ordinal model with a single threshold (binary split). When would one threshold be preferred over two?\n3. Explain why jol_transition_rate has no estimation error while alpha does. How does this difference affect their predictive validity as individual-difference measures?\n4. In the real pipeline, 7/86 subjects hit the alpha boundary (≥0.99). What does this mean behaviorally? How should these subjects be treated?\n\nNext: Lesson 3 — Metacognitive SDT"
+  },
+  {
+    "objectID": "lesson4.html",
+    "href": "lesson4.html",
+    "title": "Lesson 4: GLM Design",
+    "section": "",
+    "text": "Tip\n\n\n\nInteractive cells. Click ▶ Run. Python loads in-browser — first run ~15 s."
+  },
+  {
+    "objectID": "lesson4.html#learning-objectives",
+    "href": "lesson4.html#learning-objectives",
+    "title": "Lesson 4: GLM Design",
+    "section": "Learning Objectives",
+    "text": "Learning Objectives\n\nUnderstand why z-scoring within-subject is required before entering PMs into a GLM\nKnow the 6 GLM variants (3 PM × 2 timing) and why the Full model was dropped\nBuild a contrast vector by hand, understanding regressor ordering\nUnderstand sessrep='repl' and why it matters for two-run designs\nKnow the RSFA scaling rationale and the EPI–T1 coordinate issue"
+  },
+  {
+    "objectID": "lesson4.html#why-z-score-pms-within-subject",
+    "href": "lesson4.html#why-z-score-pms-within-subject",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.1 Why Z-score PMs Within Subject?",
+    "text": "4.1 Why Z-score PMs Within Subject?\n\n  \n    Python — z-scoring demonstration\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#the-six-glm-variants",
+    "href": "lesson4.html#the-six-glm-variants",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.2 The Six GLM Variants",
+    "text": "4.2 The Six GLM Variants\n\n  \n    Python — GLM variant summary\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#the-collinearity-problem-in-depth",
+    "href": "lesson4.html#the-collinearity-problem-in-depth",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.3 The Collinearity Problem in Depth",
+    "text": "4.3 The Collinearity Problem in Depth\n\n  \n    Python — VIF demonstration\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#building-a-contrast-vector",
+    "href": "lesson4.html#building-a-contrast-vector",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.4 Building a Contrast Vector",
+    "text": "4.4 Building a Contrast Vector\n\n  \n    Python — contrast vector construction\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#sessreprepl-replicating-contrasts-across-runs",
+    "href": "lesson4.html#sessreprepl-replicating-contrasts-across-runs",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.5 sessrep=‘repl’ — Replicating Contrasts Across Runs",
+    "text": "4.5 sessrep=‘repl’ — Replicating Contrasts Across Runs\n\n  \n    Python — sessrep explanation\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#rsfa-scaling-vascular-correction",
+    "href": "lesson4.html#rsfa-scaling-vascular-correction",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.6 RSFA Scaling: Vascular Correction",
+    "text": "4.6 RSFA Scaling: Vascular Correction\n\n  \n    Python — RSFA scaling demonstration\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#the-epit1-coordinate-problem",
+    "href": "lesson4.html#the-epit1-coordinate-problem",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.7 The EPI–T1 Coordinate Problem",
+    "text": "4.7 The EPI–T1 Coordinate Problem\n\n  \n    Python — EPI-T1 coordinate explanation\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#orthogonalization-why-its-off",
+    "href": "lesson4.html#orthogonalization-why-its-off",
+    "title": "Lesson 4: GLM Design",
+    "section": "4.8 Orthogonalization: Why It’s OFF",
+    "text": "4.8 Orthogonalization: Why It’s OFF\n\n  \n    Python — orth=0 demonstration\n    ▶ Run\n    ×"
+  },
+  {
+    "objectID": "lesson4.html#exercises",
+    "href": "lesson4.html#exercises",
+    "title": "Lesson 4: GLM Design",
+    "section": "Exercises",
+    "text": "Exercises\n1. In cell 4, add a third PM (NaivePE) and rebuild the blueprint. What are the contrast weights for “Model PE &gt; Naive PE”?\n2. A subject has 5 motion spikes in Run 1 and 2 in Run 2. How many total columns does the design matrix have? (Count experimental + motion + session constants.)\n3. The JOLstick variant offsets onsets by 3.44 s. Sketch the expected HRF-convolved response at a PE-sensitive voxel. When would JOLstick give cleaner PE effects than Epoch?\n4. Why must RSFA come from resting-state data rather than the task run itself?\n\nNext: Lesson 5 — Bridge Analyses"
+  }
+]

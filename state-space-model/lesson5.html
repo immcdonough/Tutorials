@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.27">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Lesson 5: Bridge Analyses – JOL Internal Feedback Pipeline</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="site_libs/quarto-nav/headroom.min.js"></script>
+<script src="site_libs/clipboard/clipboard.min.js"></script>
+<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="site_libs/quarto-search/fuse.min.js"></script>
+<script src="site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="site_libs/quarto-html/popper.min.js"></script>
+<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="site_libs/quarto-html/anchor.min.js"></script>
+<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="site_libs/quarto-html/quarto-syntax-highlighting-ed96de9b727972fe78a7b5d16c58bf87.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-6eaea6adeeda0261bc71ce20f0b5d80f.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<!-- Pyodide CDN runner — no Quarto extension required.
+     Loaded via _quarto.yml include-in-header.
+     Cells are <div class="pycell" id="cell-..."> with a
+     <script type="text/python"> child holding the code.
+     JS converts each to a textarea + Run button at DOMContentLoaded. -->
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"></script>
+
+<style>
+/* ── Pyodide cell chrome ─────────────────────────────────── */
+.pycell {
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  margin: 1.4em 0;
+  overflow: hidden;
+  background: #1e1e1e;
+  font-family: 'Consolas', 'Fira Mono', 'Monaco', monospace;
+}
+.pycell-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+}
+.pycell-label {
+  font-size: 0.72em;
+  color: #888;
+  flex: 1;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.pycell-code {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  font-size: 0.87em;
+  line-height: 1.5;
+  padding: 12px 16px;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  outline: none;
+  resize: vertical;
+  white-space: pre;
+  overflow-x: auto;
+  tab-size: 4;
+}
+.pycell-code::selection { background: #264f78; }
+.run-btn {
+  background: #0e639c;
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 3px 12px;
+  font-size: 0.82em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.run-btn:hover  { background: #1177bb; }
+.run-btn:disabled { background: #444; cursor: wait; color: #aaa; }
+.clear-btn {
+  background: transparent;
+  color: #888;
+  border: 1px solid #555;
+  border-radius: 3px;
+  padding: 3px 8px;
+  font-size: 0.82em;
+  cursor: pointer;
+}
+.clear-btn:hover { color: #ccc; border-color: #888; }
+.pycell-output {
+  margin: 0;
+  padding: 10px 16px;
+  background: #f8f8f8;
+  min-height: 0;
+  font-size: 0.85em;
+  border-top: 1px solid #ddd;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: #222;
+  display: none;  /* hidden until there is output */
+}
+.pycell-output:not(:empty) { display: block; }
+.pycell-output img { max-width: 100%; display: block; margin-top: 6px; }
+.pycell-err  { color: #c00; }
+.pycell-done { color: #2a7; font-style: italic; }
+
+/* Loading banner */
+#py-loading-banner {
+  position: fixed; bottom: 16px; right: 16px;
+  background: #0e639c; color: #fff;
+  padding: 8px 16px; border-radius: 6px;
+  font-size: 0.85em; z-index: 9999;
+  box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  display: none;
+}
+</style>
+
+</head><body class="nav-fixed quarto-light"><div id="py-loading-banner">⏳ Loading Python environment…</div>
+
+<script>
+/* ── State ─────────────────────────────────────────── */
+var _py    = null;
+var _pyOk  = false;
+var _pyPending = [];
+
+/* ── Bootstrap ─────────────────────────────────────── */
+async function _initPy() {
+  document.getElementById('py-loading-banner').style.display = 'block';
+  _py = await loadPyodide();
+  await _py.loadPackage(['numpy', 'scipy', 'matplotlib']);
+
+  // One-time Python setup: stdout capture + matplotlib figure capture
+  await _py.runPythonAsync(`
+import sys, io, base64, matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+
+class _Cap:
+    def __init__(self): self.buf = io.StringIO()
+    def write(self, s): self.buf.write(s)
+    def flush(self): pass
+    def getvalue(self): return self.buf.getvalue()
+    def reset(self): self.buf = io.StringIO()
+
+_cap = _Cap()
+sys.stdout = _cap
+sys.stderr = _cap
+
+_figs = []
+def _show():
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=120, bbox_inches='tight')
+    plt.close('all')
+    buf.seek(0)
+    _figs.append(base64.b64encode(buf.read()).decode())
+
+plt.show = _show
+`);
+
+  _pyOk = true;
+  document.getElementById('py-loading-banner').style.display = 'none';
+  _pyPending.forEach(fn => fn(_py));
+  _pyPending = [];
+}
+
+function _getPy() {
+  if (_pyOk) return Promise.resolve(_py);
+  if (!_py) _initPy();
+  return new Promise(r => _pyPending.push(r));
+}
+
+/* ── Cell runner ───────────────────────────────────── */
+async function pyRun(cellId) {
+  var cell   = document.getElementById(cellId);
+  var ta     = cell.querySelector('textarea.pycell-code');
+  var outEl  = document.getElementById('out-' + cellId);
+  var btn    = cell.querySelector('.run-btn');
+
+  btn.disabled = true;
+  btn.textContent = '⏳';
+  outEl.style.display = 'block';
+  outEl.innerHTML = '<span style="color:#888">Running…</span>';
+
+  try {
+    var py = await _getPy();
+    py.runPython('_cap.reset(); _figs.clear()');
+    await py.runPythonAsync(ta.value);
+
+    var stdout   = py.runPython('_cap.getvalue()');
+    var figCount = py.runPython('len(_figs)');
+    var html = '';
+
+    if (stdout && stdout.trim())
+      html += '<pre style="margin:0">' + _esc(stdout) + '</pre>';
+
+    for (var i = 0; i < figCount; i++) {
+      var b64 = py.runPython('_figs[' + i + ']');
+      html += '<img src="data:image/png;base64,' + b64 + '">';
+    }
+    if (!html) html = '<span class="pycell-done">✓ (no output)</span>';
+    outEl.innerHTML = html;
+
+  } catch(e) {
+    outEl.innerHTML = '<pre class="pycell-err">' + _esc(e.message) + '</pre>';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '▶ Run';
+}
+
+function pyClear(cellId) {
+  var el = document.getElementById('out-' + cellId);
+  el.innerHTML = '';
+  el.style.display = 'none';
+}
+
+function _esc(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;');
+}
+
+/* ── Convert <script type="text/python"> → <textarea> ─ */
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.pycell').forEach(function(cell) {
+    var sc = cell.querySelector('script[type="text/python"]');
+    if (!sc) return;
+    var code = sc.textContent.replace(/^\n/, '').replace(/\n$/, '');
+    var ta = document.createElement('textarea');
+    ta.className = 'pycell-code';
+    ta.value = code;
+    ta.rows  = Math.max(4, code.split('\n').length + 1);
+    ta.spellcheck   = false;
+    ta.autocomplete = 'off';
+    ta.setAttribute('autocorrect', 'off');
+    ta.addEventListener('input', function() {
+      this.rows = Math.max(4, this.value.split('\n').length + 1);
+    });
+    // Insert after toolbar, remove script tag
+    var toolbar = cell.querySelector('.pycell-toolbar');
+    cell.insertBefore(ta, toolbar ? toolbar.nextSibling : sc);
+    sc.remove();
+  });
+});
+</script>
+
+
+
+
+
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="./index.html">
+    <span class="navbar-title">JOL Internal Feedback Pipeline</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="./index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-lessons" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Lessons</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-lessons">    
+        <li>
+    <a class="dropdown-item" href="./lesson1.html">
+ <span class="dropdown-text">1. The Feedback Loop</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson2.html">
+ <span class="dropdown-text">2. Fitting Alpha</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson3.html">
+ <span class="dropdown-text">3. Metacognitive SDT</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson4.html">
+ <span class="dropdown-text">4. GLM Design</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./lesson5.html">
+ <span class="dropdown-text">5. Bridge Analyses</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-full page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#learning-objectives" id="toc-learning-objectives" class="nav-link active" data-scroll-target="#learning-objectives">Learning Objectives</a></li>
+  <li><a href="#what-is-a-bridge-variable" id="toc-what-is-a-bridge-variable" class="nav-link" data-scroll-target="#what-is-a-bridge-variable">5.1 What Is a Bridge Variable?</a></li>
+  <li><a href="#bivariate-correlations" id="toc-bivariate-correlations" class="nav-link" data-scroll-target="#bivariate-correlations">5.2 Bivariate Correlations</a></li>
+  <li><a href="#why-transition-rate-beats-alpha-as-an-age-predictor" id="toc-why-transition-rate-beats-alpha-as-an-age-predictor" class="nav-link" data-scroll-target="#why-transition-rate-beats-alpha-as-an-age-predictor">5.3 Why Transition Rate Beats Alpha as an Age Predictor</a></li>
+  <li><a href="#partial-correlations-controlling-for-age" id="toc-partial-correlations-controlling-for-age" class="nav-link" data-scroll-target="#partial-correlations-controlling-for-age">5.4 Partial Correlations — Controlling for Age</a></li>
+  <li><a href="#multiple-regression-bridge-age-self-report-depression" id="toc-multiple-regression-bridge-age-self-report-depression" class="nav-link" data-scroll-target="#multiple-regression-bridge-age-self-report-depression">5.5 Multiple Regression: Bridge ~ Age + Self-Report + Depression</a></li>
+  <li><a href="#how-bridge-variables-flow-into-the-fmri-pipeline" id="toc-how-bridge-variables-flow-into-the-fmri-pipeline" class="nav-link" data-scroll-target="#how-bridge-variables-flow-into-the-fmri-pipeline">5.6 How Bridge Variables Flow Into the fMRI Pipeline</a></li>
+  <li><a href="#the-age-alpha-meta-d-interaction" id="toc-the-age-alpha-meta-d-interaction" class="nav-link" data-scroll-target="#the-age-alpha-meta-d-interaction">5.7 The Age × Alpha × Meta-d’ Interaction</a></li>
+  <li><a href="#summary-visualization" id="toc-summary-visualization" class="nav-link" data-scroll-target="#summary-visualization">5.8 Summary Visualization</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">Summary</a></li>
+  <li><a href="#exercises" id="toc-exercises" class="nav-link" data-scroll-target="#exercises">Exercises</a></li>
+  <li><a href="#course-complete" id="toc-course-complete" class="nav-link" data-scroll-target="#course-complete">Course Complete</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Lesson 5: Bridge Analyses</h1>
+<p class="subtitle lead">Individual differences, partial correlations, multiple regression, and the Age story</p>
+</div>
+
+
+
+<div class="quarto-title-meta column-page-left">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Interactive cells.</strong> Click <strong>▶ Run</strong>. Python loads in-browser — first run ~15 s.</p>
+</div>
+</div>
+<section id="learning-objectives" class="level2">
+<h2 class="anchored" data-anchor-id="learning-objectives">Learning Objectives</h2>
+<ol type="1">
+<li>Understand what “bridge variable” means in a computational neuroscience pipeline</li>
+<li>Run bivariate correlations and partial correlations controlling for age</li>
+<li>Run multiple OLS regression and interpret standardized betas</li>
+<li>Understand why transition rate is a stronger age predictor than alpha</li>
+<li>Conceptually connect bridge variables to fMRI second-level models, gPPI, and DCM</li>
+</ol>
+<hr>
+</section>
+<section id="what-is-a-bridge-variable" class="level2">
+<h2 class="anchored" data-anchor-id="what-is-a-bridge-variable">5.1 What Is a Bridge Variable?</h2>
+<p>Bridge variables are computational or behavioral summary statistics that <strong>bridge</strong> the state-space model to:</p>
+<ol type="1">
+<li><strong>Trait-level predictors</strong> (Age, depression, memory self-report) — behavioral Stage 2</li>
+<li><strong>Neural activity</strong> — second-level fMRI regression (who has larger PE beta?)</li>
+<li><strong>Connectivity patterns</strong> — gPPI and DCM PEB covariates</li>
+</ol>
+<p>The design principle: extract model-based quantities from <em>behavior</em> first, test their neural correlates <em>independently</em>. This prevents double dipping.</p>
+<div class="pycell" id="cell-L5C1">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — simulate dataset</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C1')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C1')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from scipy.stats import pearsonr
+
+np.random.seed(42); N = 82
+age = np.random.uniform(20, 72, N)
+
+# Simulate with realistic age relationships
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+alpha           = np.clip(0.19 + 0.0008*age + np.random.normal(0, 0.14, N), 0.01, 0.99)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+panas_pos       = np.clip(25 - 10*transition_rate + np.random.normal(0, 5, N), 5, 50)
+threshold_center= np.clip(2.1 + np.random.normal(0, 0.3, N), 1.0, 3.0)
+cesd9           = np.clip(8 - 3*(threshold_center-2.1) + np.random.normal(0, 4, N), 0, 27)
+ability         = np.clip(3.5 - 0.012*age + np.random.normal(0, 0.6, N), 1, 5)
+
+r_tr, p_tr = pearsonr(age, transition_rate)
+r_al, p_al = pearsonr(age, alpha)
+r_md, p_md = pearsonr(age, meta_d)
+
+print(f"Simulated dataset: N={N}, Age {age.min():.0f}-{age.max():.0f}")
+print()
+print(f"r(TransRate, Age) = {r_tr:.3f}  (p={p_tr:.4f})  | Real: r=-0.36, p<0.001")
+print(f"r(Alpha,     Age) = {r_al:.3f}  (p={p_al:.4f})  | Real: r=0.13,  n.s.")
+print(f"r(Meta-d',   Age) = {r_md:.3f}  (p={p_md:.4f})  | Real: modest negative")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C1"></pre>
+</div>
+<hr>
+</section>
+<section id="bivariate-correlations" class="level2">
+<h2 class="anchored" data-anchor-id="bivariate-correlations">5.2 Bivariate Correlations</h2>
+<div class="pycell" id="cell-L5C2">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — bivariate correlation table</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C2')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C2')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from scipy.stats import pearsonr
+
+np.random.seed(42); N = 82
+age             = np.random.uniform(20, 72, N)
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+alpha           = np.clip(0.19 + 0.0008*age + np.random.normal(0, 0.14, N), 0.01, 0.99)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+panas_pos       = np.clip(25 - 10*transition_rate + np.random.normal(0, 5, N), 5, 50)
+cesd9           = np.clip(8 + np.random.normal(0, 4, N), 0, 27)
+ability         = np.clip(3.5 - 0.012*age + np.random.normal(0, 0.6, N), 1, 5)
+
+bridge_vars  = {'alpha': alpha, 'transition_rate': transition_rate, 'meta_d': meta_d}
+predictors   = {'Age': age, 'Ability': ability, 'PANAS_Pos': panas_pos, 'CESD9': cesd9}
+
+print(f"{'Bridge':<18} {'Predictor':<12} {'r':>7} {'p':>8}  sig")
+print("-"*52)
+for bname, bvals in bridge_vars.items():
+    for pname, pvals in predictors.items():
+        r, p = pearsonr(bvals, pvals)
+        sig = '***' if p < 0.001 else '**' if p < 0.01 else '*' if p < 0.05 else ''
+        if abs(r) > 0.15 or p < 0.05:
+            print(f"  {bname:<18} {pname:<12} {r:>7.3f} {p:>8.4f}  {sig}")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C2"></pre>
+</div>
+<hr>
+</section>
+<section id="why-transition-rate-beats-alpha-as-an-age-predictor" class="level2">
+<h2 class="anchored" data-anchor-id="why-transition-rate-beats-alpha-as-an-age-predictor">5.3 Why Transition Rate Beats Alpha as an Age Predictor</h2>
+<div class="pycell" id="cell-L5C3">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — age scatter plots</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C3')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C3')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from scipy.stats import pearsonr, linregress
+
+np.random.seed(42); N = 82
+age             = np.random.uniform(20, 72, N)
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+alpha           = np.clip(0.19 + 0.0008*age + np.random.normal(0, 0.14, N), 0.01, 0.99)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+
+fig, axes = plt.subplots(1, 3, figsize=(13, 4))
+for ax, (name, vals, color) in zip(axes, [
+    ('Alpha',          alpha,           'steelblue'),
+    ('JOL Trans. Rate',transition_rate, 'crimson'),
+    ("Meta-d'",        meta_d,          'seagreen'),
+]):
+    s, i, r, p, _ = linregress(age, vals)
+    sig = '***' if p<0.001 else '**' if p<0.01 else '*' if p<0.05 else 'n.s.'
+    ax.scatter(age, vals, alpha=0.6, s=25, edgecolors='black', linewidths=0.3, color=color)
+    ax.plot([age.min(),age.max()],[i+s*age.min(),i+s*age.max()],'k--',lw=2)
+    ax.set_xlabel('Age'); ax.set_ylabel(name)
+    ax.set_title(f'r = {r:.3f} ({sig})')
+plt.suptitle('Bridge Variables vs Age (N=82)', y=1.02, fontsize=12)
+plt.tight_layout(); plt.show()
+
+print("Why transition rate > alpha as an age predictor:")
+print()
+print("  Alpha suffers from measurement error (recovery r~0.875).")
+print("  Error attenuates its correlation with age.")
+print()
+print("  Transition rate is a DIRECT COUNT (no estimation).")
+print("  Zero measurement error => full correlation with age preserved.")
+print()
+print("  Psychologically: older adults switch JOL levels less often.")
+print("  => More rigid or more consistent metacognitive judgments.")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C3"></pre>
+</div>
+<hr>
+</section>
+<section id="partial-correlations-controlling-for-age" class="level2">
+<h2 class="anchored" data-anchor-id="partial-correlations-controlling-for-age">5.4 Partial Correlations — Controlling for Age</h2>
+<p>When testing bridge variable × self-report, you must control for age (it drives both):</p>
+<div class="pycell" id="cell-L5C4">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — partial correlation</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C4')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C4')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from numpy.linalg import lstsq
+from scipy.stats import pearsonr
+
+def partial_corr(x, y, covariates):
+    """
+    Partial correlation between x and y, controlling for covariates.
+    Method: residualize both x and y against covariates, then correlate.
+    Mirrors s09_alpha_bridge_analyses.partial_correlation()
+    """
+    C = np.column_stack([np.ones(len(x)), covariates])
+    bx, *_ = lstsq(C, x, rcond=None)
+    by, *_ = lstsq(C, y, rcond=None)
+    rx = x - C@bx
+    ry = y - C@by
+    return pearsonr(rx, ry)
+
+np.random.seed(42); N = 82
+age             = np.random.uniform(20, 72, N)
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+panas_pos       = np.clip(25 - 10*transition_rate + np.random.normal(0, 5, N), 5, 50)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+cesd9           = np.clip(8 + np.random.normal(0, 4, N), 0, 27)
+
+# TransRate x PANAS_Pos: bivariate vs partial
+r_biv,  p_biv  = pearsonr(transition_rate, panas_pos)
+r_part, p_part = partial_corr(transition_rate, panas_pos, age[:,np.newaxis])
+print("Transition Rate x PANAS_Pos:")
+print(f"  Bivariate r   = {r_biv:.3f}  (p={p_biv:.4f})")
+print(f"  Partial r|Age = {r_part:.3f}  (p={p_part:.4f})")
+print()
+print("Controlling for age reduces the correlation — some of the link was")
+print("due to both measures correlating with age independently.")
+print()
+
+# Meta-d' x CESD9
+r2_biv,  p2_biv  = pearsonr(meta_d, cesd9)
+r2_part, p2_part = partial_corr(meta_d, cesd9, age[:,np.newaxis])
+print("Meta-d' x CESD9:")
+print(f"  Bivariate r   = {r2_biv:.3f}  (p={p2_biv:.4f})")
+print(f"  Partial r|Age = {r2_part:.3f}  (p={p2_part:.4f})")
+print()
+print("All second-level fMRI models control for Age (demeaned) as a required covariate.")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C4"></pre>
+</div>
+<hr>
+</section>
+<section id="multiple-regression-bridge-age-self-report-depression" class="level2">
+<h2 class="anchored" data-anchor-id="multiple-regression-bridge-age-self-report-depression">5.5 Multiple Regression: Bridge ~ Age + Self-Report + Depression</h2>
+<div class="pycell" id="cell-L5C5">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — multiple regression (s09 style)</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C5')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C5')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from numpy.linalg import lstsq
+from scipy import stats
+
+def ols_regression(y, X_raw, x_names, y_name):
+    """OLS with z-scored predictors — mirrors s09_alpha_bridge_analyses.run_multiple_regression()"""
+    X_z = (X_raw - X_raw.mean(0)) / (X_raw.std(0) + 1e-10)
+    X_aug = np.column_stack([np.ones(len(y)), X_z])
+    b, *_ = lstsq(X_aug, y, rcond=None)
+    yhat   = X_aug @ b
+    resid  = y - yhat
+    ss_res = np.sum(resid**2); ss_tot = np.sum((y-y.mean())**2)
+    r2 = 1 - ss_res/ss_tot
+    n = len(y); k = X_aug.shape[1]
+    adj_r2 = 1 - (1-r2)*(n-1)/(n-k)
+    mse = ss_res/(n-k) if n>k else float('inf')
+    try:
+        se = np.sqrt(np.diag(mse * np.linalg.inv(X_aug.T@X_aug)))
+    except np.linalg.LinAlgError:
+        se = np.full(k, float('nan'))
+    t = b/se
+    p = 2*stats.t.sf(np.abs(t), n-k)
+    names = ['Intercept'] + x_names
+    print(f"\n{y_name} ~ {' + '.join(x_names)}  (n={n})")
+    print(f"  R2={r2:.4f}  Adj-R2={adj_r2:.4f}")
+    print(f"  {'Predictor':<14} {'beta':>8}  {'t':>7}  {'p':>7}")
+    for i in range(k):
+        sig = '***' if p[i]<0.001 else '**' if p[i]<0.01 else '*' if p[i]<0.05 else ''
+        print(f"  {names[i]:<14} {b[i]:>8.4f}  {t[i]:>7.3f}  {p[i]:>7.4f}  {sig}")
+
+np.random.seed(42); N = 82
+age             = np.random.uniform(20, 72, N)
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+alpha           = np.clip(0.19 + 0.0008*age + np.random.normal(0, 0.14, N), 0.01, 0.99)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+ability         = np.clip(3.5 - 0.012*age + np.random.normal(0, 0.6, N), 1, 5)
+cesd9           = np.clip(8 + np.random.normal(0, 4, N), 0, 27)
+
+X = np.column_stack([age, ability, cesd9])
+names = ['Age', 'Ability', 'CESD9']
+
+ols_regression(transition_rate, X, names, 'JOL Transition Rate')
+ols_regression(alpha,           X, names, 'Alpha')
+ols_regression(meta_d,          X, names, "Meta-d'")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C5"></pre>
+</div>
+<hr>
+</section>
+<section id="how-bridge-variables-flow-into-the-fmri-pipeline" class="level2">
+<h2 class="anchored" data-anchor-id="how-bridge-variables-flow-into-the-fmri-pipeline">5.6 How Bridge Variables Flow Into the fMRI Pipeline</h2>
+<div class="pycell" id="cell-L5C6">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — pipeline flow summary</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C6')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C6')">×</button>
+  </div>
+  <script type="text/python">
+print("""
+STAGE 2: Second-Level fMRI Regression  (s10_generate_secondlevel_regression.py)
+  Input per subject: con_0002.nii  (RSFA-scaled, template-space, = Pooled PE effect)
+  Design: BOLD_PE_beta ~ Intercept + Age_demean + bridge_variable
+  Question: "Do people with higher transition_rate show stronger vmPFC PE activation?"
+
+  SPM code:
+    matlabbatch{1}.spm.stats.fmri_spec.cov(1).c     = transition_rate_vector;
+    matlabbatch{1}.spm.stats.fmri_spec.cov(1).cname = 'TransRate';
+    % Age covariate always included
+    matlabbatch{1}.spm.stats.fmri_spec.cov(2).c     = age_demeaned_vector;
+
+  Thresholds (tiered scheme):
+    Tier 1 (vmPFC, Hipp, PCC):   SVC FWE p < 0.05
+    Tier 2 (Precuneus, etc.):    FDR q < 0.05 across Tier 2
+    Tier 3 (exploratory):        p < 0.001 uncorrected
+    Whole brain:                 3dClustSim cluster threshold
+
+STAGE 3: gPPI Connectivity  (s12_generate_gppi_spm.py)
+  Seed: vmPFC (HCPex-refined mask)
+  PPI regressor: vmPFC_signal x PE  (interaction = connectivity modulated by PE)
+  Question: "Does vmPFC-hippocampus connectivity scale with prediction error?"
+
+  Bridge variables enter Stage 2 gPPI regression:
+    gPPI_connectivity ~ Age + meta_d  (does metacog. efficiency moderate PE-connectivity?)
+
+  Real result: PPI_pos_pos peak at L SFG [-18,20,44], 2.5mm from dlPFC border
+               => PE-modulated DMN-EFN coupling (DECHA-consistent, not conclusive alone)
+
+STAGE 4: DCM + PEB  (s17->s18->s19)
+  9-node DECHA model (7 DMN + bilateral dlPFC)
+  B matrix: PE modulates connections to/from vmPFC (vmPFC-centric hypothesis)
+
+  PEB covariates (config.DCM_PEB_COVARIATES):
+    [1] Age
+    [2] jol_transition_rate
+    [3] meta_d
+
+  PEB asks: which DCM connections covary with each covariate?
+  BMR prunes weak effects.
+
+  Real results: Age pruned to 0; transition_rate and meta_d survived with strong effects.
+""")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C6"></pre>
+</div>
+<hr>
+</section>
+<section id="the-age-alpha-meta-d-interaction" class="level2">
+<h2 class="anchored" data-anchor-id="the-age-alpha-meta-d-interaction">5.7 The Age × Alpha × Meta-d’ Interaction</h2>
+<div class="pycell" id="cell-L5C7">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — interaction test (preregistered H8)</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C7')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C7')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+from numpy.linalg import lstsq
+from scipy import stats
+
+np.random.seed(42); N = 82
+age             = np.random.uniform(20, 72, N)
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+alpha           = np.clip(0.19 + 0.0008*age + np.random.normal(0, 0.14, N), 0.01, 0.99)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+
+def zs(v): return (v-v.mean())/(v.std()+1e-10)
+
+age_z = zs(age); al_z = zs(alpha); tr_z = zs(transition_rate)
+
+# meta_d ~ Age + alpha + TransRate + Age*alpha + Age*TransRate
+X = np.column_stack([age_z, al_z, tr_z, age_z*al_z, age_z*tr_z])
+X_aug = np.column_stack([np.ones(N), X])
+b,*_ = lstsq(X_aug, meta_d, rcond=None)
+yhat = X_aug@b; resid=meta_d-yhat
+ss_res=np.sum(resid**2); ss_tot=np.sum((meta_d-meta_d.mean())**2)
+r2 = 1-ss_res/ss_tot
+n=N; k=X_aug.shape[1]
+mse=ss_res/(n-k)
+se=np.sqrt(np.diag(mse*np.linalg.inv(X_aug.T@X_aug)))
+t=b/se; p=2*stats.t.sf(np.abs(t),n-k)
+
+names=['Intercept','Age','Alpha','TransRate','Age*Alpha','Age*TransRate']
+print(f"Meta-d' ~ Age + Alpha + TransRate + Age*Alpha + Age*TransRate  (n={N})")
+print(f"  R2 = {r2:.4f}")
+print(f"  {'Predictor':<18} {'beta':>8}  {'t':>7}  {'p':>7}")
+for i, nm in enumerate(names):
+    sig = '***' if p[i]<0.001 else '**' if p[i]<0.01 else '*' if p[i]<0.05 else ''
+    print(f"  {nm:<18} {b[i]:>8.4f}  {t[i]:>7.3f}  {p[i]:>7.4f}  {sig}")
+print()
+print("Preregistered as H8 (exploratory):")
+print("Does Age moderate the alpha-metacognition relationship?")
+print("i.e., do younger adults with high alpha show better metacognitive efficiency?")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C7"></pre>
+</div>
+<hr>
+</section>
+<section id="summary-visualization" class="level2">
+<h2 class="anchored" data-anchor-id="summary-visualization">5.8 Summary Visualization</h2>
+<div class="pycell" id="cell-L5C8">
+  <div class="pycell-toolbar">
+    <span class="pycell-label">Python — bridge relationships figure</span>
+    <button class="run-btn" onclick="pyRun('cell-L5C8')">▶ Run</button>
+    <button class="clear-btn" onclick="pyClear('cell-L5C8')">×</button>
+  </div>
+  <script type="text/python">
+import numpy as np
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from scipy.stats import linregress, pearsonr
+
+np.random.seed(42); N = 82
+age             = np.random.uniform(20, 72, N)
+transition_rate = np.clip(0.65 - 0.003*age + np.random.normal(0, 0.12, N), 0, 1)
+alpha           = np.clip(0.19 + 0.0008*age + np.random.normal(0, 0.14, N), 0.01, 0.99)
+meta_d          = 0.8 - 0.005*age + np.random.normal(0, 0.25, N)
+panas_pos       = np.clip(25 - 10*transition_rate + np.random.normal(0, 5, N), 5, 50)
+
+fig, axes = plt.subplots(1, 3, figsize=(14, 5))
+
+# 1. Age x transition_rate (color = meta_d)
+ax = axes[0]
+sc = ax.scatter(age, transition_rate, c=meta_d, cmap='RdYlGn', s=40,
+                edgecolors='black', linewidths=0.3, alpha=0.8)
+s,i,r,p,_ = linregress(age, transition_rate)
+ax.plot([age.min(),age.max()],[i+s*age.min(),i+s*age.max()],'k--',lw=2)
+plt.colorbar(sc, ax=ax, label="Meta-d'", fraction=0.046)
+ax.set_xlabel('Age'); ax.set_ylabel('JOL Transition Rate')
+ax.set_title(f"Age -> Trans. Rate  r={r:.2f}{'*' if p<0.05 else ''}")
+
+# 2. TransRate x PANAS_Pos (color = age)
+ax = axes[1]
+sc2 = ax.scatter(transition_rate, panas_pos, c=age, cmap='plasma', s=40,
+                 edgecolors='black', linewidths=0.3, alpha=0.8)
+s2,i2,r2,p2,_ = linregress(transition_rate, panas_pos)
+ax.plot([transition_rate.min(),transition_rate.max()],
+        [i2+s2*transition_rate.min(),i2+s2*transition_rate.max()],'k--',lw=2)
+plt.colorbar(sc2, ax=ax, label='Age', fraction=0.046)
+ax.set_xlabel('JOL Transition Rate'); ax.set_ylabel('PANAS Positive')
+ax.set_title(f"TransRate -> PANAS  r={r2:.2f}{'*' if p2<0.05 else ''}")
+
+# 3. Alpha x meta_d (color = age)
+ax = axes[2]
+sc3 = ax.scatter(alpha, meta_d, c=age, cmap='plasma', s=40,
+                 edgecolors='black', linewidths=0.3, alpha=0.8)
+s3,i3,r3,p3,_ = linregress(alpha, meta_d)
+ax.plot([alpha.min(),alpha.max()],[i3+s3*alpha.min(),i3+s3*alpha.max()],'k--',lw=2)
+plt.colorbar(sc3, ax=ax, label='Age', fraction=0.046)
+ax.set_xlabel('Alpha'); ax.set_ylabel("Meta-d'")
+ax.set_title(f"Alpha x Meta-d'  r={r3:.2f}{'*' if p3<0.05 else ''}")
+
+plt.suptitle("Bridge Variable Relationships  (color = age or meta-d')", y=1.02)
+plt.tight_layout(); plt.show()
+
+print("Key takeaways:")
+print(f"  TransRate -> Age:      r={linregress(age,transition_rate).rvalue:.3f} (strongest bridge)")
+print(f"  TransRate -> PANAS_Pos: r={linregress(transition_rate,panas_pos).rvalue:.3f}")
+print(f"  Alpha -> Meta-d':      r={linregress(alpha,meta_d).rvalue:.3f}")
+  </script>
+  <pre class="pycell-output" id="out-cell-L5C8"></pre>
+</div>
+<hr>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">Summary</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 22%">
+<col style="width: 20%">
+<col style="width: 57%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Variable</th>
+<th>Source</th>
+<th>Key finding in real data</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>alpha</code></td>
+<td>s02 model fitting</td>
+<td>r=0.13 with age (n.s.); mediocre due to estimation error</td>
+</tr>
+<tr class="even">
+<td><code>jol_transition_rate</code></td>
+<td>Direct count</td>
+<td>r=−0.36 with age (p&lt;0.001); strongest bridge</td>
+</tr>
+<tr class="odd">
+<td><code>meta_d</code></td>
+<td>s02d type-2 SDT</td>
+<td>Survived DCM PEB+BMR; age-related decline</td>
+</tr>
+<tr class="even">
+<td><code>threshold_center</code></td>
+<td>s02b ordinal model</td>
+<td>r=0.23 with CESD9 (response bias ↔︎ depression)</td>
+</tr>
+</tbody>
+</table>
+<p>The pipeline’s power comes from computing bridge variables from <em>behavior</em> before looking at the brain. This prevents circularity and maintains interpretive independence between computation and neural data.</p>
+<hr>
+</section>
+<section id="exercises" class="level2">
+<h2 class="anchored" data-anchor-id="exercises">Exercises</h2>
+<p><strong>1.</strong> All second-level models control for Age. When would <em>not</em> controlling for Age be appropriate? Under what circumstances does age-control introduce collider bias?</p>
+<p><strong>2.</strong> Compute inter-correlations among <code>alpha</code>, <code>transition_rate</code>, and <code>meta_d</code>. Which pairs are collinear enough to cause problems if entered together?</p>
+<p><strong>3.</strong> In DCM PEB, covariates are centered. Why is centering important? What does the intercept represent in a centered PEB model?</p>
+<p><strong>4.</strong> The gPPI peak at L SFG [-18,20,44] was 2.5 mm from the dlPFC border. Why does the pipeline treat this as “DECHA-consistent but not conclusive”? What additional evidence would be needed?</p>
+<hr>
+</section>
+<section id="course-complete" class="level2">
+<h2 class="anchored" data-anchor-id="course-complete">Course Complete</h2>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 38%">
+<col style="width: 61%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Lesson</th>
+<th>Core insight</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>JOL ≡ State + PE is an algebraic identity — not a correlation, a definition</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Transition rate has no estimation error; this is why it outperforms alpha</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Meta-d’ separates task performance from metacognitive access; AUROC2 is the non-parametric check</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>The Full GLM is mathematically impossible; RSFA correction removes vascular confounds</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Bridge variables connect behavior → brain via partial correlations, regression, and PEB covariates</td>
+</tr>
+</tbody>
+</table>
+
+
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
