@@ -1,0 +1,362 @@
+---
+title: "Lesson 1: Working Memory as a Decaying Buffer"
+subtitle: "Building the activation model from scratch"
+---
+
+## Overview
+
+This lesson builds the core data structure of the model from scratch: a **working memory
+buffer** where representations decay exponentially over time. By the end you will understand
+exactly what the code in `nback_model.py` is doing when it computes `A_k`, and why those
+design choices were made.
+
+**What we will build:**
+
+1. The exponential decay activation function
+2. A buffer that fills up trial-by-trial
+3. Visualisations of how parameters shape the buffer contents
+4. A minimal n-back simulator that uses nothing but these primitives
+
+---
+
+## 1. The Core Equation
+
+Every item in working memory is represented by a single number — its **activation** — that
+decays as it recedes into the past. For an item that appeared `k` trials ago:
+
+$$A_k = \delta \cdot e^{-\mu k}$$
+
+- $\delta \in (0, 1]$: **encoding amplitude** — how strongly the item was encoded
+- $\mu > 0$: **decay rate** — how quickly it fades
+- $k$: **lag** — how many trials ago the item appeared
+
+Let's build this and see what it looks like.
+
+```{python}
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+def activation(k, delta, mu):
+    """Activation of an item encoded k trials ago."""
+    return delta * np.exp(-mu * k)
+
+lags = np.arange(0, 11)
+
+# Show how delta and mu independently shape the curve
+fig = make_subplots(rows=1, cols=2,
+                    subplot_titles=["Varying δ (mu=0.5 fixed)",
+                                    "Varying μ (delta=0.8 fixed)"])
+
+colors = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728"]
+
+for delta, col in zip([0.3, 0.6, 0.8, 1.0], colors):
+    a = activation(lags, delta, mu=0.5)
+    fig.add_trace(go.Scatter(x=lags, y=a, mode="lines+markers",
+                             name=f"δ={delta}", line=dict(color=col)),
+                  row=1, col=1)
+
+for mu, col in zip([0.2, 0.5, 1.0, 2.0], colors):
+    a = activation(lags, delta=0.8, mu=mu)
+    fig.add_trace(go.Scatter(x=lags, y=a, mode="lines+markers",
+                             name=f"μ={mu}", line=dict(color=col),
+                             showlegend=True),
+                  row=1, col=2)
+
+fig.update_xaxes(title_text="Lag k (trials ago)")
+fig.update_yaxes(title_text="Activation A_k", range=[0, 1.05])
+fig.update_layout(height=400, title_text="Exponential Decay Buffer",
+                  legend=dict(groupclick="toggleitem"))
+fig.show()
+```
+
+**Key observations:**
+
+- $\delta$ sets the **ceiling** — the activation at lag 0 (just encoded). Higher $\delta$ means
+  stronger initial trace.
+- $\mu$ sets the **slope** — how steeply the trace falls off. Higher $\mu$ means faster
+  forgetting.
+- For typical parameters ($\mu \geq 0.3$), activation is effectively zero by lag 10.
+
+---
+
+## 2. Why Exponential Decay?
+
+The model could instead use a discrete-slot buffer (items are either "in" or "out"). Exponential
+decay was chosen for three reasons:
+
+1. **Graded activations match neurophysiology.** Persistent firing in PFC and parietal cortex
+   decays gradually, not in discrete steps.
+
+2. **Lure effects emerge automatically.** An item at lag $k \neq n$ has activation
+   $\delta \cdot e^{-\mu k} > 0$ — it is still *there*, competing with the true target. No
+   special-casing needed.
+
+3. **One formula covers all conditions.** 1-back and 2-back differ only in which lag $n$ you
+   query. The buffer handles both identically.
+
+---
+
+## 3. δ as Encoding Probability
+
+The parameter $\delta$ has a deeper interpretation than just "amplitude." Under a **Bernoulli
+encoding model**, each item is stored with probability $\delta$ and forgotten entirely with
+probability $1 - \delta$. If stored, its activation at lag $k$ is $e^{-\mu k}$.
+
+Expected activation = $\delta \cdot e^{-\mu k} + (1-\delta) \cdot 0 = \delta \cdot e^{-\mu k}$
+
+The deterministic formula is the **mean-field approximation** of stochastic encoding. This
+lets us avoid Monte Carlo simulation while still interpreting $\delta$ as a probability.
+
+```{python}
+# Demonstrate: deterministic vs stochastic encoding give the same expectation
+rng = np.random.default_rng(42)
+N_SIMS = 5000
+delta, mu = 0.7, 0.5
+lags_demo = np.arange(1, 8)
+
+# Stochastic: sample whether each item was encoded
+stochastic_activations = []
+for _ in range(N_SIMS):
+    encoded = rng.random(len(lags_demo)) < delta   # Bernoulli(delta)
+    act = encoded * np.exp(-mu * lags_demo)
+    stochastic_activations.append(act)
+
+stochastic_mean = np.mean(stochastic_activations, axis=0)
+deterministic    = activation(lags_demo, delta, mu)
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=lags_demo, y=deterministic, mode="lines+markers",
+                         name="Deterministic: δ·exp(−μk)",
+                         line=dict(color="steelblue", width=3)))
+fig.add_trace(go.Scatter(x=lags_demo, y=stochastic_mean, mode="markers",
+                         name=f"Stochastic mean (N={N_SIMS})",
+                         marker=dict(color="tomato", size=10, symbol="x")))
+fig.update_layout(xaxis_title="Lag k", yaxis_title="Mean activation",
+                  title=f"Deterministic ≈ Stochastic mean  (δ={delta}, μ={mu})",
+                  height=380)
+fig.show()
+```
+
+The two overlap precisely — the deterministic formula is exact.
+
+---
+
+## 4. Building the Buffer
+
+In the actual n-back task, stimuli arrive one at a time. The buffer keeps a sliding window of
+recent items, each paired with its category (face/object) and identity.
+
+```{python}
+from collections import deque
+
+class SimpleBuffer:
+    """
+    A minimal working memory buffer: stores (stimulus_identity, category) pairs
+    in a deque, most recent first.  Max depth prevents unbounded growth.
+    """
+
+    def __init__(self, max_depth=15):
+        self.max_depth = max_depth
+        self.items = deque()          # deque[(stim_id, category)]
+
+    def add(self, stim_id, category):
+        """Push a new item onto the buffer (front = lag 1)."""
+        self.items.appendleft((stim_id, category))
+        if len(self.items) > self.max_depth:
+            self.items.pop()
+
+    def activation_at(self, lag, delta, mu):
+        """Activation of item at position `lag` (1-indexed from most recent)."""
+        if lag > len(self.items):
+            return 0.0
+        return delta * np.exp(-mu * lag)
+
+    def get_item(self, lag):
+        """Return (stim_id, category) at the given lag, or None."""
+        if lag < 1 or lag > len(self.items):
+            return None
+        return self.items[lag - 1]
+
+    def __repr__(self):
+        items_str = " | ".join(
+            f"lag{i+1}:{s}" for i, (s, _) in enumerate(self.items)
+        )
+        return f"Buffer[{items_str}]"
+
+
+# Walk through a short stimulus sequence
+stimuli = ["face_A", "obj_B", "face_C", "face_A", "obj_D", "face_A"]
+categories = ["face", "object", "face", "face", "object", "face"]
+n_back = 2
+delta, mu = 0.8, 0.4
+
+buf = SimpleBuffer(max_depth=12)
+
+print(f"{'Trial':>5} {'Stim':>10} {'Buffer state (lag 1 = most recent)':>45} "
+      f"{'Target?':>8} {'A_target':>10}")
+print("-" * 85)
+
+for t, (stim, cat) in enumerate(zip(stimuli, categories)):
+    buf.add(stim, cat)
+    target_item = buf.get_item(n_back)
+    is_target = (target_item is not None and target_item[0] == stim)
+    a_target = buf.activation_at(n_back, delta, mu) if is_target else 0.0
+
+    buf_display = " → ".join(s for s, _ in list(buf.items)[:5])
+    print(f"{t:>5} {stim:>10} {buf_display:>45} "
+          f"{'YES' if is_target else 'no':>8} {a_target:>10.3f}")
+```
+
+---
+
+## 5. How Buffer Depth Affects the Model
+
+In `nback_model.py` the buffer depth is set to `max(10, n_back + 5)`. Why not just `n_back + 1`?
+Because items beyond the target position still retain activation and contribute interference.
+
+```{python}
+# Show residual activation at various depths beyond the target
+mu_vals = [0.2, 0.5, 1.0]
+max_lag = 12
+
+fig = go.Figure()
+for mu_v in mu_vals:
+    acts = [activation(k, delta=1.0, mu=mu_v) for k in range(1, max_lag + 1)]
+    fig.add_trace(go.Bar(
+        x=list(range(1, max_lag + 1)),
+        y=acts,
+        name=f"μ={mu_v}",
+        opacity=0.75
+    ))
+
+# Mark the 2-back target position
+fig.add_vline(x=2, line_dash="dash", line_color="red",
+              annotation_text="2-back target", annotation_position="top right")
+fig.add_vline(x=1, line_dash="dot", line_color="orange",
+              annotation_text="lag-1 lure", annotation_position="top left")
+
+fig.update_layout(
+    barmode="group",
+    xaxis_title="Lag k",
+    yaxis_title="Activation (δ=1)",
+    title="Residual activation beyond the target position",
+    height=400
+)
+fig.show()
+```
+
+For $\mu = 0.2$ (slow decay), items 5–6 lags back still carry ~30% of their original activation.
+Those contribute interference even though they are well beyond the n-back window. Truncating the
+buffer at `n_back + 1` would silently drop that interference.
+
+---
+
+## 6. Putting It Together: A Trial Sequence Walkthrough
+
+Let's manually trace through a 5-trial 2-back sequence and compute every buffer quantity at
+each step.
+
+```{python}
+def trace_buffer(stimuli, categories, n_back, delta, mu):
+    """
+    Step through a trial sequence and compute:
+    - target activation (A_n if match, else 0)
+    - total buffer activation
+    - whether each trial is a match
+    """
+    buf = SimpleBuffer(max_depth=max(10, n_back + 5))
+    records = []
+
+    for t, (stim, cat) in enumerate(zip(stimuli, categories)):
+        buf.add(stim, cat)
+        depth = len(buf.items)
+
+        # Target activation
+        target_item = buf.get_item(n_back)
+        is_match = (target_item is not None and target_item[0] == stim)
+        a_n = buf.activation_at(n_back, delta, mu)
+        a_target = a_n if is_match else 0.0
+
+        # Total buffer activation (all lags)
+        total = sum(buf.activation_at(k, delta, mu) for k in range(1, depth + 1))
+
+        records.append({
+            "trial": t,
+            "stim": stim,
+            "is_match": is_match,
+            "a_target": a_target,
+            "a_n_slot": a_n,      # activation at lag n regardless of match
+            "total_activation": total,
+            "buffer_depth": depth,
+        })
+
+    return records
+
+
+stimuli  = ["A", "B", "C", "A", "D", "C", "B", "A", "C"]
+cats     = ["face"] * len(stimuli)
+
+records = trace_buffer(stimuli, cats, n_back=2, delta=0.8, mu=0.4)
+
+import pandas as pd
+df = pd.DataFrame(records)
+print(df[["trial","stim","is_match","a_target","total_activation"]].to_string(index=False))
+```
+
+```{python}
+# Visualise target activation and total activation across trials
+fig = go.Figure()
+fig.add_trace(go.Bar(x=df["trial"], y=df["total_activation"],
+                     name="Total buffer activation", marker_color="lightsteelblue"))
+fig.add_trace(go.Bar(x=df["trial"], y=df["a_target"],
+                     name="Target slot activation (A_n | match)", marker_color="tomato"))
+
+# Annotate match trials
+for _, row in df[df["is_match"]].iterrows():
+    fig.add_annotation(x=row["trial"], y=row["total_activation"] + 0.05,
+                       text="MATCH", showarrow=False, font=dict(color="darkred", size=10))
+
+fig.update_layout(barmode="overlay", xaxis_title="Trial",
+                  yaxis_title="Activation",
+                  title=f"Buffer activations across trials (δ={0.8}, μ={0.4}, {2}-back)",
+                  height=420)
+fig.show()
+```
+
+---
+
+## 7. Exercises
+
+::: {.callout-note title="Exercise 1 — Parameter intuition"}
+Change `delta` to 0.3 and `mu` to 0.2 in the trace above. Which effect dominates —
+lower initial encoding or slower decay? Does match-trial target activation go up or down?
+:::
+
+::: {.callout-note title="Exercise 2 — Buffer overflow"}
+What happens to the buffer contents when the same stimulus appears at lag 1, lag 3, and lag 5?
+Trace through a sequence like `["A","B","A","C","A"]` with `n_back=2`. Which trial is a match?
+What is the lure situation at the final trial?
+:::
+
+::: {.callout-note title="Exercise 3 — Connect to the codebase"}
+Open `scripts/nback_model.py` and find the `compute_activation` method. Confirm that it
+implements $\delta \cdot e^{-\mu k}$ exactly. Then find where `max(10, n_back + 5)` is set
+and verify it matches what we discussed.
+:::
+
+---
+
+## Summary
+
+| Concept | Equation | Interpretation |
+|---|---|---|
+| Activation at lag k | $A_k = \delta \cdot e^{-\mu k}$ | Strength of memory trace |
+| Encoding amplitude | $\delta \in (0,1]$ | Probability / strength of initial encoding |
+| Decay rate | $\mu > 0$ | Rate of forgetting per trial |
+| Target activation | $A_n \cdot \mathbb{1}[\text{match}]$ | Memory for the relevant item |
+| Total activation | $T = \sum_k A_k$ | Total WM load |
+
+**Next lesson:** We connect these buffer activations to an actual decision — how does the
+model translate "how much activation is at the n-back slot?" into "how likely is the participant
+to press the match button?"

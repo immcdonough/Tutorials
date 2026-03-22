@@ -1,0 +1,29 @@
+project:
+  type: book
+  output-dir: _output
+
+book:
+  title: "N-Back Computational Model Course"
+  subtitle: "From Exponential Decay Buffers to fMRI Regressors"
+  date: today
+  chapters:
+    - index.qmd
+    - lesson_01_memory_buffer.qmd
+    - lesson_02_decision_model.qmd
+    - lesson_03_interference_control.qmd
+    - lesson_04_mle_model_comparison.qmd
+    - lesson_05_fmri_regressors.qmd
+
+format:
+  html:
+    theme: cosmo
+    code-fold: show
+    code-tools: true
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    highlight-style: github
+
+execute:
+  warning: false
+  message: false
