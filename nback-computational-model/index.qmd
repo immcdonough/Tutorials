@@ -1,0 +1,33 @@
+---
+title: "N-Back Computational Model Course"
+---
+
+## Overview
+
+This five-lesson course builds the computational model of working memory used in the
+N-Back fMRI study from the ground up. Each lesson adds one layer — from the memory buffer
+to the decision model to parameter fitting to brain regressors — ending with a complete
+understanding of every line in `scripts/nback_model.py`, `03_fit_model.py`, and
+`04_regressors.py`.
+
+### Lessons
+
+| Lesson | Title | Key concepts |
+|--------|-------|-------------|
+| 1 | Working Memory as a Decaying Buffer | Activation function; δ and μ; buffer depth; δ as encoding probability |
+| 2 | From Activations to Decisions | SDT; probit model; β and σ; trial-type predictions; α identifiability |
+| 3 | Interference, Normalisation, and Attentional Control | Lure evidence; δ–σ confound; interference normalisation; probit-normal correction |
+| 4 | Fitting the Model | Negative log-likelihood; parameter transforms; Nelder-Mead; AIC/BIC; M3 selection |
+| 5 | From Parameters to Brain | Maintenance; control demand; lure activation; encoding surprise; prediction error; FSL format |
+
+### Prerequisites
+
+- Intermediate Python (NumPy, SciPy, Pandas)
+- Basic familiarity with the n-back task and fMRI GLMs
+- No prior computational modelling experience required
+
+### Dependencies
+
+```bash
+pip install numpy scipy pandas plotly
+```

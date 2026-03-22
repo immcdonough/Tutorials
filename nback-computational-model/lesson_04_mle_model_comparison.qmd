@@ -1,0 +1,535 @@
+---
+title: "Lesson 4: Fitting the Model — Maximum Likelihood and Model Comparison"
+subtitle: "Parameter transforms, Nelder-Mead, AIC, and why M3 wins"
+---
+
+## Overview
+
+We now have a generative model that maps parameters $(\delta, \mu, \alpha, \beta, \sigma)$
+to response probabilities for every trial. This lesson covers how to *invert* that map:
+given a participant's actual button presses, find the parameters most likely to have
+produced them. We then compare five model variants using AIC/BIC to determine which
+parameterisation best accounts for the data.
+
+---
+
+## 1. The Likelihood Function
+
+For a binary sequence of responses $R_t \in \{0, 1\}$, the likelihood of the observed data
+under parameters $\theta$ is:
+
+$$\mathcal{L}(\theta) = \prod_t p_{\text{match},t}^{R_t} \cdot (1 - p_{\text{match},t})^{1-R_t}$$
+
+In practice we work with the **negative log-likelihood (NLL)**:
+
+$$\text{NLL}(\theta) = -\sum_t \left[ R_t \log p_{\text{match},t} + (1-R_t) \log(1-p_{\text{match},t}) \right]$$
+
+MLE finds $\hat{\theta} = \arg\min_\theta \text{NLL}(\theta)$.
+
+```{python}
+import numpy as np
+import pandas as pd
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+from scipy import stats, optimize
+from scipy.special import expit
+
+def nll(p_match_arr, responses):
+    """Negative log-likelihood for binary responses given p_match predictions."""
+    p = np.clip(p_match_arr, 1e-10, 1 - 1e-10)
+    return -np.sum(responses * np.log(p) + (1 - responses) * np.log(1 - p))
+
+
+# Toy example: one parameter (β) and 100 trials
+rng = np.random.default_rng(42)
+true_beta = 0.3
+true_sigma = 0.4
+
+# Generate synthetic responses for a constant activation
+a_target = 0.5 * np.ones(100)      # all match trials for simplicity
+responses = (rng.random(100) < stats.norm.cdf((a_target - true_beta) / true_sigma)).astype(float)
+
+# Sweep β and compute NLL
+beta_sweep = np.linspace(-1, 1.5, 200)
+nll_vals   = [nll(stats.norm.cdf((a_target - b) / true_sigma), responses)
+              for b in beta_sweep]
+
+fig = go.Figure()
+fig.add_trace(go.Scatter(x=beta_sweep, y=nll_vals, name="NLL(β)",
+                         line=dict(color="steelblue", width=2)))
+fig.add_vline(x=true_beta, line_dash="dash", line_color="tomato",
+              annotation_text=f"True β={true_beta}", annotation_position="top right")
+best_b = beta_sweep[np.argmin(nll_vals)]
+fig.add_vline(x=best_b, line_dash="dot", line_color="green",
+              annotation_text=f"MLE β≈{best_b:.2f}", annotation_position="top left")
+fig.update_layout(xaxis_title="β (criterion)", yaxis_title="NLL",
+                  title="Negative log-likelihood as a function of β (single-parameter example)",
+                  height=400)
+fig.show()
+```
+
+The NLL is minimised near the true value. In the real model, we minimise over 4–7 parameters
+simultaneously — the surface is harder to visualise but the principle is identical.
+
+---
+
+## 2. Parameter Transforms
+
+Raw parameters must satisfy hard constraints ($\delta \in (0,1)$, $\mu > 0$, etc.).
+Rather than using constrained optimisation, we reparameterise to unconstrained space and
+apply transforms at evaluation time:
+
+| Parameter | Constraint | Transform | Inverse |
+|---|---|---|---|
+| $\delta$ | $(0, 1)$ | $\theta_\delta = \text{logit}(\delta)$ | $\delta = \text{expit}(\theta_\delta)$ |
+| $\mu$ | $(0, \infty)$ | $\theta_\mu = \log(\mu)$ | $\mu = e^{\theta_\mu}$ |
+| $\alpha$ | $(0, 1)$ | $\theta_\alpha = \text{logit}(\alpha)$ | $\alpha = \text{expit}(\theta_\alpha)$ |
+| $\beta$ | $(-\infty, +\infty)$ | $\theta_\beta = \beta$ | identity |
+| $\sigma$ | $(0, 3)$ | $\theta_\sigma = \text{logit}(\sigma/3)$ | $\sigma = 3 \cdot \text{expit}(\theta_\sigma)$ |
+
+This lets the optimiser move freely in $\mathbb{R}^k$ while parameters always stay valid.
+
+```{python}
+theta_range = np.linspace(-5, 5, 300)
+
+fig = make_subplots(rows=1, cols=3,
+                    subplot_titles=["δ = expit(θ)  ∈ (0,1)",
+                                    "μ = exp(θ)    ∈ (0,∞)",
+                                    "σ = 3·expit(θ) ∈ (0,3)"])
+fig.add_trace(go.Scatter(x=theta_range, y=expit(theta_range),
+                         line=dict(color="steelblue", width=2), showlegend=False),
+              row=1, col=1)
+fig.add_trace(go.Scatter(x=theta_range, y=np.exp(np.clip(theta_range, -30, 10)),
+                         line=dict(color="tomato", width=2), showlegend=False),
+              row=1, col=2)
+fig.add_trace(go.Scatter(x=theta_range, y=3 * expit(theta_range),
+                         line=dict(color="green", width=2), showlegend=False),
+              row=1, col=3)
+
+for col, ylab in [(1,"δ"), (2,"μ"), (3,"σ")]:
+    fig.update_yaxes(title_text=ylab, row=1, col=col)
+    fig.update_xaxes(title_text="θ (unconstrained)", row=1, col=col)
+fig.update_yaxes(range=[-0.2, 4], row=1, col=2)
+fig.update_layout(height=380, title_text="Parameter transforms: constrained → unconstrained")
+fig.show()
+```
+
+The clip on $\mu = e^{\theta_\mu}$ (to prevent overflow) was added in `03_fit_model.py` —
+`safe_exp` clips $\theta_\mu$ to $[-30, 10]$ before calling `np.exp`, preventing the
+`RuntimeWarning` you saw without affecting any valid solution.
+
+---
+
+## 3. The Likelihood Surface
+
+To build intuition for *why* fitting is hard, let's visualise the 2D likelihood surface over
+$(\delta, \mu)$ for a synthetic participant.
+
+```{python}
+from collections import deque
+
+def simulate_block_simple(stims, n_back, delta, mu, alpha, beta, sigma, seed=0):
+    """Simplified simulation returning p_match per trial."""
+    rng_s = np.random.default_rng(seed)
+    max_depth = max(10, n_back + 5)
+    buf = deque()
+    p_matches, is_matches = [], []
+
+    for stim in stims:
+        buf.appendleft(stim)
+        if len(buf) > max_depth:
+            buf.pop()
+        depth = len(buf)
+
+        tgt = buf[n_back - 1] if depth >= n_back else None
+        match = (tgt == stim)
+        a_n = delta * np.exp(-mu * n_back)
+        a_target = a_n if match else 0.0
+
+        L = sum(delta * np.exp(-mu * (k+1)) for k, s in enumerate(buf)
+                if k+1 != n_back and s == stim)
+        G = sum(delta * np.exp(-mu * (k+1)) for k, s in enumerate(buf)
+                if s != stim)
+        T = sum(delta * np.exp(-mu * (k+1)) for k in range(depth))
+
+        G_norm = G / (T + 1e-9)
+        WE     = a_target + (1 - alpha) * L
+        noise  = sigma + (1 - alpha) * G_norm
+        enc_var = (delta*(1-delta)*np.exp(-2*mu*n_back)*(1 if match else 0) +
+                   (1-alpha)**2 * delta*(1-delta)*np.exp(-2*mu*1) * (L > 1e-4))
+        noise_adj = np.sqrt(noise**2 + enc_var)
+        pm = float(np.clip(stats.norm.cdf((WE - beta) / max(noise_adj, 1e-9)),
+                           1e-10, 1-1e-10))
+        p_matches.append(pm)
+        is_matches.append(match)
+
+    return np.array(p_matches), np.array(is_matches)
+
+
+# Generate a synthetic participant
+rng = np.random.default_rng(7)
+pool = [f"s{i}" for i in range(20)]
+stims_synthetic = rng.choice(pool, size=200).tolist()
+n_back = 2
+# Insert targets
+for i in range(n_back, len(stims_synthetic)):
+    if rng.random() < 0.25:
+        stims_synthetic[i] = stims_synthetic[i - n_back]
+
+true_params = dict(delta=0.75, mu=0.45, alpha=0.65, beta=0.05, sigma=0.30)
+p_true, _ = simulate_block_simple(stims_synthetic, n_back, **true_params)
+responses  = (rng.random(len(p_true)) < p_true).astype(float)
+
+# Sweep delta and mu, compute NLL
+delta_grid = np.linspace(0.2, 1.0, 30)
+mu_grid    = np.linspace(0.05, 1.5, 30)
+NLL_grid   = np.zeros((len(mu_grid), len(delta_grid)))
+
+for i, mu_v in enumerate(mu_grid):
+    for j, d_v in enumerate(delta_grid):
+        pm, _ = simulate_block_simple(stims_synthetic, n_back, delta=d_v, mu=mu_v,
+                                      alpha=true_params["alpha"],
+                                      beta=true_params["beta"],
+                                      sigma=true_params["sigma"])
+        NLL_grid[i, j] = nll(pm, responses)
+
+fig = go.Figure(go.Contour(
+    x=delta_grid, y=mu_grid, z=NLL_grid,
+    colorscale="Viridis_r",
+    contours=dict(showlabels=True),
+    colorbar=dict(title="NLL")
+))
+fig.add_trace(go.Scatter(
+    x=[true_params["delta"]], y=[true_params["mu"]],
+    mode="markers",
+    marker=dict(color="red", size=12, symbol="star"),
+    name="True params"
+))
+fig.update_layout(
+    xaxis_title="δ", yaxis_title="μ",
+    title="NLL surface over (δ, μ) — other params fixed at true values",
+    height=480
+)
+fig.show()
+```
+
+The surface shows a clear minimum near the true parameters but is elongated — $\delta$ and
+$\mu$ are partially redundant (a high $\delta$ with fast $\mu$ can mimic a low $\delta$ with
+slow $\mu$). This ridge is why multiple random restarts improve reliability.
+
+---
+
+## 4. The Nelder-Mead Optimiser
+
+`03_fit_model.py` uses `scipy.optimize.minimize` with `method="Nelder-Mead"`. Nelder-Mead
+works by maintaining a **simplex** (polytope) in parameter space and iteratively:
+- Reflecting the worst vertex through the centroid
+- Expanding if that improves things
+- Contracting if expansion fails
+- Shrinking the whole simplex if needed
+
+It requires no gradient information — important because our model involves sequential
+Python loops that are not autodiff-friendly.
+
+```{python}
+# Mini demonstration of Nelder-Mead on the 2D NLL surface
+from scipy.optimize import minimize
+
+def nll_2d(params):
+    d, log_mu = params
+    d_clipped = float(np.clip(d, 0.01, 0.999))
+    mu_v = float(np.exp(np.clip(log_mu, -5, 3)))
+    pm, _ = simulate_block_simple(stims_synthetic, n_back, delta=d_clipped, mu=mu_v,
+                                  alpha=true_params["alpha"],
+                                  beta=true_params["beta"],
+                                  sigma=true_params["sigma"])
+    return nll(pm, responses)
+
+# Multiple random restarts
+rng_opt = np.random.default_rng(55)
+best_result = None
+all_results = []
+
+for restart in range(5):
+    x0 = [rng_opt.uniform(0.2, 0.9), rng_opt.uniform(-1, 0.5)]
+    res = minimize(nll_2d, x0, method="Nelder-Mead",
+                   options={"maxiter": 2000, "xatol": 1e-5, "fatol": 1e-5})
+    d_fit  = np.clip(res.x[0], 0.01, 0.999)
+    mu_fit = np.exp(np.clip(res.x[1], -5, 3))
+    all_results.append({"restart": restart+1, "delta": d_fit, "mu": mu_fit,
+                         "NLL": res.fun, "converged": res.success})
+    if best_result is None or res.fun < best_result.fun:
+        best_result = res
+
+results_df = pd.DataFrame(all_results)
+print(f"True params: δ={true_params['delta']}, μ={true_params['mu']}")
+print(f"\nRestart results:")
+print(results_df[["restart","delta","mu","NLL","converged"]].to_string(index=False))
+print(f"\nBest: δ={np.clip(best_result.x[0],0.01,0.999):.3f}, "
+      f"μ={np.exp(np.clip(best_result.x[1],-5,3)):.3f}, "
+      f"NLL={best_result.fun:.2f}")
+```
+
+Multiple restarts help escape local minima. The actual script uses 3 restarts per model ×
+subject combination.
+
+---
+
+## 5. Five Model Variants
+
+The model family varies two design choices:
+
+1. Should $\delta$ be category-specific ($\delta_{\text{face}} \neq \delta_{\text{object}}$)?
+2. Should $\mu$ be category-specific?
+3. Should $\alpha$ be freely estimated or fixed at 0.5?
+
+```{python}
+models_df = pd.DataFrame({
+    "Model": ["M1", "M2", "M3 (winner)", "M4", "M5"],
+    "δ_face ≠ δ_object": ["Yes","Yes","Yes","No","No"],
+    "μ_face ≠ μ_object": ["Yes","Yes","No","Yes","No"],
+    "α free": ["Yes","No (=0.5)","Yes","Yes","No (=0.5)"],
+    "k (params)": [7, 6, 6, 6, 4],
+})
+print(models_df.to_string(index=False))
+```
+
+---
+
+## 6. Model Comparison: AIC and BIC
+
+AIC penalises model complexity while rewarding fit:
+
+$$\text{AIC} = 2 \cdot \sum_i \text{NLL}_i + 2k \cdot N_{\text{subjects}}$$
+
+BIC uses a stronger complexity penalty:
+
+$$\text{BIC} = 2 \cdot \sum_i \text{NLL}_i + k \cdot \log(N_{\text{trials}}) \cdot N_{\text{subjects}}$$
+
+Lower is better. Let's demonstrate why complexity penalties matter.
+
+```{python}
+# Simulate AIC/BIC comparison with synthetic NLL values
+# (Representative of the empirical comparison)
+np.random.seed(42)
+N_subjects = 72
+N_trials_per_subject = 200
+
+# Hypothetical mean NLL per subject for each model
+# M3 is winner — good fit at 6 params; M1 barely improves at 7 params
+model_specs = {
+    "M1": {"k": 7, "mean_nll_per_subject": 95.2},
+    "M2": {"k": 6, "mean_nll_per_subject": 101.5},
+    "M3": {"k": 6, "mean_nll_per_subject": 96.1},
+    "M4": {"k": 6, "mean_nll_per_subject": 99.3},
+    "M5": {"k": 4, "mean_nll_per_subject": 118.7},
+}
+
+rows = []
+for model, spec in model_specs.items():
+    total_nll = spec["mean_nll_per_subject"] * N_subjects
+    k = spec["k"]
+    aic = 2 * total_nll + 2 * k * N_subjects
+    bic = 2 * total_nll + k * np.log(N_trials_per_subject) * N_subjects
+    rows.append({"Model": model, "k": k,
+                 "Total NLL": round(total_nll, 1),
+                 "AIC": round(aic, 1), "BIC": round(bic, 1)})
+
+comp_df = pd.DataFrame(rows).sort_values("AIC")
+comp_df["ΔAIC"] = (comp_df["AIC"] - comp_df["AIC"].min()).round(1)
+comp_df["ΔBIC"] = (comp_df["BIC"] - comp_df["BIC"].min()).round(1)
+print(comp_df[["Model","k","Total NLL","AIC","ΔAIC","BIC","ΔBIC"]].to_string(index=False))
+```
+
+```{python}
+fig = go.Figure()
+for metric, col in [("AIC","steelblue"), ("BIC","tomato")]:
+    fig.add_trace(go.Bar(
+        x=comp_df["Model"], y=comp_df[metric] - comp_df[metric].min(),
+        name=f"Δ{metric}", marker_color=col, opacity=0.75
+    ))
+fig.update_layout(barmode="group", xaxis_title="Model",
+                  yaxis_title="Δ (relative to best)",
+                  title="Model comparison: AIC and BIC (lower = better)",
+                  height=400)
+fig.show()
+```
+
+**Why M3 wins:** The extra parameters in M1 (category-specific $\mu$) don't justify their
+cost. Once encoded, face and object representations decay at the same rate — the benefit of
+having $\mu_{\text{face}} \neq \mu_{\text{object}}$ is smaller than the AIC penalty for the
+extra parameter. Category specificity in *encoding* ($\delta$) earns its keep; in *decay*
+($\mu$) it does not.
+
+---
+
+## 7. Diagnosing Convergence
+
+A good fit requires the NLL at convergence to be reasonable. We can check:
+
+1. **NLL per trial** — should be comfortably below $\log 2 \approx 0.693$ (chance)
+2. **Parameters at bounds** — signals identifiability problems (as seen with the perfect-
+   performer in the data)
+3. **Restart consistency** — NLL should agree across restarts if the surface has a clear minimum
+
+```{python}
+# Illustrate NLL per trial as a diagnostic
+chance_nll_per_trial = np.log(2)
+good_nll_per_trial   = 0.35    # typical for well-fit subjects
+poor_nll_per_trial   = 0.62    # near-chance (outlier / poor data)
+
+categories = ["Chance", "Typical fit", "Poor fit"]
+values      = [chance_nll_per_trial, good_nll_per_trial, poor_nll_per_trial]
+colors      = ["gray", "steelblue", "tomato"]
+
+fig = go.Figure(go.Bar(x=categories, y=values, marker_color=colors,
+                        text=[f"{v:.3f}" for v in values], textposition="outside"))
+fig.add_hline(y=chance_nll_per_trial, line_dash="dash", line_color="gray",
+              annotation_text="Chance = log(2) ≈ 0.693", annotation_position="right")
+fig.update_layout(yaxis=dict(range=[0, 0.85], title="NLL per trial"),
+                  title="NLL per trial as a convergence diagnostic",
+                  height=380)
+fig.show()
+```
+
+If a participant's NLL/trial is near 0.693 after fitting, the model learned nothing — the
+participant's responses were essentially at chance or their data has a quality problem.
+
+---
+
+## 8. Parameter Recovery: Does MLE Return the Right Values?
+
+The ultimate validation of MLE is parameter recovery: simulate data from known parameters,
+fit, and check that $\hat{\theta} \approx \theta_{\text{true}}$.
+
+```{python}
+true_vals = {"delta": 0.75, "mu": 0.45, "alpha": 0.65, "beta": 0.05, "sigma": 0.30}
+
+def fit_model(stims, responses, n_back, n_restarts=3):
+    """Fit model to data using Nelder-Mead."""
+    rng_f = np.random.default_rng(123)
+    best = None
+
+    def objective(params):
+        try:
+            d     = float(np.clip(expit(params[0]), 0.01, 0.99))
+            mu_v  = float(np.exp(np.clip(params[1], -5, 3)))
+            alpha = float(np.clip(expit(params[2]), 0.01, 0.99))
+            beta  = float(params[3])
+            sigma = float(max(np.clip(expit(params[4]) * 3, 0.01, 2.99), 0.01))
+            pm, _ = simulate_block_simple(stims, n_back, delta=d, mu=mu_v,
+                                          alpha=alpha, beta=beta, sigma=sigma)
+            return nll(pm, responses)
+        except Exception:
+            return 1e9
+
+    for _ in range(n_restarts):
+        x0 = rng_f.uniform(-1, 1, 5)
+        res = minimize(objective, x0, method="Nelder-Mead",
+                       options={"maxiter": 3000, "xatol": 1e-4, "fatol": 1e-4})
+        if best is None or res.fun < best.fun:
+            best = res
+
+    p = best.x
+    return {
+        "delta": float(np.clip(expit(p[0]), 0.01, 0.99)),
+        "mu":    float(np.exp(np.clip(p[1], -5, 3))),
+        "alpha": float(np.clip(expit(p[2]), 0.01, 0.99)),
+        "beta":  float(p[3]),
+        "sigma": float(max(np.clip(expit(p[4]) * 3, 0.01, 2.99), 0.01)),
+        "nll":   best.fun,
+    }
+
+# Recovery on our synthetic participant
+fitted = fit_model(stims_synthetic, responses, n_back=2)
+
+rec_df = pd.DataFrame({
+    "Parameter": list(true_vals.keys()),
+    "True": list(true_vals.values()),
+    "Fitted": [fitted[k] for k in true_vals],
+})
+rec_df["Error"] = (rec_df["Fitted"] - rec_df["True"]).round(3)
+print(rec_df.round(3).to_string(index=False))
+print(f"\nFinal NLL: {fitted['nll']:.2f} ({fitted['nll']/len(responses):.3f} per trial)")
+```
+
+```{python}
+fig = go.Figure()
+params = rec_df["Parameter"].tolist()
+fig.add_trace(go.Bar(x=params, y=rec_df["True"], name="True", marker_color="steelblue"))
+fig.add_trace(go.Bar(x=params, y=rec_df["Fitted"], name="Fitted (MLE)",
+                     marker_color="tomato", opacity=0.8))
+fig.update_layout(barmode="group", xaxis_title="Parameter",
+                  yaxis_title="Value",
+                  title="Parameter recovery: true vs. MLE estimates",
+                  height=380)
+fig.show()
+```
+
+---
+
+## 9. When MLE Fails: Boundary Solutions
+
+As discussed in the data analysis context, participants with near-perfect performance produce
+degenerate MLE solutions with parameters at bounds. The likelihood is maximised by pushing
+$\delta \to 1$, $\sigma \to 0$, which gives deterministic predictions — but provides no
+information about the participant's actual cognitive parameters.
+
+```{python}
+# Demonstrate: perfect-performer → boundary solution
+perfect_responses = np.array([1.0 if s == stims_synthetic[max(0,i-n_back)]
+                               and i >= n_back else 0.0
+                               for i, s in enumerate(stims_synthetic)])
+
+p_perfect = simulate_block_simple(stims_synthetic, n_back,
+                                   delta=0.999, mu=0.001,
+                                   alpha=0.999, beta=0.0,
+                                   sigma=0.0001)[0]
+
+nll_perfect = nll(p_perfect, perfect_responses)
+nll_average = nll(p_true, responses)
+
+print(f"NLL (typical participant, N={len(responses)} trials): {nll_average:.2f}")
+print(f"NLL (perfect performer, degenerate params):          {nll_perfect:.2f}")
+print(f"NLL per trial for perfect performer:                 {nll_perfect/len(responses):.5f}")
+print(f"\nConclusion: near-zero NLL for perfect performer → all params at boundary")
+print(f"These subjects require MCMC with hierarchical priors (Lesson 5 context).")
+```
+
+---
+
+## 10. Exercises
+
+::: {.callout-note title="Exercise 1 — AIC penalty intuition"}
+Suppose M1 (7 params) achieves a total NLL that is 72 points lower than M3 (6 params) across
+72 subjects. Which model wins on AIC? Show your calculation. What about BIC with
+$N_{\text{trials}} = 200$ per subject?
+:::
+
+::: {.callout-note title="Exercise 2 — Transform impact"}
+Starting from unconstrained parameter vector `[0, 0, 0, 0, 0]` (the default starting point
+in `X0_DEFAULTS`), compute the corresponding constrained values using the transforms. Are
+these reasonable starting points for the model?
+:::
+
+::: {.callout-note title="Exercise 3 — Connect to the codebase"}
+Open `scripts/03_fit_model.py` and find the `neg_log_lik` function. Trace through what
+happens when the optimizer calls it: (1) `unpack_params` transforms the vector, (2)
+`NBackWMModel` is constructed, (3) `simulate_block` is called with `responses=obs_resp`,
+(4) `log_lik` is summed. Verify that this matches our `nll` function above.
+:::
+
+---
+
+## Summary
+
+| Step | What happens |
+|---|---|
+| Define NLL | $-\sum_t [R_t \log p_t + (1-R_t) \log(1-p_t)]$ |
+| Reparameterise | Map constrained params to $\mathbb{R}^k$ via logit/log |
+| Optimise | Nelder-Mead with 3 restarts; keep lowest NLL |
+| Compare models | AIC = $2 \cdot \text{NLL} + 2k$; lower wins |
+| Validate | Parameter recovery, NLL/trial, boundary checks |
+
+**Next lesson:** We use the fitted parameters to generate trial-level parametric regressors
+for fMRI — connecting the computational model to BOLD signal prediction.
