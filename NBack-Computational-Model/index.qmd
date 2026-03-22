@@ -1,0 +1,95 @@
+---
+title: "N-Back Computational Model — Course"
+subtitle: "Five lessons building from exponential decay buffers to fMRI regressors"
+format:
+  html:
+    toc: false
+    theme: cosmo
+    highlight-style: github
+    embed-resources: true
+---
+
+This course walks through the computational model of working memory used in the N-Back
+fMRI study. Each lesson builds on the last, starting from first principles and ending
+with a complete pipeline from raw behaviour to brain.
+
+No prior knowledge of computational modelling is assumed, but familiarity with Python,
+basic statistics, and the n-back task will help.
+
+---
+
+## Lessons
+
+::: {.grid}
+
+::: {.g-col-12 .g-col-md-6}
+### [Lesson 1 — Working Memory as a Decaying Buffer](lesson_01_memory_buffer.html)
+Build the exponential decay buffer $A_k = \delta \cdot e^{-\mu k}$ from scratch.
+Understand what $\delta$ (encoding amplitude) and $\mu$ (decay rate) mean, why the
+buffer depth is capped at lag 10, and how lure effects emerge automatically without
+any extra mechanism.
+
+**Key concepts:** activation function · buffer data structure · δ as encoding probability
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [Lesson 2 — From Activations to Decisions](lesson_02_decision_model.html)
+Connect buffer activations to response probabilities via a probit decision model.
+See why the model predicts elevated false alarms specifically on lure trials, how
+β (criterion) and σ (noise) shape the psychometric function, and how α is identified
+from the lure vs. novel non-match contrast.
+
+**Key concepts:** SDT · probit model · trial-type predictions · α identifiability
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [Lesson 3 — Interference, Normalisation, and Attentional Control](lesson_03_interference_control.html)
+Build lure evidence $L$ and general interference $G$ from the buffer, understand why
+normalising by total activation breaks the δ–σ confound, and derive the probit-normal
+encoding-variance correction that handles Jensen's inequality without any extra parameters.
+
+**Key concepts:** interference normalisation · δ–σ confound · probit-normal correction · why no proactive interference
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [Lesson 4 — Fitting the Model](lesson_04_mle_model_comparison.html)
+Fit parameters to behavioural data using maximum likelihood. Understand the parameter
+transforms (logit/log) that keep optimisation unconstrained, why Nelder-Mead is used
+instead of gradient methods, and how AIC/BIC selects M3 over four alternatives.
+
+**Key concepts:** negative log-likelihood · parameter transforms · Nelder-Mead · AIC/BIC · boundary solutions
+:::
+
+::: {.g-col-12 .g-col-md-6}
+### [Lesson 5 — From Parameters to Brain](lesson_05_fmri_regressors.html)
+Use fitted parameters to generate trial-level parametric modulators for the fMRI GLM.
+Build all five regressors (maintenance, control demand, lure activation, encoding
+surprise, prediction error), z-score within run, inspect collinearity, and produce
+FSL 3-column format files.
+
+**Key concepts:** parametric modulators · regressor dissociation · z-scoring · FSL format
+:::
+
+:::
+
+---
+
+## Lesson Map
+
+| Lesson | Core concept | Script |
+|--------|-------------|--------|
+| [1](lesson_01_memory_buffer.html) | Exponential decay buffer, δ, μ | `nback_model.py` — buffer + activation |
+| [2](lesson_02_decision_model.html) | Probit decision, β, σ, trial types | `nback_model.py` — `compute_trial_signals` |
+| [3](lesson_03_interference_control.html) | Lure interference, normalisation, α, correction | `nback_model.py` — full model |
+| [4](lesson_04_mle_model_comparison.html) | MLE, parameter transforms, AIC, model comparison | `03_fit_model.py` |
+| [5](lesson_05_fmri_regressors.html) | fMRI regressors, z-scoring, FSL format | `04_regressors.py` |
+
+## Dependencies
+
+```bash
+pip install numpy scipy pandas plotly
+```
+
+[Quarto installation](https://quarto.org/docs/get-started/) ·
+[Course source code](https://github.com) ·
+[Huang et al. (2025)](Literature/fnhum-19-1721330.pdf)
