@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Gut Microbiome World — explorable interaction map</title>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<style>
+  :root { --bg:#0d1117; --panel:#161b22; --edge:#30363d; --ink:#e6edf3; --muted:#9da7b3; --accent:#58a6ff; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+              font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
+  #root { height:100vh; display:flex; flex-direction:column; }
+  .topbar { padding:8px 14px; background:var(--panel); border-bottom:1px solid var(--edge);
+            display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .topbar h1 { font-size:15px; margin:0; font-weight:650; letter-spacing:.2px; }
+  .caveat { font-size:11px; background:#3d2f00; color:#f2cc60; padding:2px 8px;
+            border-radius:10px; border:1px solid #6b5400; }
+  .main { flex:1; display:flex; min-height:0; }
+  .graphwrap { flex:1; position:relative; }
+  svg { width:100%; height:100%; display:block; cursor:grab; }
+  svg:active { cursor:grabbing; }
+  .side { width:340px; background:var(--panel); border-left:1px solid var(--edge);
+          overflow-y:auto; padding:12px 14px; font-size:13px; }
+  .controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-left:auto; }
+  button, select { background:#21262d; color:var(--ink); border:1px solid var(--edge);
+                   border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; }
+  button.active { background:var(--accent); color:#04121f; border-color:var(--accent); font-weight:600; }
+  .legend { position:absolute; left:10px; bottom:10px; background:rgba(22,27,34,.9);
+            border:1px solid var(--edge); border-radius:8px; padding:8px 10px; font-size:11px; max-width:220px; }
+  .legend .row { display:flex; align-items:center; gap:6px; margin:2px 0; }
+  .swatch { width:11px; height:11px; border-radius:3px; flex:none; }
+  .tooltip { position:absolute; pointer-events:none; background:#0b0f14; border:1px solid var(--accent);
+             border-radius:6px; padding:6px 8px; font-size:11px; max-width:280px; z-index:20; line-height:1.45; }
+  .k { color:var(--muted); }
+  h3 { font-size:13px; margin:12px 0 6px; border-bottom:1px solid var(--edge); padding-bottom:4px; }
+  .pill { display:inline-block; font-size:10px; padding:1px 6px; border-radius:8px; background:#21262d;
+          border:1px solid var(--edge); margin:2px 3px 0 0; }
+  .muted { color:var(--muted); font-size:11.5px; }
+  .stat { font-variant-numeric:tabular-nums; }
+  .barrow { display:flex; align-items:center; gap:6px; margin:1px 0; }
+  a { color:var(--accent); }
+  .err { padding:20px; color:#f2cc60; }
+  input[type=file]{ font-size:11px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState, useEffect, useRef, useMemo} = React;
+
+const CATCOLORS = {
+  "SCFA / fermentation":"#3fb950","Amino-acid biosynthesis":"#58a6ff",
+  "Vitamin / cofactor":"#d29922","Nucleotide metabolism":"#bc8cff",
+  "Cell envelope / lipid":"#f778ba","Carbohydrate degradation":"#ff9f45",
+  "Energy / respiration":"#39c5cf","Other / mixed":"#8b949e",
+  "Unassigned (no stratified pathways)":"#4d5561"
+};
+const catColor = c => CATCOLORS[c] || CATCOLORS[(c||"").replace(/^Inferred:\s*/,"")] || "#8b949e";
+const isInferred = c => /^Inferred:/.test(c||"");
+
+function useData() {
+  const [data,setData]=useState(null); const [err,setErr]=useState(null);
+  useEffect(()=>{ fetch("microbiome_world.json").then(r=>{ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(setData).catch(e=>setErr(e.message)); },[]);
+  return [data,err,setData,setErr];
+}
+
+// ---- force-directed graph (SVG), seeded by functional coordinates ----
+function Graph({data, mode, subjectIdx, diff, onPick, picked, shuffleSeed}) {
+  const svgRef=useRef();
+  const [tip,setTip]=useState(null);
+  const simRef=useRef();
+
+  const nodesById = useMemo(()=>Object.fromEntries(data.nodes.map(n=>[n.id,n])),[data]);
+
+  const devLookup = useMemo(()=>{
+    if(mode!=="individual"||subjectIdx==null) return null;
+    const sid=data.subjects[subjectIdx].sample_id;
+    const rows=data.per_subject_edges[sid]||[];
+    const m={}; rows.forEach(r=>{ m[r.source+"|"+r.target]=r.deviation; m[r.target+"|"+r.source]=r.deviation; });
+    return m;
+  },[data,mode,subjectIdx]);
+
+  useEffect(()=>{
+    const svg=d3.select(svgRef.current);
+    const W=svgRef.current.clientWidth, H=svgRef.current.clientHeight;
+    svg.selectAll("*").remove();
+    const g=svg.append("g");
+
+    const zoom=d3.zoom().scaleExtent([0.15,6]).on("zoom",ev=>g.attr("transform",ev.transform));
+    svg.call(zoom).call(zoom.transform, d3.zoomIdentity.translate(W/2,H/2).scale(0.9));
+
+    const SP=1.7;
+    const nodes=data.nodes.map(n=>({...n, x:n.x*SP, y:n.y*SP, fx0:n.x*SP, fy0:n.y*SP}));
+    const idx=Object.fromEntries(nodes.map(n=>[n.id,n]));
+    const links=data.edges.map(e=>({...e, source:idx[e.source], target:idx[e.target]}));
+
+    if(shuffleSeed>0){
+      nodes.forEach(n=>{
+        const angle=Math.random()*2*Math.PI;
+        const r=60+Math.random()*250;
+        n.fx0=r*Math.cos(angle); n.fy0=r*Math.sin(angle);
+        n.x=n.fx0; n.y=n.fy0;
+      });
+    }
+
+    const aMax=d3.max(nodes,n=>n.abundance_mean)||1;
+    const rScale=d3.scaleSqrt().domain([0,aMax]).range([3,16]);
+    const wScale=d3.scaleLinear().domain([0,0.55]).range([0.4,4]);
+
+    const link=g.append("g").attr("stroke-linecap","round").selectAll("line").data(links).join("line")
+      .attr("stroke-width",d=>wScale(Math.abs(d.partial_r)))
+      .attr("stroke",d=>edgeColor(d,devLookup,diff))
+      .attr("stroke-opacity",d=>edgeOpacity(d,devLookup,diff))
+      .on("mousemove",(ev,d)=>setTip({x:ev.offsetX,y:ev.offsetY,html:edgeTip(d,devLookup)}))
+      .on("mouseleave",()=>setTip(null));
+
+    const node=g.append("g").selectAll("circle").data(nodes).join("circle")
+      .attr("r",d=>nodeR(d,rScale,mode,subjectIdx,data))
+      .attr("fill",d=>catColor(d.functional_category))
+      .attr("stroke",d=>picked&&d.id===picked?"#fff":(isInferred(d.functional_category)?"#c9d1d9":"#0d1117"))
+      .attr("stroke-width",d=>picked&&d.id===picked?2.5:(isInferred(d.functional_category)?1:0.8))
+      .attr("stroke-dasharray",d=>isInferred(d.functional_category)?"2,2":null)
+      .style("cursor","pointer")
+      .on("mousemove",(ev,d)=>setTip({x:ev.offsetX,y:ev.offsetY,html:nodeTip(d)}))
+      .on("mouseleave",()=>setTip(null))
+      .on("click",(ev,d)=>{ev.stopPropagation(); onPick(d.id);});
+
+    const label=g.append("g").selectAll("text").data(nodes.filter(n=>n.degree>=5)).join("text")
+      .text(d=>d.species).attr("font-size",8).attr("fill","#e6edf3").attr("pointer-events","none")
+      .attr("stroke","#0d1117").attr("stroke-width",2.4).attr("paint-order","stroke")
+      .attr("opacity",0.9);
+
+    svg.on("click",()=>onPick(null));
+
+    function draw(){
+      link.attr("x1",d=>d.source.x).attr("y1",d=>d.source.y)
+          .attr("x2",d=>d.target.x).attr("y2",d=>d.target.y)
+          .attr("stroke-opacity",d=>edgeOpacity(d,devLookup,diff));
+      node.attr("cx",d=>d.x).attr("cy",d=>d.y)
+          .attr("opacity",d=>nodeOpacity(d,mode,subjectIdx,data));
+      label.attr("x",d=>d.x+(rScale(d.abundance_mean)+2))
+           .attr("y",d=>d.y+2);
+    }
+
+    const sim=d3.forceSimulation(nodes)
+      .alphaDecay(0.015)
+      .force("link",d3.forceLink(links).id(d=>d.id).distance(34).strength(d=>0.2+0.5*(d.selection_freq||0.5)))
+      .force("charge",d3.forceManyBody().strength(-130).distanceMax(600))
+      .force("x",d3.forceX(d=>d.fx0).strength(0.09))
+      .force("y",d3.forceY(d=>d.fy0).strength(0.09))
+      .force("collide",d3.forceCollide().radius(d=>rScale(d.abundance_mean)+5).strength(0.9))
+      .on("tick",draw);
+    simRef.current=sim;
+    return ()=>sim.stop();
+  },[data,mode,subjectIdx,diff,picked,shuffleSeed]);
+
+  return (<div className="graphwrap">
+    <svg ref={svgRef}></svg>
+    {tip && <div className="tooltip" style={{left:tip.x+14,top:tip.y+12}} dangerouslySetInnerHTML={{__html:tip.html}}/>}
+    <Legend/>
+  </div>);
+}
+
+function edgeColor(d,dev,diff){
+  if(diff&&dev){ const v=dev[d.source.id+"|"+d.target.id]; if(v!=null) return v>0?"#3fb950":"#f85149"; }
+  return d.sign==="pos"?"#2ea043":"#da3633";
+}
+function edgeOpacity(d,dev,diff){
+  if(diff&&dev){ const v=dev[d.source.id+"|"+d.target.id]; return v!=null?Math.min(0.95,0.25+Math.abs(v)/3):0.08; }
+  return 0.5;
+}
+function nodeR(d,rScale,mode,si,data){
+  if(mode==="individual"&&si!=null){ const a=d.abundance_dist[si]||0; const m=d3.max(data.nodes,n=>d3.max(n.abundance_dist));
+    return d3.scaleSqrt().domain([0,m]).range([2,18])(a); }
+  return rScale(d.abundance_mean);
+}
+function nodeOpacity(d,mode,si,data){
+  if(mode==="individual"&&si!=null){ return (d.abundance_dist[si]||0)>0?0.95:0.12; }
+  return 0.92;
+}
+function nodeTip(d){
+  return `<b>${d.species}</b><br><span class="k">module:</span> ${d.functional_category}
+    <br><span class="k">mean abund:</span> ${(d.abundance_mean*100).toFixed(2)}% · <span class="k">prev:</span> ${(d.prevalence*100).toFixed(0)}%
+    <br><span class="k">degree:</span> ${d.degree}${d.dominant_pathways.length?"<br><span class='k'>top pathway:</span> "+d.dominant_pathways[0]:""}`;
+}
+function edgeTip(d,dev){
+  let s=`<b>${d.source.species||d.source} ↔ ${d.target.species||d.target}</b>
+    <br><span class="k">partial r:</span> <span class="stat">${d.partial_r>=0?"+":""}${d.partial_r.toFixed(3)}</span> (${d.sign})
+    <br><span class="k">Spearman r:</span> <span class="stat">${d.spearman_r.toFixed(3)}</span>, q=${d.spearman_q.toExponential(1)}
+    <br><span class="k">StARS stability:</span> ${(d.selection_freq*100).toFixed(0)}%
+    <br><span class="k">method:</span> ${d.method}`;
+  return s;
+}
+
+function Legend(){
+  return (<div className="legend">
+    <div style={{fontWeight:600,marginBottom:4}}>Functional module</div>
+    {Object.entries(CATCOLORS).map(([k,v])=>(<div className="row" key={k}>
+      <span className="swatch" style={{background:v}}></span><span>{k}</span></div>))}
+    <div className="row" style={{marginTop:4}}><span className="swatch" style={{background:"transparent",border:"1px dashed #c9d1d9"}}></span><span>dashed = function inferred from neighbors</span></div>
+    <div style={{marginTop:6}} className="k">edge: green +partial-r · red −partial-r · width∝|partial r|</div>
+  </div>);
+}
+
+// ---- histogram of a node's abundance across the 83 subjects ----
+function Hist({vals, si}){
+  const ref=useRef();
+  useEffect(()=>{
+    const el=d3.select(ref.current); el.selectAll("*").remove();
+    const W=300,H=90,m={l:28,r:6,t:6,b:18};
+    const svg=el.append("svg").attr("width",W).attr("height",H);
+    const nz=vals.map(v=>v*100);
+    const x=d3.scaleLinear().domain([0,d3.max(nz)||1]).range([m.l,W-m.r]);
+    const bins=d3.bin().domain(x.domain()).thresholds(18)(nz);
+    const y=d3.scaleLinear().domain([0,d3.max(bins,b=>b.length)||1]).range([H-m.b,m.t]);
+    svg.append("g").selectAll("rect").data(bins).join("rect")
+      .attr("x",b=>x(b.x0)+1).attr("width",b=>Math.max(1,x(b.x1)-x(b.x0)-1))
+      .attr("y",b=>y(b.length)).attr("height",b=>y(0)-y(b.length)).attr("fill","#58a6ff").attr("opacity",.8);
+    svg.append("g").attr("transform",`translate(0,${H-m.b})`).call(d3.axisBottom(x).ticks(4).tickSize(2))
+      .attr("font-size",8).attr("color","#6e7681");
+    if(si!=null){ svg.append("line").attr("x1",x(vals[si]*100)).attr("x2",x(vals[si]*100))
+      .attr("y1",m.t).attr("y2",H-m.b).attr("stroke","#f2cc60").attr("stroke-width",1.5); }
+  },[vals,si]);
+  return <div ref={ref}></div>;
+}
+
+// ---- browser-side Spearman + BH-FDR for per-node association panel ----
+function rankArray(arr){
+  const n=arr.length;
+  const sorted=arr.map((v,i)=>[v,i]).sort((a,b)=>a[0]-b[0]);
+  const ranks=new Array(n);
+  let i=0;
+  while(i<n){
+    let j=i;
+    while(j<n-1&&sorted[j+1][0]===sorted[j][0])j++;
+    const avg=(i+j)/2+1;
+    for(let k=i;k<=j;k++)ranks[sorted[k][1]]=avg;
+    i=j+1;
+  }
+  return ranks;
+}
+function pearsonR(x,y){
+  const n=x.length;
+  const mx=x.reduce((a,b)=>a+b)/n, my=y.reduce((a,b)=>a+b)/n;
+  let num=0,dx2=0,dy2=0;
+  for(let i=0;i<n;i++){num+=(x[i]-mx)*(y[i]-my);dx2+=(x[i]-mx)**2;dy2+=(y[i]-my)**2;}
+  return(dx2>0&&dy2>0)?num/Math.sqrt(dx2*dy2):0;
+}
+function erfc(x){
+  const t=1/(1+0.3275911*Math.abs(x));
+  const r=t*(0.254829592+t*(-0.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))))*Math.exp(-x*x);
+  return x>=0?r:2-r;
+}
+function normCDF(x){return 0.5*erfc(-x/Math.SQRT2);}
+function pFromR(r,n){
+  if(n<4||Math.abs(r)>=1)return r===0?1:0;
+  const t=Math.abs(r)*Math.sqrt((n-2)/(1-r*r));
+  return 2*(1-normCDF(t));
+}
+function fmtP(p){
+  if(p==null||isNaN(p))return"-";
+  if(p<0.001)return"p<0.001";
+  return"p="+p.toFixed(3);
+}
+function olsResid(y,x){
+  const n=y.length,xb=x.reduce((a,b)=>a+b)/n,yb=y.reduce((a,b)=>a+b)/n;
+  let sxy=0,sxx=0;
+  for(let i=0;i<n;i++){sxy+=(x[i]-xb)*(y[i]-yb);sxx+=(x[i]-xb)**2;}
+  const b=sxx>0?sxy/sxx:0,a=yb-b*xb;
+  return y.map((yi,i)=>yi-(a+b*x[i]));
+}
+function bhFDR(pvals){
+  const n=pvals.length;
+  const sorted=pvals.map((p,i)=>({p,i})).sort((a,b)=>a.p-b.p);
+  const q=new Array(n).fill(1);
+  let cm=1;
+  for(let k=n-1;k>=0;k--){cm=Math.min(cm,sorted[k].p*n/(k+1),1);q[sorted[k].i]=cm;}
+  return q;
+}
+function computeNodeCorrs(node,data){
+  const N=data.subjects.length;
+  const abund=node.abundance_dist;
+  const cohort=data.subjects.map(s=>s.arm==="MRI"?1:0);
+  const varGroups=[
+    {group:"Cognition",keys:["NIH_cog_composite","RAVLTImm_THETA","RAVLTDel_THETA","LSWM_THETA","PC_THETA","PV_THETA","SLUMS","WRAT_scaled"]},
+    {group:"Clinical / gut",keys:["age","IBS_SSS","dementia_risk","L_DYS","Shannon"]},
+    {group:"Behavioral",keys:["nback_d_prime","nback_1back_acc","nback_2back_acc","imm_accuracy","imm_d_prime","imm_hit_rate","imm_fa_rate","del_accuracy","del_d_prime","del_hit_rate","del_fa_rate"]},
+    {group:"Brain PCs",keys:[]}
+  ];
+  const brainKeys=new Set();
+  data.subjects.forEach(s=>{if(s.brain_pc1)Object.keys(s.brain_pc1).forEach(k=>brainKeys.add(k));});
+  varGroups[3].keys=[...brainKeys].filter(k=>k.match(/_pc\d+$/)).sort();
+  const getVal=(s,key)=>{
+    if(s.brain_pc1&&key in s.brain_pc1)return s.brain_pc1[key];
+    const v=s[key];return(v!=null&&isFinite(+v))?+v:null;
+  };
+  const results={};
+  const allP=[],allK=[];
+  for(const grp of varGroups){
+    for(const key of grp.keys){
+      const pairs=[];
+      for(let i=0;i<N;i++){
+        const a=abund[i],v=getVal(data.subjects[i],key);
+        if(a!=null&&v!=null)pairs.push({a,v,c:cohort[i]});
+      }
+      if(pairs.length<12)continue;
+      const as=pairs.map(p=>p.a),vs=pairs.map(p=>p.v),cs=pairs.map(p=>p.c);
+      const ra=rankArray(as),rv=rankArray(vs);
+      const r=pearsonR(ra,rv),p=pFromR(r,pairs.length);
+      const ra_res=olsResid(ra,cs),rv_res=olsResid(rv,cs);
+      const r_adj=pearsonR(ra_res,rv_res),p_adj=pFromR(r_adj,pairs.length);
+      results[key]={group:grp.group,r,p,r_adj,p_adj,n:pairs.length};
+      allP.push(p);allK.push(key);
+    }
+  }
+  if(allP.length){const qs=bhFDR(allP);allK.forEach((k,i)=>{results[k].q=qs[i];});}
+  return results;
+}
+
+function NodeCorrPanel({node,data}){
+  const [fdr,setFdr]=useState(false);
+  const corrs=useMemo(()=>computeNodeCorrs(node,data),[node.id,data]);
+  const entries=Object.entries(corrs).sort((a,b)=>a[1].p-b[1].p);
+  if(!entries.length)return <div className="muted">No associations (insufficient data).</div>;
+  const groups={};
+  entries.forEach(([k,v])=>{(groups[v.group]=groups[v.group]||[]).push([k,v]);});
+  const isSig=(v)=>fdr?(v.q!=null&&v.q<0.05):(v.p<0.05);
+  return (<div>
+    <div style={{display:"flex",gap:5,marginBottom:6,alignItems:"center"}}>
+      <span className="k" style={{fontSize:10}}>Threshold:</span>
+      <button className={!fdr?"active":""} onClick={()=>setFdr(false)} style={{padding:"2px 7px",fontSize:10}}>Uncorrected</button>
+      <button className={fdr?"active":""} onClick={()=>setFdr(true)} style={{padding:"2px 7px",fontSize:10}}>BH-FDR</button>
+    </div>
+    {Object.entries(groups).map(([grp,ge])=>(
+      <div key={grp} style={{marginBottom:6}}>
+        <div className="k" style={{fontSize:11,marginBottom:2}}>{grp}</div>
+        {ge.map(([k,v])=>{
+          const sig=isSig(v);
+          const label=k.replace(/_THETA$/,"").replace(/_pc(\d+)$/," PC$1").replace(/_/g," ");
+          return(<div className="barrow" key={k} style={{fontSize:11,flexWrap:"wrap"}}>
+            <span className="pill" style={sig?{borderColor:"#2ea043"}:{}}>{label}</span>
+            <span className="stat" style={{color:"#e6edf3"}}> r={v.r>=0?"+":""}{v.r.toFixed(2)} <span className="muted">{fmtP(v.p)}</span></span>
+            <span className="muted stat"> adj r={v.r_adj>=0?"+":""}{v.r_adj.toFixed(2)} {fmtP(v.p_adj)}</span>
+            {v.q!=null&&<span className="muted stat"> q={v.q<0.001?"<0.001":v.q.toFixed(3)}</span>}
+            <span className="muted stat"> n={v.n}</span>
+          </div>);
+        })}
+      </div>
+    ))}
+    <div className="muted" style={{marginTop:4,fontSize:10}}>Spearman r. Green = {fdr?"BH-FDR q<0.05":"uncorrected p<0.05"}. adj r = cohort-residualized.</div>
+  </div>);
+}
+
+// ---- BA positions: 280x220 lateral left hemisphere (temporal lobe visible) ----
+const BA_POS={
+  BA9: [72,56],BA46:[76,70],BA8:[90,44],BA6:[112,50],
+  BA45:[100,88],BA44:[118,88],BA3:[142,72],BA1:[150,64],
+  BA7:[178,48],BA40:[162,72],BA39:[182,80],BA19:[202,100],
+  BA18:[216,116],BA22:[158,146],BA37:[192,176]
+};
+const BA_NAMES={
+  BA1:"Primary somatosensory",BA3:"Primary somatosensory",BA6:"Premotor / SMA",
+  BA7:"Superior parietal",BA8:"Frontal eye fields",BA9:"DLPFC",
+  BA18:"Secondary visual",BA19:"Visual association",BA22:"Wernicke / sup. temporal",
+  BA37:"Fusiform / inf. temporal",BA39:"Angular gyrus",BA40:"Supramarginal gyrus",
+  BA44:"Broca (pars opercularis)",BA45:"Broca (pars triangularis)",BA46:"DLPFC"
+};
+
+function BrainAtlasPanel({task,pc,loadings,evr,onClose}){
+  const [tooltip,setTooltip]=useState(null);
+  if(!loadings)return null;
+  const baLoad={};
+  Object.entries(loadings).forEach(([feat,load])=>{
+    const m=feat.match(/^(BA\d+)_/);
+    if(!m)return;
+    const ba=m[1];
+    (baLoad[ba]=baLoad[ba]||[]).push(load);
+  });
+  const baAvg={};
+  Object.entries(baLoad).forEach(([ba,vals])=>{baAvg[ba]=vals.reduce((a,b)=>a+b)/vals.length;});
+  const maxAbs=Math.max(...Object.values(baAvg).map(Math.abs),0.01);
+  const colorFn=(v)=>{
+    const t=(v/maxAbs+1)/2;
+    const lerp=(a,b,s)=>Math.round(a+(b-a)*s);
+    const s=t<0.5?t*2:(t-0.5)*2;
+    return`rgb(${t<0.5?lerp(33,247,s):lerp(247,178,s)},${t<0.5?lerp(102,247,s):lerp(247,24,s)},${t<0.5?lerp(172,247,s):lerp(247,43,s)})`;
+  };
+  // Brain outline: left lateral hemisphere including temporal lobe (280x220 viewBox)
+  const outline="M44,112 C40,86 42,54 64,32 C86,10 120,4 156,4 C192,4 224,16 250,40 C268,62 274,90 268,116 C262,140 250,158 234,170 C218,182 198,192 176,196 C154,200 132,198 110,192 C90,186 74,172 66,154 C58,140 50,126 44,112 Z";
+  // Major sulci giving gyral appearance
+  const sylvian ="M82,116 C108,120 146,126 186,132 C210,136 232,140 254,144";
+  const central  ="M150,8 C152,28 154,50 156,72 C157,90 158,108 160,120";
+  const precentral="M134,12 C136,32 138,54 140,76 C141,92 142,110 144,122";
+  const postcentral="M165,8 C167,28 169,50 171,72 C172,88 172,104 174,118";
+  const supFront ="M60,40 C85,32 110,26 134,22";
+  const infFront ="M67,68 C91,60 116,55 138,52";
+  const intrapari="M175,18 C192,32 207,50 216,74";
+  const supTemp  ="M97,148 C130,152 165,156 200,160 C222,162 242,164 256,166";
+  const midTemp  ="M106,170 C138,173 172,176 204,178 C226,179 244,180 256,181";
+  const pctOccip ="M228,28 C235,48 240,70 242,96";
+  const pcLabel=pc?pc.toUpperCase():"PC1";
+  const evrPct=evr!=null?(evr*100).toFixed(1)+"%":"";
+  return(<div style={{background:"#0d1e30",border:"1px solid #1f6feb",borderRadius:8,padding:10,marginTop:8,position:"relative"}}>
+    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+      <span style={{fontSize:12,color:"#58a6ff",fontWeight:600}}>{task} {pcLabel}{evrPct?" ("+evrPct+" variance)":""}</span>
+      <button onClick={onClose} style={{padding:"1px 7px",fontSize:11}}>close</button>
+    </div>
+    <svg viewBox="0 0 280 220" style={{width:"100%",height:"auto",display:"block"}}>
+      <defs>
+        <radialGradient id="cg" cx="62%" cy="28%" r="65%">
+          <stop offset="0%" stopColor="#2a3d56"/>
+          <stop offset="55%" stopColor="#1c2e45"/>
+          <stop offset="100%" stopColor="#111e2e"/>
+        </radialGradient>
+      </defs>
+      {/* axis labels — outside the flip group so text reads normally */}
+      <text x="14"  y="215" fontSize="8" fill="#4a6a8a">Occipital</text>
+      <text x="218" y="215" fontSize="8" fill="#4a6a8a">Frontal</text>
+      <text x="272" y="115" fontSize="7" fill="#4a6a8a" transform="rotate(90,272,115)">Superior</text>
+      <text x="188" y="208" fontSize="7" fill="#3a5570">Temporal</text>
+      {/* flip the entire brain L-R so frontal is on the right */}
+      <g transform="translate(280,0) scale(-1,1)">
+        <path d={outline} fill="url(#cg)" stroke="#4a7ab5" strokeWidth={1.8}/>
+        <path d={sylvian}     fill="none" stroke="#0e1a2c" strokeWidth={3.5} strokeLinecap="round"/>
+        <path d={central}    fill="none" stroke="#0e1a2c" strokeWidth={2.8} strokeLinecap="round"/>
+        <path d={precentral}  fill="none" stroke="#0e1a2c" strokeWidth={1.8} strokeLinecap="round"/>
+        <path d={postcentral} fill="none" stroke="#0e1a2c" strokeWidth={1.8} strokeLinecap="round"/>
+        <path d={supFront}   fill="none" stroke="#0e1a2c" strokeWidth={1.8} strokeLinecap="round"/>
+        <path d={infFront}   fill="none" stroke="#0e1a2c" strokeWidth={1.5} strokeLinecap="round"/>
+        <path d={intrapari}  fill="none" stroke="#0e1a2c" strokeWidth={1.8} strokeLinecap="round"/>
+        <path d={supTemp}    fill="none" stroke="#0e1a2c" strokeWidth={1.8} strokeLinecap="round"/>
+        <path d={midTemp}    fill="none" stroke="#0e1a2c" strokeWidth={1.5} strokeLinecap="round"/>
+        <path d={pctOccip}   fill="none" stroke="#0e1a2c" strokeWidth={1.5} strokeLinecap="round"/>
+        <path d={sylvian}    fill="none" stroke="#2d4a6b" strokeWidth={1}   strokeLinecap="round" strokeDasharray="2,3"/>
+        <path d={central}    fill="none" stroke="#2d4a6b" strokeWidth={0.8} strokeLinecap="round" strokeDasharray="2,3"/>
+        {Object.entries(BA_POS).map(([ba,[cx,cy]])=>{
+          const load=baAvg[ba];
+          if(load==null)return null;
+          const r=7+10*Math.abs(load)/maxAbs;
+          return(<g key={ba} style={{cursor:"pointer"}}
+            onMouseEnter={(e)=>setTooltip({ba,load,name:BA_NAMES[ba]||ba,x:e.clientX,y:e.clientY})}
+            onMouseLeave={()=>setTooltip(null)}>
+            <circle cx={cx} cy={cy} r={r} fill={colorFn(load)} stroke="#fff" strokeOpacity={0.4} strokeWidth={0.8} opacity={0.9}/>
+            {/* counter-flip text so number labels read normally */}
+            <text x={cx} y={cy+1} textAnchor="middle" dominantBaseline="middle" fontSize={6} fill="#fff" fontWeight="bold"
+              transform={`translate(${2*cx},0) scale(-1,1)`}>{ba.replace("BA","")}</text>
+          </g>);
+        })}
+      </g>
+    </svg>
+    <div style={{display:"flex",alignItems:"center",gap:6,marginTop:4,fontSize:10,color:"#6a8ba8"}}>
+      <div style={{display:"flex",alignItems:"center",gap:3}}>
+        <div style={{width:64,height:8,background:"linear-gradient(to right,rgb(33,102,172),rgb(247,247,247),rgb(178,24,43))",borderRadius:2,border:"1px solid #2d4a6b"}}></div>
+        <span>neg</span><span style={{marginLeft:8}}>pos {pcLabel} loading</span>
+      </div>
+      <span style={{marginLeft:"auto"}}>circle = |loading|</span>
+    </div>
+    <div className="muted" style={{marginTop:2,fontSize:10}}>L+R loadings averaged per BA. Hover for name. {Object.keys(baAvg).length}/{Object.keys(BA_POS).length} BAs present.</div>
+    {tooltip&&<div style={{position:"fixed",top:tooltip.y+8,left:tooltip.x+8,background:"#0b0f14",border:"1px solid #58a6ff",borderRadius:6,padding:"4px 8px",fontSize:11,zIndex:100,pointerEvents:"none"}}>
+      <b>{tooltip.ba}</b> {BA_NAMES[tooltip.ba]||""}<br/>
+      <span className="muted">{pcLabel} loading: {tooltip.load>=0?"+":""}{tooltip.load.toFixed(3)}</span>
+    </div>}
+  </div>);
+}
+
+function SubjectBrainPanel({subj}){
+  const bp = subj.brain_pc1||{};
+  const behavKeys = ["nback_1back_acc","nback_2back_acc","nback_d_prime","imm_accuracy","imm_d_prime","imm_hit_rate","imm_fa_rate","del_accuracy","del_d_prime","del_hit_rate","del_fa_rate"];
+  const behav = {};
+  for(const k of behavKeys) if(subj[k]!=null) behav[k]=subj[k];
+  const hasBrain = Object.keys(bp).length>0;
+  const hasBehav = Object.values(behav).some(v=>v!=null);
+  if(!hasBrain && !hasBehav) return null;
+  const modality = subj.arm==="MRI"?"fMRI":"fNIRS";
+  return (<div style={{marginTop:8}}>
+    {hasBrain && (<>
+      <div className="k" style={{marginBottom:2}}>Brain activation ({modality})</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:4,marginBottom:6}}>
+        {Object.entries(bp).filter(([k])=>k.match(/_pc\d+$/)).map(([k,v])=>{
+          const label=k.replace(/_pc(\d+)$/,(m,n)=>" PC"+n).replace(/_/g," ");
+          return(<span className="pill" key={k} title={k}>{label}: <b>{v>0?"+":""}{v?.toFixed(2)}</b></span>);
+        })}
+      </div>
+    </>)}
+    {hasBehav && (<>
+      <div className="k" style={{marginBottom:2}}>Behavioral performance</div>
+      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+        {Object.entries(behav).filter(([_k,v])=>v!=null).map(([k,v])=>(
+          <span className="pill" key={k} title={k}>{k}: <b>{v?.toFixed(3)}</b></span>))}
+      </div>
+    </>)}
+  </div>);
+}
+
+function BrainNominalAssoc({data}){
+  const [atlasView,setAtlasView]=useState(null);
+  const [fdr,setFdr]=useState(false);
+  const tl=data.brain_imaging?.task_loadings||{};
+  const allCorrs=data.brain_imaging?.correlations||[];
+  const corrs=allCorrs
+    .filter(r=>(r.brain_summary==="pc1"||r.brain_summary==="pc2")&&(fdr?r.q<0.05:r.p<0.05))
+    .sort((a,b)=>a.p-b.p).slice(0,12);
+  const atlasLoading=atlasView&&tl[atlasView.task]?tl[atlasView.task][atlasView.pc]:null;
+  const atlasEvr=atlasView&&tl[atlasView.task]?tl[atlasView.task].evr?.[atlasView.pc]:null;
+  return(<div>
+    <div style={{display:"flex",gap:5,marginBottom:4,alignItems:"center"}}>
+      <span className="k" style={{fontSize:10}}>Show:</span>
+      <button className={!fdr?"active":""} onClick={()=>setFdr(false)} style={{padding:"2px 7px",fontSize:10}}>Nominal p&lt;0.05</button>
+      <button className={fdr?"active":""} onClick={()=>setFdr(true)} style={{padding:"2px 7px",fontSize:10}}>FDR q&lt;0.05</button>
+    </div>
+    {!corrs.length&&<div className="muted">{fdr?"No associations survive BH-FDR correction.":"No nominal associations (p<0.05)."}</div>}
+    {corrs.map((r,i)=>{
+      const mb=r.microbiome.replace("behav_","").replace("functional_cluster","gut profile");
+      const key=r.task+"|"+r.brain_summary;
+      const isOpen=atlasView&&atlasView.task===r.task&&atlasView.pc===r.brain_summary;
+      const hasAtlas=!!tl[r.task]?.[r.brain_summary];
+      return(<div className="barrow" key={i}>
+        <span className="pill"
+          style={{background:"#0d2035",borderColor:"#1f6feb",cursor:hasAtlas?"pointer":"default",minWidth:0}}
+          title={hasAtlas?"Click to view brain atlas":""}
+          onClick={()=>hasAtlas&&setAtlasView(isOpen?null:{task:r.task,pc:r.brain_summary})}>
+          {r.task} {r.brain_summary.toUpperCase()}
+        </span>
+        <span className="k"> ~ {mb}</span>
+        <span className="muted stat"> r={r.stat.toFixed(2)} {fmtP(r.p)} n={r.n}{r.r_cohort_adjusted!=null?" adj-r="+r.r_cohort_adjusted.toFixed(2):""}</span>
+      </div>);
+    })}
+    {atlasView&&atlasLoading&&(
+      <BrainAtlasPanel task={atlasView.task} pc={atlasView.pc} loadings={atlasLoading} evr={atlasEvr} onClose={()=>setAtlasView(null)}/>
+    )}
+  </div>);
+}
+
+function CogResults({adj}){
+  const entries = Object.entries(adj)
+    .sort((a,b)=>a[1].p_cog_given_age-b[1].p_cog_given_age)
+    .slice(0,10);
+  if(!entries.length) return <div className="muted">not available</div>;
+  return (<div>{entries.map(([k,v])=>{
+    const p = +v.p_cog_given_age;
+    const sig = p<0.05;
+    const tag = v.source==="behavioral" ? "[behav] " : "";
+    return (<div className="barrow" key={k}>
+      <span className="pill" style={sig?{background:"#132a13",borderColor:"#2ea043"}:{}}>{tag}{k}</span>
+      <span className="muted stat">n={v.n} p={p.toExponential(1)}{v.q_cog!=null?` q=${(+v.q_cog).toExponential(1)}`:""}</span>
+    </div>);
+  })}</div>);
+}
+
+function SidePanel({data, picked, mode, subjectIdx}){
+  const m=data.meta;
+  const node = picked ? data.nodes.find(n=>n.id===picked) : null;
+  const si = mode==="individual"?subjectIdx:null;
+  const cl = m.clustering_diagnostics;
+  const cov = m.covariate_association?.associations||{};
+  const adj = m.cluster_cognition_ageadjusted?.results||{};
+  const sig = Object.entries(cov).filter(([k,v])=>v.q!=null&&v.q<0.05).sort((a,b)=>a[1].q-b[1].q);
+  const subj = si!=null ? data.subjects[si] : null;
+
+  if(node){
+    return (<div className="side">
+      <button onClick={()=>{}} style={{float:"right"}} className="k"></button>
+      <h3 style={{color:catColor(node.functional_category)}}>{node.species}</h3>
+      <div className="muted">{node.functional_category}</div>
+      <div style={{marginTop:6}}><span className="k">mean abundance:</span> <b>{(node.abundance_mean*100).toFixed(2)}%</b>
+        &nbsp;·&nbsp;<span className="k">prevalence:</span> {(node.prevalence*100).toFixed(0)}%
+        &nbsp;·&nbsp;<span className="k">degree:</span> {node.degree}</div>
+      <h3>Abundance across {m.n_subjects} subjects</h3>
+      <Hist vals={node.abundance_dist} si={si}/>
+      {si!=null && <div className="muted">yellow line = subject {data.subjects[si].sample_id}</div>}
+      <h3>Top contributed pathways</h3>
+      {node.dominant_pathways.length? node.dominant_pathways.map((p,i)=><div className="pill" key={i}>{p}</div>)
+        : <div className="muted">No stratified pathway contribution (uncultured/SGB) — see "unannotated" note.</div>}
+      <h3>Network neighbors ({node.neighbors.length})</h3>
+      <div>{node.neighbors.map(nb=><span className="pill" key={nb}>{nb.replace("s__","").replace(/_/g," ")}</span>)}</div>
+      <h3>Abundance associations (Spearman, n={m.n_subjects})</h3>
+      <div className="muted" style={{marginBottom:4}}>Unadjusted + cohort-adjusted Spearman for this taxon vs all covariates.</div>
+      <NodeCorrPanel node={node} data={data}/>
+    </div>);
+  }
+
+  if(subj){
+    return (<div className="side">
+      <h3>{subj.sample_id} <span className="k">Profile {subj.cluster}{subj.is_exemplar?" ★ exemplar":""}</span></h3>
+      <div style={{marginTop:4}}>
+        <span className="k">Arm:</span> {subj.arm}&nbsp;·&nbsp;
+        <span className="k">Age:</span> {subj.age??"?"}&nbsp;·&nbsp;
+        <span className="k">Sex:</span> {subj.sex??subj.Sex??"-"}&nbsp;·&nbsp;
+        <span className="k">Silhouette:</span> {subj.silhouette?.toFixed(2)??"-"}
+      </div>
+      {subj.NIH_cog_composite!=null && <div style={{marginTop:4}}>
+        <span className="k">NIH composite:</span> {subj.NIH_cog_composite?.toFixed(2)}&nbsp;·&nbsp;
+        <span className="k">RAVLT imm:</span> {subj.RAVLTImm_THETA?.toFixed(2)??"-"}
+      </div>}
+      <SubjectBrainPanel subj={subj}/>
+      <h3 style={{marginTop:10}}>Network deviations (this subject vs group)</h3>
+      <div className="muted">Use "Diff vs group" toggle to highlight edges that deviate most from group mean.</div>
+      <div className="muted" style={{marginTop:4,color:"#f2cc60"}}>n=83 · individual view is descriptive, not powered.</div>
+    </div>);
+  }
+
+  return (<div className="side">
+    <h3>Gut microbiome interaction world</h3>
+    <div className="muted">{m.n_nodes} taxa · {m.n_edges} statistically-supported interactions · n={m.n_subjects} adults.
+      Position ≈ functional similarity; edges = StARS-stable graphical-lasso associations.</div>
+
+    <h3>Two functional gut profiles</h3>
+    <div className="muted">Subjects cluster into k={cl.chosen_k} <b>functional</b> profiles
+      (PAM on {cl.feature_space}; silhouette {cl.silhouette_by_k[cl.chosen_k]}, bootstrap-stable, min Jaccard {cl.min_jaccard}).</div>
+    {data.clusters.map(c=>(<div key={c.cluster} style={{marginTop:4}}>
+      <b>Profile {c.cluster}</b> — n={c.size}, exemplar <span className="pill">{c.exemplar_sample_id}</span>
+      <span className="k"> Jaccard {c.jaccard_stability?.toFixed(2)}</span></div>))}
+
+    <h3>Profile ↔ cognition &amp; behavior (age-adjusted)</h3>
+    <div className="muted">Logistic: cluster ~ age + measure (n=83). Immediate recall (RAVLT) and NIH composite differ by profile; recognition d-prime trend p≈0.10.</div>
+    <CogResults adj={adj}/>
+    <div className="muted" style={{marginTop:4}}>Arm p={(+cov.arm?.p||0).toFixed(2)}, sex p={(+cov.sex?.p||0).toFixed(2)} — profiles are not a cohort artifact.</div>
+
+    <h3>Brain-imaging overlay (nominal p&lt;0.05)</h3>
+    <div className="muted">{data.brain_imaging?.activated ?
+      `${data.brain_imaging.n_tests} pooled harmonized tests (PC1+PC2), ${data.brain_imaging.n_fdr_significant} survive FDR. Cohort-adjusted sensitivity tested.`
+      : "not activated."}</div>
+    <BrainNominalAssoc data={data}/>
+
+    <h3 style={{color:"#f2cc60"}}>Interpretation limits</h3>
+    <div className="muted">{m.power_note}</div>
+    <div className="muted" style={{marginTop:6}}>Click any node for taxon detail. Switch to Individual world to view a subject's deviation from the group.</div>
+  </div>);
+}
+
+function App(){
+  const [data,err]=useData();
+  const [mode,setMode]=useState("group");
+  const [subjectIdx,setSubjectIdx]=useState(null);
+  const [diff,setDiff]=useState(false);
+  const [picked,setPicked]=useState(null);
+  const [shuffleSeed,setShuffleSeed]=useState(0);
+  if(err) return <div className="err">Could not load <code>microbiome_world.json</code> ({err}).<br/>
+    Serve this folder over HTTP (e.g. <code>python3 -m http.server</code>) and open the page from there.</div>;
+  if(!data) return <div className="err">Loading…</div>;
+
+  const subjectsByCluster={};
+  data.subjects.forEach((s,i)=>{ (subjectsByCluster[s.cluster]=subjectsByCluster[s.cluster]||[]).push({...s,i}); });
+
+  return (<React.Fragment>
+    <div className="topbar">
+      <h1>🦠 Gut Microbiome World</h1>
+      <span className="caveat">n={data.meta.n_subjects} · descriptive / correlational — not causal</span>
+      <div className="controls">
+        <button className={mode==="group"?"active":""} onClick={()=>{setMode("group");setSubjectIdx(null);}}>Group world</button>
+        <button className={mode==="individual"?"active":""} onClick={()=>{setMode("individual"); if(subjectIdx==null) setSubjectIdx(data.subjects.findIndex(s=>s.is_exemplar));}}>Individual world</button>
+        {mode==="individual" && <select value={subjectIdx??""} onChange={e=>setSubjectIdx(+e.target.value)}>
+          {Object.keys(subjectsByCluster).sort().map(c=>(
+            <optgroup key={c} label={`Profile ${c}`}>
+              {subjectsByCluster[c].map(s=><option key={s.i} value={s.i}>{s.sample_id}{s.is_exemplar?" ★ exemplar":""}</option>)}
+            </optgroup>))}
+        </select>}
+        {mode==="individual" && <button className={diff?"active":""} onClick={()=>setDiff(!diff)}>Diff vs group</button>}
+        <button onClick={()=>setShuffleSeed(s=>s+1)} title="Randomize node layout">Shuffle layout</button>
+      </div>
+    </div>
+    <div className="main">
+      <Graph data={data} mode={mode} subjectIdx={subjectIdx} diff={diff} onPick={setPicked} picked={picked} shuffleSeed={shuffleSeed}/>
+      <SidePanel data={data} picked={picked} mode={mode} subjectIdx={subjectIdx}/>
+    </div>
+  </React.Fragment>);
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
